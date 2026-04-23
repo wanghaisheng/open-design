@@ -1,0 +1,51 @@
+{
+  "name": "@open-design/cli",
+  "version": "1.0.0",
+  "description": "CLI tool for Open Design specification documents - lint, validate, template, and export",
+  "keywords": [
+    "open-design",
+    "design-system",
+    "specification",
+    "cli"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "private": false,
+  "type": "module",
+  "bin": {
+    "open-design": "./dist/index.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./validators": {
+      "import": "./dist/validators/index.js",
+      "types": "./dist/validators/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "bun build src/index.ts src/validators/index.ts --outdir dist --target node && tsc --project tsconfig.build.json --emitDeclarationOnly --skipLibCheck",
+    "dev": "bun run src/index.ts",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "citty": "^0.1.6",
+    "yaml": "^2.7.1",
+    "zod": "^3.24.0",
+    "remark": "^15.0.0",
+    "remark-frontmatter": "^5.0.0",
+    "remark-parse": "^11.0.0",
+    "remark-stringify": "^11.0.0",
+    "unified": "^11.0.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.24",
+    "typescript": "^5.7.3",
+    "bun-types": "^1.3.12"
+  }
+}
