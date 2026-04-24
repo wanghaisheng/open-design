@@ -4,7 +4,7 @@
 
 本文档列出了 game-development-role 下的所有 skill，按照功能领域进行分类组织，便于查找和理解 skill 之间的关系。
 
-**总技能数：** 87 个
+**总技能数：** 101 个
 
 **最后更新：** 2025-04-25
 
@@ -32,8 +32,22 @@
 | design-systems | 设计系统，建立游戏设计系统和设计规范 | 游戏, 设计, 系统, 规范 |
 | world-creation | 创建游戏世界，设计游戏世界的地理、历史、文化和规则 | 游戏, 设计, 世界, 创建 |
 | brainstorm | 头脑风暴，进行创意讨论和创意生成 | 游戏, 设计, 创意, 讨论 |
+| vip-system-design | VIP系统设计，设计游戏的VIP等级和特权权益系统，设计用户分层和付费激励体系 | 游戏, 设计, VIP, 商业化 |
+| gacha-system-design | 抽卡系统设计，设计游戏的抽卡/扭蛋系统，设计概率保底机制，设计抽卡返还和兑换机制 | 游戏, 设计, 抽卡, 商业化 |
+| 3b-habit-formation | 3B习惯养成，基于3B框架设计游戏运营策略和用户习惯养成方案，制定7天和30天运营目标 | 游戏, 运营, 习惯, 3B框架 |
+| prd-evaluation | PRD评估与优化，基于"好玩+商业化+长期运营"三维度评估游戏PRD，识别冲突点和短板 | 游戏, 设计, PRD, 评估 |
+| game-feel-optimization | 游戏爽感优化，基于"浓缩理论"和"融合创新"方法论优化游戏爽感体验 | 游戏, 设计, 爽感, 优化 |
+| core-experience-purification | 核心体验提纯，基于"核心体验提纯法"优化慢热型游戏的核心体验 | 游戏, 设计, 体验, 提纯 |
+| freemium-design | Freemium模式设计，基于Elena Verna的增长策略设计免费/付费功能划分 | 游戏, 设计, 商业化, Freemium |
+| community-system-design | 社区系统设计，设计游戏社区和社交系统，设计社区运营和用户引导策略 | 游戏, 设计, 社区, 社交 |
+| commercialization-benchmark-analysis | 商业化案例标杆分析，分析成功产品的商业化/货币体系，为新产品提供参考 | 游戏, 设计, 商业化, 标杆分析 |
+| progression-system-design | 玩家成长系统设计，设计玩家成长系统（等级、经验、技能树等）和进度系统 | 游戏, 设计, 成长, 进度 |
+| collection-system-design | 收集品系统设计，设计角色/单位/道具收集系统，设计收集进度和奖励机制 | 游戏, 设计, 收集, 图鉴 |
+| monetization-system-design | 商业化系统设计，设计游戏整体商业化系统，设计付费点和付费模式 | 游戏, 设计, 商业化, 变现 |
+| social-system-design | 社交系统设计，设计游戏社交系统，设计玩家互动机制和社交激励 | 游戏, 设计, 社交, 互动 |
+| gaas-system-design | GaaS系统设计，设计游戏即服务系统，设计长期运营活动和赛季系统 | 游戏, 设计, GaaS, 运营 |
 
-**小计：** 16 个技能
+**小计：** 30 个技能
 
 ---
 
@@ -190,7 +204,7 @@
 | 阶段 | 技能 |
 |------|------|
 | **前期策划** | brainstorm, concept-creation, concept-evaluation, concept-art, concept-art-generation, project-planning, estimate |
-| **设计阶段** | system-design, level-design, narrative-design, story-design, core-loop-design, economy-design, environment-design, vfx-design, ui-design, design-systems, world-creation, character-development |
+| **设计阶段** | system-design, level-design, narrative-design, story-design, core-loop-design, economy-design, environment-design, vfx-design, ui-design, design-systems, world-creation, character-development, vip-system-design, gacha-system-design, prd-evaluation, game-feel-optimization, core-experience-purification, freemium-design, community-system-design, commercialization-benchmark-analysis, progression-system-design, collection-system-design, monetization-system-design, social-system-design, gaas-system-design |
 | **开发阶段** | engine-development, gameplay-implementation, backend-development, network-programming, shader-development, ui-implementation, tool-development, prototype, setup-engine, unity-development, unreal-development, godot-development, cocos-development, phaser-development |
 | **美术制作** | character-art, environment-art, asset-generation, vfx-creation, art-optimization, visual-exploration, reference-collection, pipeline-integration |
 | **测试阶段** | test-strategy, automation-testing, functional-testing, performance-testing, playtest-report, bug-report, gate-check, visual-qa, script-review, narrative-review |
@@ -211,6 +225,8 @@
 | prototype | concept-creation, concept-evaluation | gameplay-implementation |
 | test-strategy | - | automation-testing, functional-testing, performance-testing |
 | project-planning | - | sprint-plan, progress-tracking, resource-allocation |
+| vip-system-design | economy-design | balance-check, release-checklist |
+| gacha-system-design | economy-design | balance-check, release-checklist |
 
 ---
 
@@ -220,6 +236,9 @@
 
 **核心设计：**
 - system-design + core-loop-design + economy-design + level-design
+
+**商业化设计：**
+- economy-design + vip-system-design + gacha-system-design + balance-check
 
 **叙事设计：**
 - narrative-design + story-design + narrative-writing + dialogue-writing + script-review
