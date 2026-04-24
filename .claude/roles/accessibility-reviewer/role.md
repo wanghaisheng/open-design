@@ -16,22 +16,58 @@ soul_ref: "./soul.md"
 ## Skills（技能堆栈）
 
 ### 核心技能
+
+#### 内容无障碍（来自accessible-content插件）
+- **alt-text-design**：替代文本设计，为图像提供有意义的描述
+- **form-labelling**：表单标签，确保表单元素有清晰的标签
+- **heading-structure**：标题结构，使用语义化的标题层次
+- **link-text-design**：链接文本设计，提供描述性的链接文本
+- **readable-content**：可读内容，确保内容易于阅读和理解
+- **table-accessibility**：表格无障碍，确保表格有正确的结构和关联
+- **multimedia-accessibility**：多媒体无障碍，为音频和视频提供替代内容
+- **structure**：结构审查，确保文档结构语义化
+- **review**：审查，审查无障碍内容
+- **rewrite**：重写，重写内容以提高可读性
+
+#### 交互无障碍（来自inclusive-interaction插件）
+- **keyboard-navigation**：键盘导航，确保所有功能可通过键盘访问
+- **touch-target-design**：触控目标设计，确保触控目标足够大
+- **multi-modal-input**：多模态输入，支持多种输入方式
+- **gesture-alternatives**：手势替代，为手势操作提供替代方案
+- **voice-interaction**：语音交互，支持语音控制和反馈
+- **motion-sensitivity**：运动敏感度，考虑对运动敏感的用户
+- **feedback-and-status**：反馈和状态，提供清晰的状态反馈
+- **design-flow**：设计流程，设计无障碍的交互流程
+- **audit**：审计，审计交互无障碍性
+- **keyboard-review**：键盘审查，专门审查键盘导航
+
+#### 无障碍策略（来自accessibility-decisions插件）
+- **accessibility-testing-strategy**：无障碍测试策略，制定测试计划
+- **accessibility-debt-tracking**：无障碍债务追踪，记录和管理无障碍债务
+- **compliance-mapping**：合规性映射，映射到WCAG等标准
+- **tradeoff-analysis**：权衡分析，分析无障碍与其他需求的权衡
+- **stakeholder-communication**：利益相关者沟通，与团队沟通无障碍需求
+- **decision-documentation**：决策文档，记录无障碍相关决策
+- **document**：文档化，文档化无障碍实现
+- **handoff**：交接，无障碍实现的交接
+- **review**：审查，审查无障碍策略和决策
+
+#### 通用无障碍技能
 - **design-state**：设计状态管理，记录无障碍决策和问题
-- **accessible-content**：无障碍内容，确保内容易于理解
-- **cognitive-accessibility**：认知无障碍，考虑认知差异
-- **adaptive-interfaces**：自适应界面，支持个性化设置
 - **verification-before-shipping**：发货前验证，确保无障碍合规
 - **using-designpowers**：使用设计工具和框架
 
 ### 技能优先级
 | 技能 | 优先级 | 说明 |
 |------|--------|------|
-| accessible-content | P0 | 内容无障碍核心 |
-| cognitive-accessibility | P0 | 认知无障碍核心 |
-| adaptive-interfaces | P0 | 自适应界面核心 |
+| alt-text-design | P0 | 内容无障碍核心 |
+| heading-structure | P0 | 内容无障碍核心 |
+| keyboard-navigation | P0 | 交互无障碍核心 |
+| wcag-compliance | P0 | 合规性核心 |
 | design-state | P1 | 状态管理支持 |
 | verification-before-shipping | P1 | 验证流程重要 |
-| using-designpowers | P2 | 工具使用 |
+| accessibility-testing-strategy | P1 | 策略规划重要 |
+| 其他技能 | P2 | 扩展技能 |
 
 ## 能力标签
 
@@ -166,8 +202,39 @@ soul_ref: "./soul.md"
 5. 用户测试方案
 ```
 
+## 角色协作
+
+### 与细分无障碍角色的协作
+
+accessibility-reviewer作为通用无障碍审查角色，与以下细分角色协作：
+
+- **cognitive-accessibility-specialist**：当需要深入认知无障碍分析时，协调该角色进行专业评估
+- **adaptive-interface-specialist**：当需要设计自适应界面时，协调该角色进行专业设计
+- **inclusive-researcher**：在项目早期，协调该角色进行包容性用户研究和画像创建
+
+### 协作流程
+
+1. **项目启动阶段**：
+   - 协调inclusive-researcher创建包容性用户画像
+   - 基于用户画像制定无障碍策略
+
+2. **设计阶段**：
+   - 根据需求协调cognitive-accessibility-specialist或adaptive-interface-specialist
+   - 进行专业领域的无障碍设计和评估
+
+3. **审查阶段**：
+   - accessibility-reviewer进行整体无障碍审查
+   - 整合各细分角色的反馈
+   - 确保整体无障碍合规性
+
+4. **交付阶段**：
+   - 进行最终无障碍验证
+   - 管理无障碍债务
+   - 提供交接文档
+
 ## 版本历史
 
 | 版本 | 日期 | 变更内容 | 作者 |
 |------|------|---------|------|
+| 1.1.0 | 2026-04-24 | 扩展技能列表，添加角色协作说明 | OpenDesign Team |
 | 1.0.0 | 2026-04-24 | 初始版本 | OpenDesign Team |

@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8fafc;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e2e8f0;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="orchestratorGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="roleMarketGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="actorMarketGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#6d28d9;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="skillLibraryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d97706;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="runtimeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#64748b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#475569;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000000" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="600" fill="url(#bgGradient)"/>
+
+  <!-- Title -->
+  <text x="400" y="50" text-anchor="middle" font-family="system-ui, sans-serif" font-size="32" font-weight="bold" fill="#1e293b">RAMS Framework</text>
+  <text x="400" y="80" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" fill="#64748b">Role-Actor Marketplace System</text>
+
+  <!-- Orchestrator -->
+  <g transform="translate(250, 110)" filter="url(#shadow)">
+    <rect width="300" height="80" rx="12" fill="url(#orchestratorGradient)"/>
+    <text x="150" y="35" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" font-weight="bold" fill="white">编排器 (Orchestrator)</text>
+    <text x="150" y="55" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="rgba(255,255,255,0.9)">任务解析 · 角色匹配 · 演员调度 · 记忆管理</text>
+  </g>
+
+  <!-- Connection Lines -->
+  <line x1="400" y1="190" x2="400" y2="230" stroke="#94a3b8" stroke-width="2" stroke-dasharray="5,5"/>
+  <line x1="400" y1="230" x2="150" y2="230" stroke="#94a3b8" stroke-width="2"/>
+  <line x1="400" y1="230" x2="400" y2="230" stroke="#94a3b8" stroke-width="2"/>
+  <line x1="400" y1="230" x2="650" y2="230" stroke="#94a3b8" stroke-width="2"/>
+  <line x1="150" y1="230" x2="150" y2="260" stroke="#94a3b8" stroke-width="2"/>
+  <line x1="400" y1="230" x2="400" y2="260" stroke="#94a3b8" stroke-width="2"/>
+  <line x1="650" y1="230" x2="650" y2="260" stroke="#94a3b8" stroke-width="2"/>
+
+  <!-- Role Market -->
+  <g transform="translate(50, 260)" filter="url(#shadow)">
+    <rect width="200" height="120" rx="12" fill="url(#roleMarketGradient)"/>
+    <text x="100" y="30" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" font-weight="bold" fill="white">角色市场</text>
+    <text x="100" y="50" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="rgba(255,255,255,0.9)">岗位定义 (Soul + Skills)</text>
+    <text x="100" y="70" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="rgba(255,255,255,0.8)">交易 · 订阅 · 版本化</text>
+    <text x="100" y="90" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="rgba(255,255,255,0.8)">Soul独立资产</text>
+  </g>
+
+  <!-- Actor Market -->
+  <g transform="translate(300, 260)" filter="url(#shadow)">
+    <rect width="200" height="120" rx="12" fill="url(#actorMarketGradient)"/>
+    <text x="100" y="30" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" font-weight="bold" fill="white">演员市场</text>
+    <text x="100" y="50" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="rgba(255,255,255,0.9)">模型实例 (GPT-5, Claude...)</text>
+    <text x="100" y="70" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="rgba(255,255,255,0.8)">实时价格 · 负载 · 信誉</text>
+    <text x="100" y="90" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="rgba(255,255,255,0.8)">演员专用Soul微调</text>
+  </g>
+
+  <!-- Skill Library -->
+  <g transform="translate(550, 260)" filter="url(#shadow)">
+    <rect width="200" height="120" rx="12" fill="url(#skillLibraryGradient)"/>
+    <text x="100" y="30" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" font-weight="bold" fill="white">技能库</text>
+    <text x="100" y="50" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="rgba(255,255,255,0.9)">通用技能 · 角色专属</text>
+    <text x="100" y="70" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="rgba(255,255,255,0.8)">进化机制 · 技能提炼</text>
+    <text x="100" y="90" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="rgba(255,255,255,0.8)">持续积累</text>
+  </g>
+
+  <!-- Connection Lines to Runtime -->
+  <line x1="150" y1="380" x2="150" y2="420" stroke="#94a3b8" stroke-width="2"/>
+  <line x1="400" y1="380" x2="400" y2="420" stroke="#94a3b8" stroke-width="2"/>
+  <line x1="650" y1="380" x2="650" y2="420" stroke="#94a3b8" stroke-width="2"/>
+  <line x1="150" y1="420" x2="650" y2="420" stroke="#94a3b8" stroke-width="2"/>
+  <line x1="400" y1="420" x2="400" y2="450" stroke="#94a3b8" stroke-width="2"/>
+
+  <!-- Runtime -->
+  <g transform="translate(100, 450)" filter="url(#shadow)">
+    <rect width="600" height="100" rx="12" fill="url(#runtimeGradient)"/>
+    <text x="300" y="30" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" font-weight="bold" fill="white">运行时 (Runtime)</text>
+    <text x="300" y="55" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="rgba(255,255,255,0.9)">角色实例化 (Soul + Skills) · 模型适配层 · 技能执行器 · 记忆管理器</text>
+    <text x="300" y="75" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="rgba(255,255,255,0.8)">Soul加载优先级: 演员专用 > 变体 > 基础</text>
+  </g>
+
+  <!-- Key Concept Boxes -->
+  <g transform="translate(50, 570)">
+    <rect width="120" height="20" rx="4" fill="#3b82f6" opacity="0.2"/>
+    <text x="60" y="14" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#1e40af">Task = 剧本</text>
+  </g>
+  <g transform="translate(180, 570)">
+    <rect width="120" height="20" rx="4" fill="#8b5cf6" opacity="0.2"/>
+    <text x="60" y="14" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#6d28d9">Role = 角色</text>
+  </g>
+  <g transform="translate(310, 570)">
+    <rect width="120" height="20" rx="4" fill="#10b981" opacity="0.2"/>
+    <text x="60" y="14" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#059669">Actor = 演员</text>
+  </g>
+  <g transform="translate(440, 570)">
+    <rect width="120" height="20" rx="4" fill="#f59e0b" opacity="0.2"/>
+    <text x="60" y="14" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#d97706">Soul = 人设</text>
+  </g>
+  <g transform="translate(570, 570)">
+    <rect width="180" height="20" rx="4" fill="#64748b" opacity="0.2"/>
+    <text x="90" y="14" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#475569">像管理人类团队一样管理AI</text>
+  </g>
+</svg>

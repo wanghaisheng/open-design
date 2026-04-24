@@ -1,206 +1,105 @@
 ---
 name: tradeoff-analysis
-description: 用于分析不同设计方案的权衡 - 分析不同方案之间的权衡关系，帮助理解每个方案的优缺点和适用场景。
-keywords: [权衡分析, tradeoff analysis, 方案权衡, 优缺点分析, 适用场景]
-tags: [AI评估, 权衡分析]
-trigger_phrases:
-  - "权衡分析"
-  - "tradeoff analysis"
-  - "方案权衡"
-  - "优缺点分析"
-  - "适用场景"
+description: "Analyse accessibility tradeoffs when a design decision improves accessibility for one group but may affect another, or when accessibility competes with other requirements. Use when facing conflicting accessibility needs, business pressure to reduce accessibility scope, or technical constraints that limit accessibility options. Triggers on: tradeoff, trade-off, compromise, accessibility vs performance, accessibility vs deadline, conflicting needs, which users, who do we prioritise, can't do both, accessibility scope."
 ---
 
-# Tradeoff Analysis
+# Accessibility Tradeoff Analysis
 
-分析不同设计方案的权衡关系，帮助理解每个方案的优缺点和适用场景。
+Analyse accessibility tradeoffs rigorously — because "we can't do
+everything" is often true, and the quality of the tradeoff decision
+determines who gets included and who gets excluded.
 
-## Context
+## When Tradeoffs Happen
 
-你是一名AI权衡分析专家，负责分析不同设计方案的权衡关系。如果用户提供多个设计方案或分析目标，请先阅读它们。如果他们提到产品URL，使用网络搜索了解该产品。
+### Conflicting User Needs
+- Autoplay captions help deaf users but moving text distracts
+  users with ADHD
+- Simplified language helps cognitive accessibility but may
+  feel patronising to some users
+- High contrast helps low vision but can cause eye strain for
+  some migraine conditions
 
-## Domain Context
+### Accessibility vs Other Requirements
+- Performance: rich accessibility features vs page load speed
+- Deadline: full accessibility vs shipping on time
+- Complexity: accessible custom component vs simpler but
+  less accessible native element
+- Cost: comprehensive testing vs budget constraints
 
-- **权衡分析（Tradeoff Analysis）**：AI工作坊理解方案选择的核心
-- 人类工作坊：依赖设计师经验和直觉
-- AI工作坊：可以系统性地分析权衡关系
-- 分析不同方案之间的权衡关系
-- 帮助理解每个方案的优缺点和适用场景
+### Partial Implementation
+- You can make 80% of the feature accessible now and 20% later
+- Which 80% do you choose and who does the 20% exclude?
 
-## Instructions
+## Analysis Framework
 
-用户将描述他们的权衡分析需求。按照以下步骤工作：
+For each tradeoff, work through:
 
-1. **理解输入方案**：理解多个输入设计方案
-2. **识别权衡维度**：识别需要权衡的维度
-3. **分析每个方案**：分析每个方案的优缺点
-4. **比较方案**：比较不同方案的权衡
-5. **识别适用场景**：识别每个方案的适用场景
-6. **创建分析报告**：创建权衡分析报告
-7. 逐步思考。以清晰、结构化的格式呈现分析报告。如果输出内容较多，将其作为markdown文档保存在用户的工作区中。
+### 1. Who Benefits from Option A?
+- Which user groups gain accessibility
+- How many users are affected (estimated)
+- How severe is the barrier if Option A is not chosen
 
-## Process
+### 2. Who Benefits from Option B?
+- Same analysis for the alternative
 
-### Step 1: 理解输入方案
+### 3. Who Is Harmed by Each Option?
+- Which user groups lose accessibility or experience degradation
+- How severe is the harm
+- Is the harm permanent or temporary (will it be fixed later?)
 
-理解多个输入设计方案：
-- 方案数量
-- 方案类型
-- 方案特点
-- 方案目标
+### 4. What's the Severity Asymmetry?
+- A user who CANNOT complete a task (blocked) is more severely
+  affected than a user who finds a task HARDER (friction)
+- Prioritise removing blockers over reducing friction
+- Prioritise permanent disabilities over situational impairments
+  (situational users have other options; permanent users may not)
 
-### Step 2: 识别权衡维度
+### 5. What's the Reversibility?
+- Can this decision be changed later without significant cost?
+- If yes: choose the faster option and plan the improvement
+- If no: choose the more inclusive option and accept the delay
 
-识别需要权衡的维度：
+### 6. What's the Precedent?
+- Does this decision set a pattern for future features?
+- A shortcut taken once becomes a standard if not documented
+- If it sets a bad precedent, the long-term cost exceeds the
+  short-term saving
 
-**常见权衡维度**：
-- **质量 vs 成本**：设计质量 vs 实现成本
-- **性能 vs 功能**：性能 vs 功能丰富度
-- **创新 vs 风险**：创新程度 vs 实现风险
-- **速度 vs 质量**：开发速度 vs 设计质量
-- **一致性 vs 灵活性**：设计一致性 vs 灵活性
-- **无障碍 vs 复杂度**：无障碍程度 vs 实现复杂度
+## Tradeoff Documentation
 
-### Step 3: 分析每个方案
+Every tradeoff must be recorded using the decision-documentation
+format with these additional fields:
 
-分析每个方案的优缺点：
+**Who is excluded by this decision:**
+Name the specific user groups affected.
 
-**分析方法**：
-- **优势分析**：识别方案的优势
-- **劣势分析**：识别方案的劣势
-- **成本分析**：分析方案的成本
-- **风险分析**：分析方案的风险
+**Severity of exclusion:**
+Blocked (cannot complete task) vs friction (harder but possible).
 
-### Step 4: 比较方案
+**Remediation plan:**
+When and how will the excluded users be served.
+"Screen reader support for the chart component is deferred to
+sprint 14. Workaround: data table below the chart provides the
+same information. Tracked in JIRA-4521."
 
-比较不同方案的权衡：
+**Review date:**
+When will this tradeoff be reassessed.
 
-**比较方法**：
-- **对比表格**：使用对比表格展示权衡
-- **权衡曲线**：使用权衡曲线展示关系
-- **场景映射**：将方案映射到适用场景
+## Red Lines
 
-### Step 5: 识别适用场景
+Some tradeoffs should never be made:
 
-识别每个方案的适用场景：
+- Never ship a feature that is completely inaccessible by keyboard
+- Never remove existing accessibility to meet a deadline
+- Never deprioritise accessibility fixes that block task completion
+- Never treat "we'll fix it later" as acceptable without a tracked
+  ticket and a deadline
 
-**场景识别方法**：
-- **约束分析**：基于约束识别适用场景
-- **目标分析**：基于目标识别适用场景
-- **用户分析**：基于用户识别适用场景
+## Assessment Questions
 
-### Step 6: 创建分析报告
-
-创建权衡分析报告：
-
-```markdown
-# [项目名称] 权衡分析报告
-
-## 输入方案
-### 方案1
-[描述]
-### 方案2
-...
-
-## 权衡维度
-- [维度1]
-- [维度2]
-- [维度3]
-
-## 方案分析
-
-### 方案1
-**优势**:
-- [优势1]
-- [优势2]
-**劣势**:
-- [劣势1]
-- [劣势2]
-**成本**: [成本]
-**风险**: [风险]
-
-### 方案2
-...
-
-## 权衡比较
-| 维度 | 方案1 | 方案2 | 方案3 |
-|------|-------|-------|-------|
-| [维度1] | [值] | [值] | [值] |
-| [维度2] | [值] | [值] | [值] |
-
-## 适用场景
-### 方案1
-**适用场景**: [场景]
-**理由**: [理由]
-
-### 方案2
-...
-
-## 建议
-[基于权衡分析的建议]
-```
-
-## Tradeoff Analysis Structure
-
-```markdown
-# [项目名称] 权衡分析计划
-
-## 输入方案
-**方案数量**: [数量]
-**方案类型**: [类型]
-
-## 权衡维度
-### 维度1: [维度名称]
-**描述**: [描述]
-**重要性**: [重要性]
-
-### 维度2: [维度名称]
-...
-
-## 分析方法
-**优势分析方法**: [方法]
-**劣势分析方法**: [方法]
-**成本分析方法**: [方法]
-**风险分析方法**: [方法]
-
-## 比较方法
-**比较方法**: [对比表格/权衡曲线/场景映射]
-```
-
-## Integration
-
-- **由...调用**: decision-making调用
-- **更新**: design-state（权衡分析结果、适用场景）
-- **配对**: decision-making, multi-criteria-evaluation
-
-## Anti-Patterns
-
-| 模式 | 为什么失败 |
-|------|----------|
-| 权衡维度过少 | 分析不全面 |
-| 权衡维度过多 | 分析复杂度过高 |
-| 只关注单一方案 | 无法比较权衡 |
-| 没有识别适用场景 | 无法指导决策 |
-| 只关注优势忽略劣势 | 分析不客观 |
-
-## Further Reading
-
-- Tradeoff Analysis - Springer
-- Decision Analysis - IEEE
-- Design Tradeoffs - ACM
-
-## Psychology Principles Integration
-
-### 认知负荷理论应用
-- **维度限制**：限制权衡维度数量，避免认知过载
-- **方案分组**：将方案分组，降低认知负担
-- **对比简化**：使用简单的对比方法，降低理解难度
-
-### 格式塔原则应用
-- **相似性**：使用一致的格式展示方案
-- **邻近性**：相关信息在空间上靠近（方案与权衡）
-- **对比**：使用对比表格突出权衡关系
-
-### 损失厌恶应用
-- **强调劣势**：在分析部分强调劣势的后果
-- **强调风险**：在风险分析部分强调风险的重要性
+1. Have both sides of the tradeoff been analysed for who benefits
+   and who is harmed?
+2. Is severity asymmetry considered (blocked vs friction)?
+3. Is there a documented remediation plan for excluded users?
+4. Has a review date been set?
+5. Does this decision set a precedent that needs to be managed?
