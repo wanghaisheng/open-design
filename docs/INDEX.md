@@ -8,21 +8,138 @@
 
 ```
 Open Design 文档体系
-├── 设计系统规范（核心）
-│   └── DESIGN-SPEC.md
-├── 研究类文档规范
-│   └── RESEARCH-SPEC.md
-├── 策略类文档规范
-│   └── STRATEGY-SPEC.md
-├── 交互类文档规范
-│   └── INTERACTION-SPEC.md
-└── 运营类文档规范
-    └── OPS-SPEC.md
+├── RAMS 框架文档（核心）
+│   └── RAMS_FRAMEWORK/
+│       ├── SOUL_SPECIFICATION.md
+│       ├── ROLE_SPECIFICATION.md
+│       ├── SKILL_SPECIFICATION.md
+│       ├── SKILL_AUDIT_REPORT.md
+│       ├── GAME_DEVELOPMENT_SKILL_MATRIX.md
+│       ├── RAMS_GAME_DEVELOPMENT_FLOW.svg
+│       ├── RAMS_GAME_DEVELOPMENT_PRODUCTION_FLOW.svg
+│       ├── RAMS_GAME_DEVELOPMENT_GUIDE.md
+│       └── README.md
+├── 设计文档（DESIGN/）
+│   ├── DESIGN-SPEC.md
+│   ├── DESIGN_ROLES.md
+│   ├── DESIGN_ROLES_ER_DIAGRAM.svg
+│   └── RPG_HEALTH_BAR_DESIGN_EXAMPLE.md
+├── 游戏开发文档（GAME_DEVELOPMENT/）
+│   ├── GAME_DEVELOPMENT_ROLES_ANALYSIS.md
+│   ├── GAME_DEVELOPMENT_TEAM_HIERARCHY.md
+│   └── GAME_DEVELOPMENT_WORKFLOW.svg
+├── 技能文档（SKILL/）
+│   ├── SKILL_BOUNDARY_ANALYSIS.md
+│   ├── SKILL_EXECUTION_ARCHITECTURE.svg
+│   └── SKILL_IMPLEMENTATION.md
+├── 工作流文档（WORKFLOW/）
+│   ├── WORKFLOW_GUIDE.md
+│   ├── workflow-prd-to-mvp.svg
+│   ├── workflow-prd-to-prototype.svg
+│   └── workflow-requirement-to-task.svg
+├── 集成文档（INTEGRATION/）
+│   ├── IDE_INTEGRATION_GUIDE.md
+│   ├── CLI_OPTIMIZATION_RECOMMENDATIONS.md
+│   └── RUNTIME_ENVIRONMENTS.md
+└── 架构文档（ARCHITECTURE/）
+    ├── INTERACTION-SPEC.md
+    ├── OPS-SPEC.md
+    ├── RESEARCH-SPEC.md
+    └── STRATEGY-SPEC.md
 ```
+
+## 文档分类说明
+
+### RAMS 框架文档（RAMS_FRAMEWORK/）
+
+**定位**：RAMS 框架的核心文档，定义 SOUL、ROLE、SKILL 的规范和实施指南。
+
+**内容**：
+- SOUL_SPECIFICATION.md - SOUL 规范
+- ROLE_SPECIFICATION.md - ROLE 规范
+- SKILL_SPECIFICATION.md - SKILL 规范
+- SKILL_AUDIT_REPORT.md - SKILL 审计报告
+- GAME_DEVELOPMENT_SKILL_MATRIX.md - 游戏开发技能矩阵
+- RAMS_GAME_DEVELOPMENT_FLOW.svg - 概念验证阶段流程图
+- RAMS_GAME_DEVELOPMENT_PRODUCTION_FLOW.svg - 完整生产开发阶段流程图
+- RAMS_GAME_DEVELOPMENT_GUIDE.md - RAMS 游戏开发实施指南
+- README.md - RAMS 框架说明
+
+### 设计文档（DESIGN/）
+
+**定位**：设计系统、设计角色和设计示例文档。
+
+**内容**：
+- DESIGN-SPEC.md - 设计系统规范
+- DESIGN_ROLES.md - 设计角色定义
+- DESIGN_ROLES_ER_DIAGRAM.svg - 设计角色关系图
+- RPG_HEALTH_BAR_DESIGN_EXAMPLE.md - RPG 血条设计示例
+
+### 游戏开发文档（GAME_DEVELOPMENT/）
+
+**定位**：游戏开发相关的角色分析和工作流文档。
+
+**内容**：
+- GAME_DEVELOPMENT_ROLES_ANALYSIS.md - 游戏开发角色分析
+- GAME_DEVELOPMENT_TEAM_HIERARCHY.md - 游戏开发团队层级
+- GAME_DEVELOPMENT_WORKFLOW.svg - 游戏开发工作流图
+
+### 技能文档（SKILL/）
+
+**定位**：SKILL 相关的边界分析、执行架构和实施文档。
+
+**内容**：
+- SKILL_BOUNDARY_ANALYSIS.md - SKILL 边界分析
+- SKILL_EXECUTION_ARCHITECTURE.svg - SKILL 执行架构图
+- SKILL_IMPLEMENTATION.md - SKILL 实施指南
+
+### 工作流文档（WORKFLOW/）
+
+**定位**：各种工作流指南和流程图。
+
+**内容**：
+- WORKFLOW_GUIDE.md - 工作流指南
+- workflow-prd-to-mvp.svg - PRD 到 MVP 工作流
+- workflow-prd-to-prototype.svg - PRD 到原型工作流
+- workflow-requirement-to-task.svg - 需求到任务工作流
+
+### 集成文档（INTEGRATION/）
+
+**定位**：IDE 集成、CLI 优化和运行环境相关文档。
+
+**内容**：
+- IDE_INTEGRATION_GUIDE.md - IDE 集成指南
+- CLI_OPTIMIZATION_RECOMMENDATIONS.md - CLI 优化建议
+- RUNTIME_ENVIRONMENTS.md - 运行环境文档
+
+### 架构文档（ARCHITECTURE/）
+
+**定位**：交互、运营、研究和策略等架构规范文档。
+
+**内容**：
+- INTERACTION-SPEC.md - 交互规范
+- OPS-SPEC.md - 运营规范
+- RESEARCH-SPEC.md - 研究规范
+- STRATEGY-SPEC.md - 策略规范
+
+### 根目录文档
+
+**定位**：核心框架文档和分析报告。
+
+**内容**：
+- INDEX.md - 文档索引（本文件）
+- RAMS_FRAMEWORK.md - RAMS 框架主文档
+- RAMS_FRAMEWORK_QUESTION_CHAIN.md - RAMS 框架问题链
+- RAMS_AI_WORKSHOP.md - RAMS AI 工作坊
+- OPENAGENTICGAME_STUDIOS_RAMS_ANALYSIS.md - OpenAgenticGame Studios RAMS 分析
+- OPEN_DESIGN_UPDATE_PLAN.md - Open Design 更新计划
+- ROLE_INSTANTIATION_GUIDE.md - Role 实例化指南
+- AI_MODELS_REFERENCE.md - AI 模型参考
+- rams-framework-illustration.svg - RAMS 框架插图
 
 ## 文档关系
 
-### 设计系统规范（DESIGN-SPEC.md）
+### 设计系统规范（DESIGN/DESIGN-SPEC.md）
 
 **定位**：设计系统的单一事实来源（SSOT）
 
