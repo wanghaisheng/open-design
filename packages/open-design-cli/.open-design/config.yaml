@@ -1,0 +1,18 @@
+runtime:
+  environment: windsurf
+  model: swe-1.6
+role:
+  default: design-lead
+  path: .claude/roles
+memory:
+  enabled: true
+  path: .claude/memory/
+  compression:
+    enabled: true
+    retention_days: 180
+skills:
+  auto_load: true
+  cache: true
+workflows:
+  enabled: true
+  path: .windsurf/workflows

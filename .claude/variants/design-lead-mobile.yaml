@@ -1,0 +1,4 @@
+name: design-lead-mobile
+base_role: design-lead
+description: Mobile-optimized design lead variant
+scenario: mobile

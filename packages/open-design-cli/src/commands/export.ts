@@ -3,11 +3,25 @@ import { readFile } from '../utils/index.js';
 import { parseFrontMatter } from '../parsers/index.js';
 import { writeFileSync } from 'fs';
 import { resolve } from 'path';
+import { stringify } from 'yaml';
 
-export default defineCommand({
+const exportFormatsCommand = defineCommand({
   meta: {
-    name: 'export',
-    description: 'Export specification document to other formats.',
+    name: 'formats',
+    description: 'List available export formats',
+  },
+  async run() {
+    console.log(JSON.stringify({
+      formats: ['json', 'yaml', 'html', 'typescript', 'markdown', 'csv'],
+      description: 'Available export formats',
+    }, null, 2));
+  },
+});
+
+const exportJsonCommand = defineCommand({
+  meta: {
+    name: 'json',
+    description: 'Export to JSON format',
   },
   args: {
     file: {
@@ -15,14 +29,9 @@ export default defineCommand({
       description: 'Path to specification file',
       required: true,
     },
-    format: {
-      type: 'string',
-      description: 'Output format: json, html, typescript',
-      required: true,
-    },
     output: {
       type: 'string',
-      description: 'Output file path (optional, defaults to stdout)',
+      description: 'Output file path (optional)',
       required: false,
     },
   },
@@ -32,42 +41,195 @@ export default defineCommand({
       const frontMatter = parseFrontMatter(content);
       const body = content.split('---').slice(2).join('---').trim();
 
-      let output: string;
+      const output = JSON.stringify({
+        frontMatter,
+        body,
+      }, null, 2);
 
-      switch (args.format) {
-        case 'json':
-          output = JSON.stringify({
-            frontMatter,
-            body,
-          }, null, 2);
-          break;
-        case 'typescript':
-          output = generateTypeScriptTypes(frontMatter);
-          break;
-        case 'html':
-          output = generateHTML(frontMatter, body);
-          break;
-        default:
-          throw new Error(`Unknown format: ${args.format}`);
-      }
-
-      if (args.output) {
-        const outputPath = resolve(args.output);
-        writeFileSync(outputPath, output, 'utf-8');
-        console.log(JSON.stringify({
-          success: true,
-          message: `Exported to ${args.output}`,
-          path: outputPath,
-        }, null, 2));
-      } else {
-        console.log(output);
-      }
+      await writeOutput(args.output, output, 'json');
     } catch (error) {
       console.error(JSON.stringify({ error: (error as Error).message }, null, 2));
       process.exitCode = 1;
     }
   },
 });
+
+const exportYamlCommand = defineCommand({
+  meta: {
+    name: 'yaml',
+    description: 'Export to YAML format',
+  },
+  args: {
+    file: {
+      type: 'positional',
+      description: 'Path to specification file',
+      required: true,
+    },
+    output: {
+      type: 'string',
+      description: 'Output file path (optional)',
+      required: false,
+    },
+  },
+  async run({ args }) {
+    try {
+      const content = await readFile(args.file);
+      const frontMatter = parseFrontMatter(content);
+      const body = content.split('---').slice(2).join('---').trim();
+
+      const output = stringify({
+        frontMatter,
+        body,
+      });
+
+      await writeOutput(args.output, output, 'yaml');
+    } catch (error) {
+      console.error(JSON.stringify({ error: (error as Error).message }, null, 2));
+      process.exitCode = 1;
+    }
+  },
+});
+
+const exportHtmlCommand = defineCommand({
+  meta: {
+    name: 'html',
+    description: 'Export to HTML format',
+  },
+  args: {
+    file: {
+      type: 'positional',
+      description: 'Path to specification file',
+      required: true,
+    },
+    output: {
+      type: 'string',
+      description: 'Output file path (optional)',
+      required: false,
+    },
+  },
+  async run({ args }) {
+    try {
+      const content = await readFile(args.file);
+      const frontMatter = parseFrontMatter(content);
+      const body = content.split('---').slice(2).join('---').trim();
+
+      const output = generateHTML(frontMatter, body);
+      await writeOutput(args.output, output, 'html');
+    } catch (error) {
+      console.error(JSON.stringify({ error: (error as Error).message }, null, 2));
+      process.exitCode = 1;
+    }
+  },
+});
+
+const exportTypescriptCommand = defineCommand({
+  meta: {
+    name: 'typescript',
+    description: 'Export to TypeScript types',
+  },
+  args: {
+    file: {
+      type: 'positional',
+      description: 'Path to specification file',
+      required: true,
+    },
+    output: {
+      type: 'string',
+      description: 'Output file path (optional)',
+      required: false,
+    },
+  },
+  async run({ args }) {
+    try {
+      const content = await readFile(args.file);
+      const frontMatter = parseFrontMatter(content);
+
+      const output = generateTypeScriptTypes(frontMatter);
+      await writeOutput(args.output, output, 'typescript');
+    } catch (error) {
+      console.error(JSON.stringify({ error: (error as Error).message }, null, 2));
+      process.exitCode = 1;
+    }
+  },
+});
+
+const exportMarkdownCommand = defineCommand({
+  meta: {
+    name: 'markdown',
+    description: 'Export to Markdown format',
+  },
+  args: {
+    file: {
+      type: 'positional',
+      description: 'Path to specification file',
+      required: true,
+    },
+    output: {
+      type: 'string',
+      description: 'Output file path (optional)',
+      required: false,
+    },
+  },
+  async run({ args }) {
+    try {
+      const content = await readFile(args.file);
+      const frontMatter = parseFrontMatter(content);
+      const body = content.split('---').slice(2).join('---').trim();
+
+      const output = generateMarkdown(frontMatter, body);
+      await writeOutput(args.output, output, 'markdown');
+    } catch (error) {
+      console.error(JSON.stringify({ error: (error as Error).message }, null, 2));
+      process.exitCode = 1;
+    }
+  },
+});
+
+const exportCsvCommand = defineCommand({
+  meta: {
+    name: 'csv',
+    description: 'Export design tokens to CSV format',
+  },
+  args: {
+    file: {
+      type: 'positional',
+      description: 'Path to specification file',
+      required: true,
+    },
+    output: {
+      type: 'string',
+      description: 'Output file path (optional)',
+      required: false,
+    },
+  },
+  async run({ args }) {
+    try {
+      const content = await readFile(args.file);
+      const frontMatter = parseFrontMatter(content);
+
+      const output = generateCSV(frontMatter);
+      await writeOutput(args.output, output, 'csv');
+    } catch (error) {
+      console.error(JSON.stringify({ error: (error as Error).message }, null, 2));
+      process.exitCode = 1;
+    }
+  },
+});
+
+async function writeOutput(outputPath: string | undefined, content: string, format: string): Promise<void> {
+  if (outputPath) {
+    const path = resolve(outputPath);
+    writeFileSync(path, content, 'utf-8');
+    console.log(JSON.stringify({
+      success: true,
+      message: `Exported to ${outputPath}`,
+      path,
+      format,
+    }, null, 2));
+  } else {
+    console.log(content);
+  }
+}
 
 function generateTypeScriptTypes(frontMatter: any): string {
   let types = '// Auto-generated TypeScript types\n\n';
@@ -152,3 +314,71 @@ function generateHTML(frontMatter: any, body: string): string {
 
   return html;
 }
+
+function generateMarkdown(frontMatter: any, body: string): string {
+  let md = `# ${frontMatter.name || 'Design Specification'}\n\n`;
+  
+  if (frontMatter.description) {
+    md += `${frontMatter.description}\n\n`;
+  }
+
+  if (frontMatter.colors) {
+    md += '## Colors\n\n';
+    for (const [key, value] of Object.entries(frontMatter.colors)) {
+      md += `- **${key}**: ${value}\n`;
+    }
+    md += '\n';
+  }
+
+  if (frontMatter.typography) {
+    md += '## Typography\n\n';
+    for (const [key, value] of Object.entries(frontMatter.typography)) {
+      md += `### ${key}\n\n`;
+      if (typeof value === 'object' && value !== null) {
+        for (const [k, v] of Object.entries(value)) {
+          md += `- ${k}: ${v}\n`;
+        }
+      }
+      md += '\n';
+    }
+  }
+
+  md += '## Content\n\n';
+  md += body;
+
+  return md;
+}
+
+function generateCSV(frontMatter: any): string {
+  let csv = 'type,name,value\n';
+
+  if (frontMatter.colors) {
+    for (const [key, value] of Object.entries(frontMatter.colors)) {
+      csv += `color,${key},${value}\n`;
+    }
+  }
+
+  if (frontMatter.spacing) {
+    for (const [key, value] of Object.entries(frontMatter.spacing)) {
+      csv += `spacing,${key},${value}\n`;
+    }
+  }
+
+  return csv;
+}
+
+export default defineCommand({
+  meta: {
+    name: 'export',
+    description: 'Export specification document to other formats',
+  },
+  subCommands: {
+    formats: exportFormatsCommand,
+    json: exportJsonCommand,
+    yaml: exportYamlCommand,
+    html: exportHtmlCommand,
+    typescript: exportTypescriptCommand,
+    markdown: exportMarkdownCommand,
+    csv: exportCsvCommand,
+  },
+});

@@ -1,0 +1,8 @@
+{
+  "id": "test-entry",
+  "type": "skill",
+  "timestamp": 1777020764424,
+  "content": {
+    "test": "data"
+  }
+}
