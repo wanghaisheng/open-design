@@ -1,0 +1,221 @@
+<svg width="1200" height="900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradients -->
+    <linearGradient id="traditionalGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#357ABD;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="aiGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#50E3C2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3BC4A0;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="ramsGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F5A623;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#D4880F;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Shadow filter -->
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="#f8f9fa"/>
+
+  <!-- Title -->
+  <text x="600" y="40" font-family="Arial, sans-serif" font-size="28" font-weight="bold" text-anchor="middle" fill="#333">
+    OpenDesign Roles ER Diagram
+  </text>
+  <text x="600" y="70" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" fill="#666">
+    24 Roles: 13 Traditional Design + 5 AI Design + 6 RAMS Framework
+  </text>
+
+  <!-- Traditional Design Roles (Left) -->
+  <g transform="translate(50, 100)">
+    <rect x="0" y="0" width="300" height="750" rx="10" fill="#e8f4f8" stroke="#4A90E2" stroke-width="2" filter="url(#shadow)"/>
+    <rect x="0" y="0" width="300" height="50" rx="10" fill="url(#traditionalGradient)"/>
+    <text x="150" y="32" font-family="Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="white">
+      Traditional Design (13)
+    </text>
+    
+    <!-- Role boxes -->
+    <g transform="translate(20, 70)">
+      <rect x="0" y="0" width="260" height="35" rx="5" fill="white" stroke="#4A90E2" stroke-width="1"/>
+      <text x="130" y="22" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#333">design-strategist</text>
+    </g>
+    <g transform="translate(20, 115)">
+      <rect x="0" y="0" width="260" height="35" rx="5" fill="white" stroke="#4A90E2" stroke-width="1"/>
+      <text x="130" y="22" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#333">design-scout</text>
+    </g>
+    <g transform="translate(20, 160)">
+      <rect x="0" y="0" width="260" height="35" rx="5" fill="white" stroke="#4A90E2" stroke-width="1"/>
+      <text x="130" y="22" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#333">inspiration-scout</text>
+    </g>
+    <g transform="translate(20, 205)">
+      <rect x="0" y="0" width="260" height="35" rx="5" fill="white" stroke="#4A90E2" stroke-width="1"/>
+      <text x="130" y="22" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#333">design-lead</text>
+    </g>
+    <g transform="translate(20, 250)">
+      <rect x="0" y="0" width="260" height="35" rx="5" fill="white" stroke="#4A90E2" stroke-width="1"/>
+      <text x="130" y="22" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#333">motion-designer</text>
+    </g>
+    <g transform="translate(20, 295)">
+      <rect x="0" y="0" width="260" height="35" rx="5" fill="white" stroke="#4A90E2" stroke-width="1"/>
+      <text x="130" y="22" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#333">content-writer</text>
+    </g>
+    <g transform="translate(20, 340)">
+      <rect x="0" y="0" width="260" height="35" rx="5" fill="white" stroke="#4A90E2" stroke-width="1"/>
+      <text x="130" y="22" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#333">design-builder</text>
+    </g>
+    <g transform="translate(20, 385)">
+      <rect x="0" y="0" width="260" height="35" rx="5" fill="white" stroke="#4A90E2" stroke-width="1"/>
+      <text x="130" y="22" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#333">accessibility-reviewer</text>
+    </g>
+    <g transform="translate(20, 430)">
+      <rect x="0" y="0" width="260" height="35" rx="5" fill="white" stroke="#4A90E2" stroke-width="1"/>
+      <text x="130" y="22" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#333">cognitive-accessibility-specialist</text>
+    </g>
+    <g transform="translate(20, 475)">
+      <rect x="0" y="0" width="260" height="35" rx="5" fill="white" stroke="#4A90E2" stroke-width="1"/>
+      <text x="130" y="22" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#333">adaptive-interface-specialist</text>
+    </g>
+    <g transform="translate(20, 520)">
+      <rect x="0" y="0" width="260" height="35" rx="5" fill="white" stroke="#4A90E2" stroke-width="1"/>
+      <text x="130" y="22" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#333">inclusive-researcher</text>
+    </g>
+    <g transform="translate(20, 565)">
+      <rect x="0" y="0" width="260" height="35" rx="5" fill="white" stroke="#4A90E2" stroke-width="1"/>
+      <text x="130" y="22" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#333">heuristic-evaluator</text>
+    </g>
+    <g transform="translate(20, 610)">
+      <rect x="0" y="0" width="260" height="35" rx="5" fill="white" stroke="#4A90E2" stroke-width="1"/>
+      <text x="130" y="22" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#333">design-critic</text>
+    </g>
+  </g>
+
+  <!-- AI Design Roles (Center) -->
+  <g transform="translate(400, 100)">
+    <rect x="0" y="0" width="300" height="750" rx="10" fill="#e8f8f0" stroke="#50E3C2" stroke-width="2" filter="url(#shadow)"/>
+    <rect x="0" y="0" width="300" height="50" rx="10" fill="url(#aiGradient)"/>
+    <text x="150" y="32" font-family="Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="white">
+      AI Design (5)
+    </text>
+    
+    <!-- Role boxes -->
+    <g transform="translate(20, 70)">
+      <rect x="0" y="0" width="260" height="35" rx="5" fill="white" stroke="#50E3C2" stroke-width="1"/>
+      <text x="130" y="22" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#333">responsible-ai-specialist</text>
+    </g>
+    <g transform="translate(20, 115)">
+      <rect x="0" y="0" width="260" height="35" rx="5" fill="white" stroke="#50E3C2" stroke-width="1"/>
+      <text x="130" y="22" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#333">ai-personality-designer</text>
+    </g>
+    <g transform="translate(20, 160)">
+      <rect x="0" y="0" width="260" height="35" rx="5" fill="white" stroke="#50E3C2" stroke-width="1"/>
+      <text x="130" y="22" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#333">agent-orchestrator</text>
+    </g>
+    <g transform="translate(20, 205)">
+      <rect x="0" y="0" width="260" height="35" rx="5" fill="white" stroke="#50E3C2" stroke-width="1"/>
+      <text x="130" y="22" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#333">prompt-engineer</text>
+    </g>
+    <g transform="translate(20, 250)">
+      <rect x="0" y="0" width="260" height="35" rx="5" fill="white" stroke="#50E3C2" stroke-width="1"/>
+      <text x="130" y="22" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#333">model-evaluation-specialist</text>
+    </g>
+    
+    <!-- Description -->
+    <g transform="translate(20, 320)">
+      <text x="0" y="0" font-family="Arial, sans-serif" font-size="11" fill="#666">
+        <tspan x="0" dy="0">Design AI products and</tspan>
+        <tspan x="0" dy="16">systems, including AI</tspan>
+        <tspan x="0" dy="16">personality, prompts,</tspan>
+        <tspan x="0" dy="16">agent orchestration,</tspan>
+        <tspan x="0" dy="16">and AI alignment.</tspan>
+      </text>
+    </g>
+  </g>
+
+  <!-- RAMS Framework Roles (Right) -->
+  <g transform="translate(750, 100)">
+    <rect x="0" y="0" width="300" height="750" rx="10" fill="#fef5e6" stroke="#F5A623" stroke-width="2" filter="url(#shadow)"/>
+    <rect x="0" y="0" width="300" height="50" rx="10" fill="url(#ramsGradient)"/>
+    <text x="150" y="32" font-family="Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="white">
+      RAMS Framework (6)
+    </text>
+    
+    <!-- Role boxes -->
+    <g transform="translate(20, 70)">
+      <rect x="0" y="0" width="260" height="35" rx="5" fill="white" stroke="#F5A623" stroke-width="1"/>
+      <text x="130" y="22" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#333">rams-role-audition-specialist</text>
+    </g>
+    <g transform="translate(20, 115)">
+      <rect x="0" y="0" width="260" height="35" rx="5" fill="white" stroke="#F5A623" stroke-width="1"/>
+      <text x="130" y="22" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#333">rams-post-task-learning-specialist</text>
+    </g>
+    <g transform="translate(20, 160)">
+      <rect x="0" y="0" width="260" height="35" rx="5" fill="white" stroke="#F5A623" stroke-width="1"/>
+      <text x="130" y="22" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#333">rams-orchestrator-specialist</text>
+    </g>
+    <g transform="translate(20, 205)">
+      <rect x="0" y="0" width="260" height="35" rx="5" fill="white" stroke="#F5A623" stroke-width="1"/>
+      <text x="130" y="22" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#333">rams-memory-management-specialist</text>
+    </g>
+    <g transform="translate(20, 250)">
+      <rect x="0" y="0" width="260" height="35" rx="5" fill="white" stroke="#F5A623" stroke-width="1"/>
+      <text x="130" y="22" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#333">rams-task-definition-specialist</text>
+    </g>
+    <g transform="translate(20, 295)">
+      <rect x="0" y="0" width="260" height="35" rx="5" fill="white" stroke="#F5A623" stroke-width="1"/>
+      <text x="130" y="22" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#333">rams-model-adaptation-specialist</text>
+    </g>
+    
+    <!-- Description -->
+    <g transform="translate(20, 360)">
+      <text x="0" y="0" font-family="Arial, sans-serif" font-size="11" fill="#666">
+        <tspan x="0" dy="0">RAMS framework</tspan>
+        <tspan x="0" dy="16">infrastructure roles:</tspan>
+        <tspan x="0" dy="16">orchestration, memory,</tspan>
+        <tspan x="0" dy="16">task definition,</tspan>
+        <tspan x="0" dy="16">model adaptation,</tspan>
+        <tspan x="0" dy="16">evaluation, and</tspan>
+        <tspan x="0" dy="16">learning.</tspan>
+      </text>
+    </g>
+  </g>
+
+  <!-- Collaboration arrows -->
+  <!-- Traditional to AI -->
+  <path d="M 350 250 L 400 250" stroke="#999" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="375" y="240" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#666">design-lead</text>
+  <text x="375" y="265" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#666">→ AI design</text>
+
+  <!-- AI to RAMS -->
+  <path d="M 700 160 L 750 160" stroke="#999" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="725" y="150" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#666">agent-orchestrator</text>
+  <text x="725" y="175" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#666">→ RAMS</text>
+
+  <!-- RAMS internal connections -->
+  <path d="M 880 105 L 880 150" stroke="#F5A623" stroke-width="2" stroke-dasharray="5,5"/>
+  <path d="M 880 185 L 880 230" stroke="#F5A623" stroke-width="2" stroke-dasharray="5,5"/>
+  <path d="M 880 265 L 880 310" stroke="#F5A623" stroke-width="2" stroke-dasharray="5,5"/>
+
+  <!-- Legend -->
+  <g transform="translate(50, 870)">
+    <rect x="0" y="0" width="20" height="20" fill="url(#traditionalGradient)"/>
+    <text x="30" y="15" font-family="Arial, sans-serif" font-size="12" fill="#333">Traditional Design</text>
+    
+    <rect x="200" y="0" width="20" height="20" fill="url(#aiGradient)"/>
+    <text x="230" y="15" font-family="Arial, sans-serif" font-size="12" fill="#333">AI Design</text>
+    
+    <rect x="400" y="0" width="20" height="20" fill="url(#ramsGradient)"/>
+    <text x="430" y="15" font-family="Arial, sans-serif" font-size="12" fill="#333">RAMS Framework</text>
+  </g>
+
+  <!-- Arrow marker definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#999"/>
+    </marker>
+  </defs>
+</svg>
