@@ -2,9 +2,9 @@
 
 基于 Designpowers 项目分析，以下是设计角色（Agents）的详细说明以及它们与 Skills 的对应关系。
 
-## Agents 概览（10个）
+## Roles 概览（10个）
 
-| Agent | 职责 |
+| Role | 职责 |
 |-------|------|
 | **design-strategist** | 上游设计思维 - 用户流程、IA、旅程映射、人物画像、设计原则 |
 | **design-scout** | 竞争UX分析、设计基准、用户洞察综合、设计模式研究、无障碍审计 |
@@ -17,7 +17,7 @@
 | **heuristic-evaluator** | 启式评估 - Nielsen's 10可用性启发式、认知走查 |
 | **design-critic** | 设计评审 - 对照原始计划、设计简报、设计原则评审 |
 
-## Skills × Agents Matrix
+## Skills × Roles Matrix
 
 | Skill | design-strategist | design-scout | inspiration-scout | design-lead | motion-designer | content-writer | design-builder | accessibility-reviewer | heuristic-evaluator | design-critic |
 |-------|------------------|--------------|-------------------|-------------|-----------------|----------------|----------------|----------------------|---------------------|---------------|
@@ -51,7 +51,7 @@
 | **verification-before-shipping** | | | | | | | ✅ | ✅ | ✅ | |
 | **using-designpowers** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
-## Agent 详细说明
+## Role 详细说明
 
 ### design-strategist
 **职责范围：** 上游设计思维

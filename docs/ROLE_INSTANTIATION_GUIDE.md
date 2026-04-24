@@ -11,22 +11,28 @@
 | 概念 | 说明 | 类比 |
 |------|------|------|
 | 角色定义（Role Definition） | 静态的岗位描述（Soul + Skills），存储在文件中 | 剧本 |
+| Soul（人格设定） | 独立的人格设定文件，可被多个角色复用 | 剧本的人格设定 |
 | 角色实例（Role Instance） | 角色定义的运行时实例，包含记忆、状态等 | 剧本 + 演员笔记 |
 | 演员（Actor） | 扮演角色的具体模型（GPT-4, Claude 等） | 演员 |
+| 演员专用Soul | 针对特定演员微调的Soul版本 | 演员专用剧本 |
 
 **关系**：
 - 角色定义 → 角色实例化 → 演员执行
+- Soul独立存储，role.md通过soul_ref引用
 - 同一个角色定义可以被多个演员扮演
 - 同一个演员可以扮演多个角色
+- 同一个角色可以有基础Soul和多个演员专用Soul
 
 ---
 
 ## 角色实例化流程
 
 ```
-角色定义文件 (YAML/JSON)
+角色定义文件 (role.md)
         ↓
-    加载 Soul + Skills
+    加载 Soul (soul.md 或 actors/{actor}-soul.md)
+        ↓
+    加载 Skills
         ↓
     创建角色实例
         ↓
@@ -43,47 +49,139 @@
 
 ## 步骤 1：定义角色
 
-### 角色定义文件结构
+### 文件结构
+
+```
+.claude/roles/{role_name}/
+├── soul.md              # 基础人格设定
+├── role.md              # 角色定义（元数据 + Skills + soul_ref）
+├── actors/              # 演员专用Soul微调
+│   ├── claude-opus-soul.md
+│   └── gpt4-turbo-soul.md
+└── variants/            # 角色变体
+    ├── b2b/
+    │   ├── soul.md          # 变体专用Soul
+    │   └── role.md          # 变体配置
+    ├── b2c/
+    │   ├── soul.md
+    │   └── role.md
+    └── mobile/
+        ├── soul.md
+        └── role.md
+```
+
+### Soul 定义文件 (soul.md)
+
+```markdown
+---
+name: design-strategist-soul
+version: 1.0.0
+description: 设计策略专家的人格设定
+---
+
+# Design Strategist Soul
+
+你是一名资深设计策略专家，拥有10年以上用户体验设计经验。
+
+## 核心特质
+- **用户中心**：始终以用户需求为出发点
+- **系统思维**：能够从整体视角看待设计问题
+- **战略眼光**：预见长期影响和扩展性
+- **沟通能力**：清晰传达设计概念
+
+## 工作原则
+1. **先理解再设计**：深入理解用户、业务和技术约束
+2. **数据驱动**：基于用户研究和数据分析
+3. **迭代验证**：通过快速原型和用户测试验证
+4. **文档先行**：确保所有设计决策有清晰文档
+```
+
+### 角色定义文件 (role.md)
 
 ```yaml
-# role: game_designer.yaml
-role_id: "game_designer_pro"
-role_name: "资深游戏策划"
-role_version: "1.0.0"
+---
+name: design-strategist
+version: 1.0.0
+description: 上游设计思维专家
+tags: [设计策略, 用户体验, 研究分析]
+capabilities: [高推理, 系统思维, 用户洞察, 战略规划]
+soul_ref: "./soul.md"
+---
 
-# 人格设定
-soul: |
-  你是一位资深游戏策划，擅长核心玩法设计、数值平衡和经济系统。
-  
-  核心职责：
-  1. 设计游戏核心玩法机制
-  2. 设计经济数值系统
-  3. 编写游戏设计文档（GDD）
-  
-  工作原则：
-  - 输出需包含可执行的公式和结构化文档
-  - 考虑玩家体验和游戏平衡
-  - 遵循行业最佳实践
+# Design Strategist
 
-# 技能堆栈
-skills:
-  - game_documentation
-  - spreadsheet_modeling
-  - level_design
-  - economy_balance
+## Soul 引用
 
-# 能力要求
-required_capabilities:
-  max_tokens: 128000
-  tools: true
-  reasoning: high
+人格设定定义在 [soul.md](./soul.md) 文件中。
 
-# 默认模型配置
-default_actor:
-  provider: "openai"
-  model: "gpt-4-turbo"
-  temperature: 0.7
-  max_tokens: 4000
+## Skills（技能堆栈）
+
+### 核心技能
+- design-discovery
+- inclusive-personas
+- design-strategy
+- design-state
+- design-memory
+- research-planning
+- writing-design-plans
+- using-designpowers
+```
+
+### 演员专用 Soul 微调
+
+```markdown
+---
+name: design-strategist-claude-opus-soul
+version: 1.0.0
+description: Design Strategist Soul微调版本 - Claude Opus专用
+base_soul: "../soul.md"
+actor: claude-opus
+---
+
+# Design Strategist Soul (Claude Opus 微调版)
+
+基于基础 [soul.md](../soul.md)，针对 Claude Opus 模型进行微调。
+
+## Claude Opus 特定优化
+
+### 模型优势利用
+- **长上下文**：充分利用 Claude Opus 的 200K token 上下文窗口
+- **深度推理**：利用 Claude Opus 的强推理能力
+- **代码理解**：利用 Claude Opus 的代码理解能力
+
+### 沟通风格微调
+- 增强对技术细节的解释能力
+- 提供更详细的推理过程
+- 主动询问技术实现的相关问题
+```
+
+### 角色变体定义
+
+```markdown
+---
+name: design-strategist-b2b
+version: 1.0.0
+description: B2B设计策略专家变体
+base_role: "../role.md"
+variant: b2b
+soul_ref: "./soul.md"
+---
+
+# Design Strategist (B2B Variant)
+
+## 变体信息
+
+**适用场景**：企业级产品设计
+**特点**：更注重业务目标、复杂工作流、多角色协作
+
+## 变体配置
+
+### 额外技能
+- 无额外技能，但强调业务理解能力
+
+### 能力标签调整
+- **推理能力**：高（需要复杂的业务逻辑分析）
+- **创造力**：中（需要创新但更注重业务价值）
 ```
 
 ### 技能定义
@@ -175,7 +273,7 @@ class RoleDefinition:
     role_id: str
     role_name: str
     role_version: str
-    soul: str
+    soul_ref: str  # Soul文件引用路径
     skills: List[str]
     required_capabilities: Dict
     default_actor: Optional[Dict] = None
@@ -183,17 +281,51 @@ class RoleDefinition:
 class RoleInstance:
     """角色实例：角色定义 + 运行时状态"""
     
-    def __init__(self, role_definition: RoleDefinition, actor_config: ActorConfig):
+    def __init__(self, role_definition: RoleDefinition, actor_config: ActorConfig, instance_id: str = None):
         self.role_definition = role_definition
         self.actor_config = actor_config
+        self.instance_id = instance_id or self._generate_instance_id()
         self.memory = {}  # 角色记忆
         self.state = {}  # 运行时状态
         self.skill_cache = {}  # 技能缓存
+        self.soul_content = None  # Soul内容
         
+    def _generate_instance_id(self) -> str:
+        """生成唯一实例ID"""
+        actor_name = self.actor_config.model.replace('-', '_')
+        timestamp = int(time.time())
+        return f"{self.role_definition.role_id}-{actor_name}-{timestamp}"
+    
+    def load_soul(self, role_path: str, actor_name: str = None, variant: str = None):
+        """加载Soul文件，优先级：演员专用Soul > 变体Soul > 基础Soul"""
+        # 尝试加载演员专用Soul
+        if actor_name:
+            actor_soul_path = f"{role_path}/actors/{actor_name}-soul.md"
+            if os.path.exists(actor_soul_path):
+                with open(actor_soul_path, 'r', encoding='utf-8') as f:
+                    self.soul_content = f.read()
+                print(f"Loaded actor-specific soul: {actor_soul_path}")
+                return
+        
+        # 尝试加载变体Soul
+        if variant:
+            variant_soul_path = f"{role_path}/soul.md"
+            if os.path.exists(variant_soul_path):
+                with open(variant_soul_path, 'r', encoding='utf-8') as f:
+                    self.soul_content = f.read()
+                print(f"Loaded variant soul: {variant_soul_path}")
+                return
+        
+        # 加载基础Soul
+        soul_path = f"{role_path}/{self.role_definition.soul_ref}"
+        with open(soul_path, 'r', encoding='utf-8') as f:
+            self.soul_content = f.read()
+        print(f"Loaded base soul: {soul_path}")
+    
     def load_skills(self, skills_path: str):
         """加载技能文件"""
         for skill_name in self.role_definition.skills:
-            skill_file = f"{skills_path}/{skill_name}/SKILL.md"
+            skill_file = f"{skills_path}/{skill_name}/skill.md"
             with open(skill_file, 'r', encoding='utf-8') as f:
                 self.skill_cache[skill_name] = f.read()
     
@@ -203,7 +335,7 @@ class RoleInstance:
         
         # 添加 Soul
         prompt_parts.append(f"# Role: {self.role_definition.role_name}\n")
-        prompt_parts.append(self.role_definition.soul)
+        prompt_parts.append(self.soul_content)
         
         # 添加技能
         prompt_parts.append("\n# Skills\n")
@@ -302,10 +434,27 @@ class RoleInstantiator:
     
     def _load_role_definitions(self):
         """加载角色定义"""
-        # 实现角色定义加载逻辑
-        pass
+        roles_path = ".claude/roles"
+        for role_dir in os.listdir(roles_path):
+            role_file = f"{roles_path}/{role_dir}/role.md"
+            if os.path.exists(role_file):
+                with open(role_file, 'r', encoding='utf-8') as f:
+                    # 解析YAML front matter
+                    content = f.read()
+                    yaml_match = re.match(r'^---\n(.*?)\n---', content, re.DOTALL)
+                    if yaml_match:
+                        yaml_content = yaml.safe_load(yaml_match.group(1))
+                        self.role_definitions[role_dir] = RoleDefinition(
+                            role_id=role_dir,
+                            role_name=yaml_content.get('name', role_dir),
+                            role_version=yaml_content.get('version', '1.0.0'),
+                            soul_ref=yaml_content.get('soul_ref', './soul.md'),
+                            skills=yaml_content.get('skills', []),
+                            required_capabilities=yaml_content.get('capabilities', {}),
+                            default_actor=yaml_content.get('default_actor')
+                        )
     
-    def instantiate_role(self, role_id: str, actor_id: str) -> RoleInstance:
+    def instantiate_role(self, role_id: str, actor_id: str, variant: str = None) -> RoleInstance:
         """实例化角色"""
         if role_id not in self.role_definitions:
             raise ValueError(f"Role {role_id} not found")
@@ -313,11 +462,26 @@ class RoleInstantiator:
         if actor_id not in self.actors:
             raise ValueError(f"Actor {actor_id} not found")
         
+        # 如果指定了变体，加载变体配置
+        if variant:
+            variant_path = f".claude/roles/{role_id}/variants/{variant}"
+            if os.path.exists(variant_path):
+                role_id = f"{role_id}-{variant}"
+                role_path = variant_path
+            else:
+                raise ValueError(f"Variant {variant} not found for role {role_id}")
+        else:
+            role_path = f".claude/roles/{role_id}"
+        
         role_def = self.role_definitions[role_id]
         actor_config = self.actors[actor_id]
         
         # 创建角色实例
         role_instance = RoleInstance(role_def, actor_config)
+        
+        # 加载Soul（优先级：演员专用Soul > 变体Soul > 基础Soul）
+        actor_name = actor_config.model.replace('-', '_')
+        role_instance.load_soul(role_path, actor_name, variant)
         
         # 加载技能
         role_instance.load_skills(self.skills_path)
@@ -492,7 +656,95 @@ for task in tasks:
 
 ## 高级特性
 
-### 1. 角色记忆持久化
+### 1. Soul 微调机制
+
+RAMS 框架支持针对不同演员微调 Soul，以充分利用各模型的优势：
+
+```python
+class RoleInstance:
+    def load_soul(self, role_path: str, actor_name: str = None):
+        """加载Soul文件，优先使用演员专用Soul"""
+        # 尝试加载演员专用Soul
+        if actor_name:
+            actor_soul_path = f"{role_path}/actors/{actor_name}-soul.md"
+            if os.path.exists(actor_soul_path):
+                with open(actor_soul_path, 'r', encoding='utf-8') as f:
+                    self.soul_content = f.read()
+                print(f"Loaded actor-specific soul: {actor_soul_path}")
+                return
+        
+        # 加载基础Soul
+        soul_path = f"{role_path}/{self.role_definition.soul_ref}"
+        with open(soul_path, 'r', encoding='utf-8') as f:
+            self.soul_content = f.read()
+        print(f"Loaded base soul: {soul_path}")
+```
+
+**优势**：
+- 同一个角色可以有多个演员专用 Soul
+- 充分利用不同模型的优势（如 Claude Opus 的长上下文、GPT-4 Turbo 的视觉能力）
+- 保持基础 Soul 的一致性，同时支持个性化优化
+
+### 2. 实例ID生成
+
+每个 (role, actor) 组合生成唯一实例ID，便于追踪和调试：
+
+```python
+def _generate_instance_id(self) -> str:
+    """生成唯一实例ID"""
+    actor_name = self.actor_config.model.replace('-', '_')
+    timestamp = int(time.time())
+    return f"{self.role_definition.role_id}-{actor_name}-{timestamp}"
+```
+
+**示例**：
+- `design-strategist-claude_opus-1713967200`
+- `design-strategist-gpt4_turbo-1713967260`
+- `design-strategist-b2b-claude_opus-1713967300` (带变体)
+
+### 3. 角色变体选择
+
+RAMS 框架支持角色变体，以适应不同的应用场景：
+
+```python
+def instantiate_role(self, role_id: str, actor_id: str, variant: str = None) -> RoleInstance:
+    """实例化角色，支持变体选择"""
+    if variant:
+        variant_path = f".claude/roles/{role_id}/variants/{variant}"
+        if os.path.exists(variant_path):
+            role_id = f"{role_id}-{variant}"
+            role_path = variant_path
+        else:
+            raise ValueError(f"Variant {variant} not found")
+    else:
+        role_path = f".claude/roles/{role_id}"
+    
+    # 加载Soul（优先级：演员专用Soul > 变体Soul > 基础Soul）
+    role_instance.load_soul(role_path, actor_name, variant)
+```
+
+**使用示例**：
+```python
+# 使用基础角色
+role_instance = instantiator.instantiate_role(
+    role_id="design-strategist",
+    actor_id="claude-opus"
+)
+
+# 使用B2B变体
+role_instance = instantiator.instantiate_role(
+    role_id="design-strategist",
+    actor_id="claude-opus",
+    variant="b2b"
+)
+```
+
+**Soul加载优先级**：
+1. 演员专用Soul（如 `actors/claude-opus-soul.md`）
+2. 变体Soul（如 `variants/b2b/soul.md`）
+3. 基础Soul（如 `soul.md`）
+
+### 4. 角色记忆持久化
 
 ```python
 class RoleInstance:
@@ -507,19 +759,19 @@ class RoleInstance:
             self.memory = yaml.safe_load(f)
 ```
 
-### 2. 技能动态加载
+### 4. 技能动态加载
 
 ```python
 class RoleInstance:
     def load_skill_on_demand(self, skill_name: str):
         """按需加载技能"""
         if skill_name not in self.skill_cache:
-            skill_file = f"{self.skills_path}/{skill_name}/SKILL.md"
+            skill_file = f"{self.skills_path}/{skill_name}/skill.md"
             with open(skill_file, 'r', encoding='utf-8') as f:
                 self.skill_cache[skill_name] = f.read()
 ```
 
-### 3. 多演员并行执行
+### 5. 多演员并行执行
 
 ```python
 from concurrent.futures import ThreadPoolExecutor
