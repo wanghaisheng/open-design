@@ -1,5 +1,5 @@
 import { defineCommand } from 'citty';
-import { CommitManager, BranchManager, UndoRedoManager } from '../rams/version-manager/index.js';
+import { CommitManager, BranchManager, UndoRedoManager, MergeManager, RemoteManager, TagManager, StashManager, RebaseManager } from '../rams/version-manager/index.js';
 
 export default defineCommand({
   meta: {
@@ -259,6 +259,441 @@ export default defineCommand({
             
             await branchManager.deleteBranch(args.name as string);
             console.log(`Deleted branch: ${args.name}`);
+          },
+        }),
+      },
+    }),
+
+    merge: defineCommand({
+      meta: {
+        name: 'merge',
+        description: 'Merge branches',
+      },
+      args: {
+        instance: {
+          type: 'string',
+          description: 'Role instance ID',
+          required: true,
+        },
+        source: {
+          type: 'string',
+          description: 'Source branch',
+          required: true,
+        },
+        target: {
+          type: 'string',
+          description: 'Target branch',
+          required: true,
+        },
+        strategy: {
+          type: 'string',
+          description: 'Merge strategy (auto, manual)',
+          default: 'auto',
+        },
+      },
+      async run({ args }) {
+        const commitManager = new CommitManager(args.instance as string);
+        const branchManager = new BranchManager(args.instance as string);
+        const mergeManager = new MergeManager(args.instance as string, commitManager, branchManager);
+        
+        await commitManager.initialize();
+        await branchManager.initialize();
+        
+        const result = await mergeManager.merge(
+          args.source as string,
+          args.target as string,
+          args.strategy as 'auto' | 'manual'
+        );
+        
+        if (result.success) {
+          console.log(result.message);
+        } else {
+          console.error(result.message);
+          if (result.conflicts) {
+            console.log('Conflicts:');
+            for (const conflict of result.conflicts) {
+              console.log(`  - ${conflict.skill_name}: ${conflict.conflict_type}`);
+            }
+          }
+        }
+      },
+    }),
+
+    tag: defineCommand({
+      meta: {
+        name: 'tag',
+        description: 'Tag management',
+      },
+      subCommands: {
+        create: defineCommand({
+          meta: {
+            name: 'create',
+            description: 'Create a tag',
+          },
+          args: {
+            instance: {
+              type: 'string',
+              description: 'Role instance ID',
+              required: true,
+            },
+            name: {
+              type: 'string',
+              description: 'Tag name',
+              required: true,
+            },
+            commit: {
+              type: 'string',
+              description: 'Commit ID',
+              required: true,
+            },
+            message: {
+              type: 'string',
+              description: 'Tag message',
+              required: false,
+            },
+          },
+          async run({ args }) {
+            const tagManager = new TagManager(args.instance as string);
+            await tagManager.initialize();
+            
+            await tagManager.createTag(
+              args.name as string,
+              args.commit as string,
+              args.message as string || ''
+            );
+            console.log(`Created tag: ${args.name}`);
+          },
+        }),
+
+        list: defineCommand({
+          meta: {
+            name: 'list',
+            description: 'List all tags',
+          },
+          args: {
+            instance: {
+              type: 'string',
+              description: 'Role instance ID',
+              required: true,
+            },
+          },
+          async run({ args }) {
+            const tagManager = new TagManager(args.instance as string);
+            await tagManager.initialize();
+            
+            const tags = await tagManager.listTags();
+            console.log('Tags:');
+            for (const tag of tags) {
+              console.log(`  ${tag.name} -> ${tag.commit_id} (${tag.created_at})`);
+            }
+          },
+        }),
+
+        delete: defineCommand({
+          meta: {
+            name: 'delete',
+            description: 'Delete a tag',
+          },
+          args: {
+            instance: {
+              type: 'string',
+              description: 'Role instance ID',
+              required: true,
+            },
+            name: {
+              type: 'string',
+              description: 'Tag name',
+              required: true,
+            },
+          },
+          async run({ args }) {
+            const tagManager = new TagManager(args.instance as string);
+            await tagManager.initialize();
+            
+            await tagManager.deleteTag(args.name as string);
+            console.log(`Deleted tag: ${args.name}`);
+          },
+        }),
+      },
+    }),
+
+    stash: defineCommand({
+      meta: {
+        name: 'stash',
+        description: 'Stash management',
+      },
+      subCommands: {
+        save: defineCommand({
+          meta: {
+            name: 'save',
+            description: 'Save current work to stash',
+          },
+          args: {
+            instance: {
+              type: 'string',
+              description: 'Role instance ID',
+              required: true,
+            },
+            message: {
+              type: 'string',
+              description: 'Stash message',
+              default: 'WIP',
+            },
+          },
+          async run({ args }) {
+            const commitManager = new CommitManager(args.instance as string);
+            const stashManager = new StashManager(args.instance as string);
+            
+            await commitManager.initialize();
+            await stashManager.initialize();
+            
+            const currentCommit = await commitManager.getCurrentCommit();
+            if (!currentCommit) {
+              console.error('No current commit found');
+              return;
+            }
+            
+            const stashId = await stashManager.create(currentCommit, args.message as string);
+            console.log(`Stashed: ${stashId}`);
+          },
+        }),
+
+        list: defineCommand({
+          meta: {
+            name: 'list',
+            description: 'List all stashes',
+          },
+          args: {
+            instance: {
+              type: 'string',
+              description: 'Role instance ID',
+              required: true,
+            },
+          },
+          async run({ args }) {
+            const stashManager = new StashManager(args.instance as string);
+            await stashManager.initialize();
+            
+            const stashes = await stashManager.list();
+            console.log('Stashes:');
+            for (const stash of stashes) {
+              console.log(`  ${stash.id}: ${stash.message} (${stash.created_at})`);
+            }
+          },
+        }),
+
+        apply: defineCommand({
+          meta: {
+            name: 'apply',
+            description: 'Apply a stash',
+          },
+          args: {
+            instance: {
+              type: 'string',
+              description: 'Role instance ID',
+              required: true,
+            },
+            id: {
+              type: 'string',
+              description: 'Stash ID',
+              required: true,
+            },
+          },
+          async run({ args }) {
+            const stashManager = new StashManager(args.instance as string);
+            await stashManager.initialize();
+            
+            await stashManager.apply(args.id as string);
+            console.log(`Applied stash: ${args.id}`);
+          },
+        }),
+
+        drop: defineCommand({
+          meta: {
+            name: 'drop',
+            description: 'Drop a stash',
+          },
+          args: {
+            instance: {
+              type: 'string',
+              description: 'Role instance ID',
+              required: true,
+            },
+            id: {
+              type: 'string',
+              description: 'Stash ID',
+              required: true,
+            },
+          },
+          async run({ args }) {
+            const stashManager = new StashManager(args.instance as string);
+            await stashManager.initialize();
+            
+            await stashManager.drop(args.id as string);
+            console.log(`Dropped stash: ${args.id}`);
+          },
+        }),
+      },
+    }),
+
+    rebase: defineCommand({
+      meta: {
+        name: 'rebase',
+        description: 'Rebase commits',
+      },
+      args: {
+        instance: {
+          type: 'string',
+          description: 'Role instance ID',
+          required: true,
+        },
+        branch: {
+          type: 'string',
+          description: 'Branch to rebase',
+          required: true,
+        },
+        onto: {
+          type: 'string',
+          description: 'Target commit',
+          required: true,
+        },
+      },
+      async run({ args }) {
+        const commitManager = new CommitManager(args.instance as string);
+        const branchManager = new BranchManager(args.instance as string);
+        const rebaseManager = new RebaseManager(commitManager, branchManager);
+        
+        await commitManager.initialize();
+        await branchManager.initialize();
+        
+        await rebaseManager.rebase(args.branch as string, args.onto as string);
+        console.log(`Rebased ${args.branch} onto ${args.onto}`);
+      },
+    }),
+
+    remote: defineCommand({
+      meta: {
+        name: 'remote',
+        description: 'Remote repository management',
+      },
+      subCommands: {
+        add: defineCommand({
+          meta: {
+            name: 'add',
+            description: 'Add a remote',
+          },
+          args: {
+            instance: {
+              type: 'string',
+              description: 'Role instance ID',
+              required: true,
+            },
+            name: {
+              type: 'string',
+              description: 'Remote name',
+              required: true,
+            },
+            url: {
+              type: 'string',
+              description: 'Remote URL',
+              required: true,
+            },
+            type: {
+              type: 'string',
+              description: 'Remote type (git, s3, r2)',
+              default: 'git',
+            },
+          },
+          async run({ args }) {
+            const remoteManager = new RemoteManager(args.instance as string);
+            
+            const config = {
+              type: args.type as 'git' | 's3' | 'r2',
+              url: args.url as string,
+            };
+            
+            await remoteManager.addRemote(args.name as string, config);
+            console.log(`Added remote: ${args.name}`);
+          },
+        }),
+
+        list: defineCommand({
+          meta: {
+            name: 'list',
+            description: 'List remotes',
+          },
+          args: {
+            instance: {
+              type: 'string',
+              description: 'Role instance ID',
+              required: true,
+            },
+          },
+          async run({ args }) {
+            const remoteManager = new RemoteManager(args.instance as string);
+            const remotes = await remoteManager.listRemotes();
+            console.log('Remotes:');
+            for (const remote of remotes) {
+              console.log(`  ${remote}`);
+            }
+          },
+        }),
+
+        push: defineCommand({
+          meta: {
+            name: 'push',
+            description: 'Push to remote',
+          },
+          args: {
+            instance: {
+              type: 'string',
+              description: 'Role instance ID',
+              required: true,
+            },
+            remote: {
+              type: 'string',
+              description: 'Remote name',
+              required: true,
+            },
+            branch: {
+              type: 'string',
+              description: 'Branch name',
+              required: true,
+            },
+          },
+          async run({ args }) {
+            const remoteManager = new RemoteManager(args.instance as string);
+            await remoteManager.push(args.remote as string, args.branch as string);
+            console.log(`Pushed to ${args.remote}`);
+          },
+        }),
+
+        pull: defineCommand({
+          meta: {
+            name: 'pull',
+            description: 'Pull from remote',
+          },
+          args: {
+            instance: {
+              type: 'string',
+              description: 'Role instance ID',
+              required: true,
+            },
+            remote: {
+              type: 'string',
+              description: 'Remote name',
+              required: true,
+            },
+            branch: {
+              type: 'string',
+              description: 'Branch name',
+              required: true,
+            },
+          },
+          async run({ args }) {
+            const remoteManager = new RemoteManager(args.instance as string);
+            await remoteManager.pull(args.remote as string, args.branch as string);
+            console.log(`Pulled from ${args.remote}`);
           },
         }),
       },

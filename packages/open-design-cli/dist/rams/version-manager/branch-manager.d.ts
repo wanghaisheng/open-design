@@ -14,7 +14,8 @@ export declare class BranchManager {
     switchBranch(branchName: string): Promise<void>;
     listBranches(): Promise<Branch[]>;
     deleteBranch(branchName: string): Promise<void>;
-    private getRef;
+    getRef(branchName: string): Promise<string | null>;
+    updateRef(branchName: string, commitId: string): Promise<void>;
     private updateHead;
     private createWorktree;
     private restoreWorktree;

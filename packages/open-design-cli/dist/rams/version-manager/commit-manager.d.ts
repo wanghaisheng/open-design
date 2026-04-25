@@ -42,7 +42,7 @@ export declare class CommitManager {
     private generateCommitId;
     private hashInput;
     private storeOutput;
-    private storeCommit;
+    storeCommit(commit: Commit): Promise<void>;
     private collectMetadata;
 }
 //# sourceMappingURL=commit-manager.d.ts.map

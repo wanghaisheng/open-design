@@ -68,13 +68,18 @@ export class BranchManager {
     await fs.rm(worktreePath, { recursive: true, force: true });
   }
 
-  private async getRef(branchName: string): Promise<string | null> {
+  async getRef(branchName: string): Promise<string | null> {
     const branchPath = join(this.refsPath, branchName);
     try {
       return await fs.readFile(branchPath, 'utf-8');
     } catch {
       return null;
     }
+  }
+
+  async updateRef(branchName: string, commitId: string): Promise<void> {
+    const branchPath = join(this.refsPath, branchName);
+    await fs.writeFile(branchPath, commitId, 'utf-8');
   }
 
   private async updateHead(commitId: string): Promise<void> {

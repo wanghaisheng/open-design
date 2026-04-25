@@ -155,7 +155,7 @@ export class CommitManager {
     };
   }
 
-  private async storeCommit(commit: Commit): Promise<void> {
+  async storeCommit(commit: Commit): Promise<void> {
     const commitPath = join(this.commitsPath, `${commit.commit_id}.yaml`);
     await fs.writeFile(commitPath, YAML.stringify(commit), 'utf-8');
   }
