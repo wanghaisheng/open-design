@@ -8157,6 +8157,3499 @@ var init_utils = __esm(() => {
   init_config_manager();
 });
 
+// ../../node_modules/@neon-rs/load/dist/index.js
+var require_dist2 = __commonJS((exports) => {
+  var __createBinding = exports && exports.__createBinding || (Object.create ? function(o3, m2, k2, k22) {
+    if (k22 === undefined)
+      k22 = k2;
+    var desc = Object.getOwnPropertyDescriptor(m2, k2);
+    if (!desc || ("get" in desc ? !m2.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() {
+        return m2[k2];
+      } };
+    }
+    Object.defineProperty(o3, k22, desc);
+  } : function(o3, m2, k2, k22) {
+    if (k22 === undefined)
+      k22 = k2;
+    o3[k22] = m2[k2];
+  });
+  var __setModuleDefault = exports && exports.__setModuleDefault || (Object.create ? function(o3, v2) {
+    Object.defineProperty(o3, "default", { enumerable: true, value: v2 });
+  } : function(o3, v2) {
+    o3["default"] = v2;
+  });
+  var __importStar = exports && exports.__importStar || function(mod) {
+    if (mod && mod.__esModule)
+      return mod;
+    var result = {};
+    if (mod != null) {
+      for (var k2 in mod)
+        if (k2 !== "default" && Object.prototype.hasOwnProperty.call(mod, k2))
+          __createBinding(result, mod, k2);
+    }
+    __setModuleDefault(result, mod);
+    return result;
+  };
+  Object.defineProperty(exports, "__esModule", { value: true });
+  exports.load = exports.currentTarget = undefined;
+  var path = __importStar(__require("path"));
+  var fs8 = __importStar(__require("fs"));
+  function currentTarget() {
+    let os = null;
+    switch (process.platform) {
+      case "android":
+        switch (process.arch) {
+          case "arm":
+            return "android-arm-eabi";
+          case "arm64":
+            return "android-arm64";
+        }
+        os = "Android";
+        break;
+      case "win32":
+        switch (process.arch) {
+          case "x64":
+            return "win32-x64-msvc";
+          case "arm64":
+            return "win32-arm64-msvc";
+          case "ia32":
+            return "win32-ia32-msvc";
+        }
+        os = "Windows";
+        break;
+      case "darwin":
+        switch (process.arch) {
+          case "x64":
+            return "darwin-x64";
+          case "arm64":
+            return "darwin-arm64";
+        }
+        os = "macOS";
+        break;
+      case "linux":
+        switch (process.arch) {
+          case "x64":
+          case "arm64":
+            return isGlibc() ? `linux-${process.arch}-gnu` : `linux-${process.arch}-musl`;
+          case "arm":
+            return "linux-arm-gnueabihf";
+        }
+        os = "Linux";
+        break;
+      case "freebsd":
+        if (process.arch === "x64") {
+          return "freebsd-x64";
+        }
+        os = "FreeBSD";
+        break;
+    }
+    if (os) {
+      throw new Error(`Neon: unsupported ${os} architecture: ${process.arch}`);
+    }
+    throw new Error(`Neon: unsupported system: ${process.platform}`);
+  }
+  exports.currentTarget = currentTarget;
+  function isGlibc() {
+    const report = process.report?.getReport();
+    if (typeof report !== "object" || !report || !("header" in report)) {
+      return false;
+    }
+    const header = report.header;
+    return typeof header === "object" && !!header && "glibcVersionRuntime" in header;
+  }
+  function load(dirname) {
+    const m2 = path.join(dirname, "index.node");
+    return fs8.existsSync(m2) ? __require(m2) : null;
+  }
+  exports.load = load;
+});
+
+// ../../node_modules/detect-libc/lib/process.js
+var require_process = __commonJS((exports, module) => {
+  var isLinux = () => process.platform === "linux";
+  var report = null;
+  var getReport = () => {
+    if (!report) {
+      report = isLinux() && process.report ? process.report.getReport() : {};
+    }
+    return report;
+  };
+  module.exports = { isLinux, getReport };
+});
+
+// ../../node_modules/detect-libc/lib/filesystem.js
+var require_filesystem = __commonJS((exports, module) => {
+  var fs8 = __require("fs");
+  var LDD_PATH = "/usr/bin/ldd";
+  var readFileSync8 = (path) => fs8.readFileSync(path, "utf-8");
+  var readFile2 = (path) => new Promise((resolve10, reject) => {
+    fs8.readFile(path, "utf-8", (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve10(data);
+      }
+    });
+  });
+  module.exports = {
+    LDD_PATH,
+    readFileSync: readFileSync8,
+    readFile: readFile2
+  };
+});
+
+// ../../node_modules/detect-libc/lib/detect-libc.js
+var require_detect_libc = __commonJS((exports, module) => {
+  var childProcess = __require("child_process");
+  var { isLinux, getReport } = require_process();
+  var { LDD_PATH, readFile: readFile2, readFileSync: readFileSync8 } = require_filesystem();
+  var cachedFamilyFilesystem;
+  var cachedVersionFilesystem;
+  var command = "getconf GNU_LIBC_VERSION 2>&1 || true; ldd --version 2>&1 || true";
+  var commandOut = "";
+  var safeCommand = () => {
+    if (!commandOut) {
+      return new Promise((resolve10) => {
+        childProcess.exec(command, (err, out) => {
+          commandOut = err ? " " : out;
+          resolve10(commandOut);
+        });
+      });
+    }
+    return commandOut;
+  };
+  var safeCommandSync = () => {
+    if (!commandOut) {
+      try {
+        commandOut = childProcess.execSync(command, { encoding: "utf8" });
+      } catch (_err) {
+        commandOut = " ";
+      }
+    }
+    return commandOut;
+  };
+  var GLIBC = "glibc";
+  var RE_GLIBC_VERSION = /GLIBC\s(\d+\.\d+)/;
+  var MUSL = "musl";
+  var GLIBC_ON_LDD = GLIBC.toUpperCase();
+  var MUSL_ON_LDD = MUSL.toLowerCase();
+  var isFileMusl = (f3) => f3.includes("libc.musl-") || f3.includes("ld-musl-");
+  var familyFromReport = () => {
+    const report = getReport();
+    if (report.header && report.header.glibcVersionRuntime) {
+      return GLIBC;
+    }
+    if (Array.isArray(report.sharedObjects)) {
+      if (report.sharedObjects.some(isFileMusl)) {
+        return MUSL;
+      }
+    }
+    return null;
+  };
+  var familyFromCommand = (out) => {
+    const [getconf, ldd1] = out.split(/[\r\n]+/);
+    if (getconf && getconf.includes(GLIBC)) {
+      return GLIBC;
+    }
+    if (ldd1 && ldd1.includes(MUSL)) {
+      return MUSL;
+    }
+    return null;
+  };
+  var getFamilyFromLddContent = (content) => {
+    if (content.includes(MUSL_ON_LDD)) {
+      return MUSL;
+    }
+    if (content.includes(GLIBC_ON_LDD)) {
+      return GLIBC;
+    }
+    return null;
+  };
+  var familyFromFilesystem = async () => {
+    if (cachedFamilyFilesystem !== undefined) {
+      return cachedFamilyFilesystem;
+    }
+    cachedFamilyFilesystem = null;
+    try {
+      const lddContent = await readFile2(LDD_PATH);
+      cachedFamilyFilesystem = getFamilyFromLddContent(lddContent);
+    } catch (e2) {}
+    return cachedFamilyFilesystem;
+  };
+  var familyFromFilesystemSync = () => {
+    if (cachedFamilyFilesystem !== undefined) {
+      return cachedFamilyFilesystem;
+    }
+    cachedFamilyFilesystem = null;
+    try {
+      const lddContent = readFileSync8(LDD_PATH);
+      cachedFamilyFilesystem = getFamilyFromLddContent(lddContent);
+    } catch (e2) {}
+    return cachedFamilyFilesystem;
+  };
+  var family = async () => {
+    let family2 = null;
+    if (isLinux()) {
+      family2 = await familyFromFilesystem();
+      if (!family2) {
+        family2 = familyFromReport();
+      }
+      if (!family2) {
+        const out = await safeCommand();
+        family2 = familyFromCommand(out);
+      }
+    }
+    return family2;
+  };
+  var familySync = () => {
+    let family2 = null;
+    if (isLinux()) {
+      family2 = familyFromFilesystemSync();
+      if (!family2) {
+        family2 = familyFromReport();
+      }
+      if (!family2) {
+        const out = safeCommandSync();
+        family2 = familyFromCommand(out);
+      }
+    }
+    return family2;
+  };
+  var isNonGlibcLinux = async () => isLinux() && await family() !== GLIBC;
+  var isNonGlibcLinuxSync = () => isLinux() && familySync() !== GLIBC;
+  var versionFromFilesystem = async () => {
+    if (cachedVersionFilesystem !== undefined) {
+      return cachedVersionFilesystem;
+    }
+    cachedVersionFilesystem = null;
+    try {
+      const lddContent = await readFile2(LDD_PATH);
+      const versionMatch = lddContent.match(RE_GLIBC_VERSION);
+      if (versionMatch) {
+        cachedVersionFilesystem = versionMatch[1];
+      }
+    } catch (e2) {}
+    return cachedVersionFilesystem;
+  };
+  var versionFromFilesystemSync = () => {
+    if (cachedVersionFilesystem !== undefined) {
+      return cachedVersionFilesystem;
+    }
+    cachedVersionFilesystem = null;
+    try {
+      const lddContent = readFileSync8(LDD_PATH);
+      const versionMatch = lddContent.match(RE_GLIBC_VERSION);
+      if (versionMatch) {
+        cachedVersionFilesystem = versionMatch[1];
+      }
+    } catch (e2) {}
+    return cachedVersionFilesystem;
+  };
+  var versionFromReport = () => {
+    const report = getReport();
+    if (report.header && report.header.glibcVersionRuntime) {
+      return report.header.glibcVersionRuntime;
+    }
+    return null;
+  };
+  var versionSuffix = (s2) => s2.trim().split(/\s+/)[1];
+  var versionFromCommand = (out) => {
+    const [getconf, ldd1, ldd2] = out.split(/[\r\n]+/);
+    if (getconf && getconf.includes(GLIBC)) {
+      return versionSuffix(getconf);
+    }
+    if (ldd1 && ldd2 && ldd1.includes(MUSL)) {
+      return versionSuffix(ldd2);
+    }
+    return null;
+  };
+  var version2 = async () => {
+    let version3 = null;
+    if (isLinux()) {
+      version3 = await versionFromFilesystem();
+      if (!version3) {
+        version3 = versionFromReport();
+      }
+      if (!version3) {
+        const out = await safeCommand();
+        version3 = versionFromCommand(out);
+      }
+    }
+    return version3;
+  };
+  var versionSync = () => {
+    let version3 = null;
+    if (isLinux()) {
+      version3 = versionFromFilesystemSync();
+      if (!version3) {
+        version3 = versionFromReport();
+      }
+      if (!version3) {
+        const out = safeCommandSync();
+        version3 = versionFromCommand(out);
+      }
+    }
+    return version3;
+  };
+  module.exports = {
+    GLIBC,
+    MUSL,
+    family,
+    familySync,
+    isNonGlibcLinux,
+    isNonGlibcLinuxSync,
+    version: version2,
+    versionSync
+  };
+});
+
+// ../../node_modules/libsql/sqlite-error.js
+var require_sqlite_error = __commonJS((exports, module) => {
+  var descriptor = { value: "SqliteError", writable: true, enumerable: false, configurable: true };
+  function SqliteError(message, code, rawCode) {
+    if (new.target !== SqliteError) {
+      return new SqliteError(message, code);
+    }
+    if (typeof code !== "string") {
+      throw new TypeError("Expected second argument to be a string");
+    }
+    Error.call(this, message);
+    descriptor.value = "" + message;
+    Object.defineProperty(this, "message", descriptor);
+    Error.captureStackTrace(this, SqliteError);
+    this.code = code;
+    this.rawCode = rawCode;
+  }
+  Object.setPrototypeOf(SqliteError, Error);
+  Object.setPrototypeOf(SqliteError.prototype, Error.prototype);
+  Object.defineProperty(SqliteError.prototype, "name", descriptor);
+  module.exports = SqliteError;
+});
+
+// ../../node_modules/libsql/index.js
+var require_libsql = __commonJS((exports, module) => {
+  var __dirname = "D:\\Download\\audio-visual\\heytcm\\open-design\\node_modules\\libsql";
+  var { load, currentTarget } = require_dist2();
+  var { familySync, GLIBC } = require_detect_libc();
+  function requireNative() {
+    if (process.env.LIBSQL_JS_DEV) {
+      return load(__dirname);
+    }
+    let target = currentTarget();
+    if (familySync() == GLIBC) {
+      switch (target) {
+        case "linux-x64-musl":
+          target = "linux-x64-gnu";
+          break;
+        case "linux-arm64-musl":
+          target = "linux-arm64-gnu";
+          break;
+      }
+    }
+    return __require(`@libsql/${target}`);
+  }
+  var {
+    databaseOpen,
+    databaseOpenWithRpcSync,
+    databaseInTransaction,
+    databaseClose,
+    databaseSyncSync,
+    databaseExecSync,
+    databasePrepareSync,
+    databaseDefaultSafeIntegers,
+    statementRaw,
+    statementIsReader,
+    statementGet,
+    statementRun,
+    statementRowsSync,
+    statementColumns,
+    statementSafeIntegers,
+    rowsNext
+  } = requireNative();
+  var SqliteError = require_sqlite_error();
+  function convertError(err) {
+    if (err.libsqlError) {
+      return new SqliteError(err.message, err.code, err.rawCode);
+    }
+    return err;
+  }
+
+  class Database {
+    constructor(path, opts) {
+      const encryptionCipher = opts?.encryptionCipher ?? "aes256cbc";
+      if (opts && opts.syncUrl) {
+        var authToken = "";
+        if (opts.syncAuth) {
+          console.warn("Warning: The `syncAuth` option is deprecated, please use `authToken` option instead.");
+          authToken = opts.syncAuth;
+        } else if (opts.authToken) {
+          authToken = opts.authToken;
+        }
+        const encryptionKey = opts?.encryptionKey ?? "";
+        const syncPeriod = opts?.syncPeriod ?? 0;
+        this.db = databaseOpenWithRpcSync(path, opts.syncUrl, authToken, encryptionCipher, encryptionKey, syncPeriod);
+      } else {
+        const authToken2 = opts?.authToken ?? "";
+        const encryptionKey = opts?.encryptionKey ?? "";
+        this.db = databaseOpen(path, authToken2, encryptionCipher, encryptionKey);
+      }
+      this.memory = path === ":memory:";
+      this.readonly = false;
+      this.name = "";
+      this.open = true;
+      const db = this.db;
+      Object.defineProperties(this, {
+        inTransaction: {
+          get() {
+            return databaseInTransaction(db);
+          }
+        }
+      });
+    }
+    sync() {
+      databaseSyncSync.call(this.db);
+    }
+    prepare(sql) {
+      try {
+        const stmt = databasePrepareSync.call(this.db, sql);
+        return new Statement(stmt);
+      } catch (err) {
+        throw convertError(err);
+      }
+    }
+    transaction(fn) {
+      if (typeof fn !== "function")
+        throw new TypeError("Expected first argument to be a function");
+      const db = this;
+      const wrapTxn = (mode) => {
+        return (...bindParameters) => {
+          db.exec("BEGIN " + mode);
+          try {
+            const result = fn(...bindParameters);
+            db.exec("COMMIT");
+            return result;
+          } catch (err) {
+            db.exec("ROLLBACK");
+            throw err;
+          }
+        };
+      };
+      const properties = {
+        default: { value: wrapTxn("") },
+        deferred: { value: wrapTxn("DEFERRED") },
+        immediate: { value: wrapTxn("IMMEDIATE") },
+        exclusive: { value: wrapTxn("EXCLUSIVE") },
+        database: { value: this, enumerable: true }
+      };
+      Object.defineProperties(properties.default.value, properties);
+      Object.defineProperties(properties.deferred.value, properties);
+      Object.defineProperties(properties.immediate.value, properties);
+      Object.defineProperties(properties.exclusive.value, properties);
+      return properties.default.value;
+    }
+    pragma(source, options) {
+      if (options == null)
+        options = {};
+      if (typeof source !== "string")
+        throw new TypeError("Expected first argument to be a string");
+      if (typeof options !== "object")
+        throw new TypeError("Expected second argument to be an options object");
+      const simple = options["simple"];
+      const stmt = this.prepare(`PRAGMA ${source}`, this, true);
+      return simple ? stmt.pluck().get() : stmt.all();
+    }
+    backup(filename, options) {
+      throw new Error("not implemented");
+    }
+    serialize(options) {
+      throw new Error("not implemented");
+    }
+    function(name, options, fn) {
+      if (options == null)
+        options = {};
+      if (typeof options === "function") {
+        fn = options;
+        options = {};
+      }
+      if (typeof name !== "string")
+        throw new TypeError("Expected first argument to be a string");
+      if (typeof fn !== "function")
+        throw new TypeError("Expected last argument to be a function");
+      if (typeof options !== "object")
+        throw new TypeError("Expected second argument to be an options object");
+      if (!name)
+        throw new TypeError("User-defined function name cannot be an empty string");
+      throw new Error("not implemented");
+    }
+    aggregate(name, options) {
+      if (typeof name !== "string")
+        throw new TypeError("Expected first argument to be a string");
+      if (typeof options !== "object" || options === null)
+        throw new TypeError("Expected second argument to be an options object");
+      if (!name)
+        throw new TypeError("User-defined function name cannot be an empty string");
+      throw new Error("not implemented");
+    }
+    table(name, factory) {
+      if (typeof name !== "string")
+        throw new TypeError("Expected first argument to be a string");
+      if (!name)
+        throw new TypeError("Virtual table module name cannot be an empty string");
+      throw new Error("not implemented");
+    }
+    loadExtension(...args) {
+      throw new Error("not implemented");
+    }
+    exec(sql) {
+      try {
+        databaseExecSync.call(this.db, sql);
+      } catch (err) {
+        throw convertError(err);
+      }
+    }
+    close() {
+      databaseClose.call(this.db);
+      this.open = false;
+    }
+    defaultSafeIntegers(toggle) {
+      databaseDefaultSafeIntegers.call(this.db, toggle ?? true);
+      return this;
+    }
+    unsafeMode(...args) {
+      throw new Error("not implemented");
+    }
+  }
+
+  class Statement {
+    constructor(stmt) {
+      this.stmt = stmt;
+    }
+    raw(raw) {
+      statementRaw.call(this.stmt, raw ?? true);
+      return this;
+    }
+    get reader() {
+      return statementIsReader.call(this.stmt);
+    }
+    run(...bindParameters) {
+      try {
+        if (bindParameters.length == 1 && typeof bindParameters[0] === "object") {
+          return statementRun.call(this.stmt, bindParameters[0]);
+        } else {
+          return statementRun.call(this.stmt, bindParameters.flat());
+        }
+      } catch (err) {
+        throw convertError(err);
+      }
+    }
+    get(...bindParameters) {
+      if (bindParameters.length == 1 && typeof bindParameters[0] === "object") {
+        return statementGet.call(this.stmt, bindParameters[0]);
+      } else {
+        return statementGet.call(this.stmt, bindParameters.flat());
+      }
+    }
+    iterate(...bindParameters) {
+      var rows = undefined;
+      if (bindParameters.length == 1 && typeof bindParameters[0] === "object") {
+        rows = statementRowsSync.call(this.stmt, bindParameters[0]);
+      } else {
+        rows = statementRowsSync.call(this.stmt, bindParameters.flat());
+      }
+      const iter = {
+        nextRows: Array(100),
+        nextRowIndex: 100,
+        next() {
+          if (this.nextRowIndex === 100) {
+            rowsNext.call(rows, this.nextRows);
+            this.nextRowIndex = 0;
+          }
+          const row = this.nextRows[this.nextRowIndex];
+          this.nextRows[this.nextRowIndex] = undefined;
+          if (!row) {
+            return { done: true };
+          }
+          this.nextRowIndex++;
+          return { value: row, done: false };
+        },
+        [Symbol.iterator]() {
+          return this;
+        }
+      };
+      return iter;
+    }
+    all(...bindParameters) {
+      const result = [];
+      for (const row of this.iterate(...bindParameters)) {
+        result.push(row);
+      }
+      return result;
+    }
+    columns() {
+      return statementColumns.call(this.stmt);
+    }
+    safeIntegers(toggle) {
+      statementSafeIntegers.call(this.stmt, toggle ?? true);
+      return this;
+    }
+  }
+  module.exports = Database;
+  module.exports.SqliteError = SqliteError;
+});
+
+// ../../node_modules/ws/lib/constants.js
+var require_constants = __commonJS((exports, module) => {
+  var BINARY_TYPES = ["nodebuffer", "arraybuffer", "fragments"];
+  var hasBlob = typeof Blob !== "undefined";
+  if (hasBlob)
+    BINARY_TYPES.push("blob");
+  module.exports = {
+    BINARY_TYPES,
+    CLOSE_TIMEOUT: 30000,
+    EMPTY_BUFFER: Buffer.alloc(0),
+    GUID: "258EAFA5-E914-47DA-95CA-C5AB0DC85B11",
+    hasBlob,
+    kForOnEventAttribute: Symbol("kIsForOnEventAttribute"),
+    kListener: Symbol("kListener"),
+    kStatusCode: Symbol("status-code"),
+    kWebSocket: Symbol("websocket"),
+    NOOP: () => {}
+  };
+});
+
+// ../../node_modules/ws/lib/buffer-util.js
+var require_buffer_util = __commonJS((exports, module) => {
+  var { EMPTY_BUFFER } = require_constants();
+  var FastBuffer = Buffer[Symbol.species];
+  function concat(list, totalLength) {
+    if (list.length === 0)
+      return EMPTY_BUFFER;
+    if (list.length === 1)
+      return list[0];
+    const target = Buffer.allocUnsafe(totalLength);
+    let offset = 0;
+    for (let i2 = 0;i2 < list.length; i2++) {
+      const buf = list[i2];
+      target.set(buf, offset);
+      offset += buf.length;
+    }
+    if (offset < totalLength) {
+      return new FastBuffer(target.buffer, target.byteOffset, offset);
+    }
+    return target;
+  }
+  function _mask(source, mask, output, offset, length) {
+    for (let i2 = 0;i2 < length; i2++) {
+      output[offset + i2] = source[i2] ^ mask[i2 & 3];
+    }
+  }
+  function _unmask(buffer, mask) {
+    for (let i2 = 0;i2 < buffer.length; i2++) {
+      buffer[i2] ^= mask[i2 & 3];
+    }
+  }
+  function toArrayBuffer(buf) {
+    if (buf.length === buf.buffer.byteLength) {
+      return buf.buffer;
+    }
+    return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.length);
+  }
+  function toBuffer(data) {
+    toBuffer.readOnly = true;
+    if (Buffer.isBuffer(data))
+      return data;
+    let buf;
+    if (data instanceof ArrayBuffer) {
+      buf = new FastBuffer(data);
+    } else if (ArrayBuffer.isView(data)) {
+      buf = new FastBuffer(data.buffer, data.byteOffset, data.byteLength);
+    } else {
+      buf = Buffer.from(data);
+      toBuffer.readOnly = false;
+    }
+    return buf;
+  }
+  module.exports = {
+    concat,
+    mask: _mask,
+    toArrayBuffer,
+    toBuffer,
+    unmask: _unmask
+  };
+  if (!process.env.WS_NO_BUFFER_UTIL) {
+    try {
+      const bufferUtil = (()=>{throw new Error("Cannot require module "+"bufferutil");})();
+      module.exports.mask = function(source, mask, output, offset, length) {
+        if (length < 48)
+          _mask(source, mask, output, offset, length);
+        else
+          bufferUtil.mask(source, mask, output, offset, length);
+      };
+      module.exports.unmask = function(buffer, mask) {
+        if (buffer.length < 32)
+          _unmask(buffer, mask);
+        else
+          bufferUtil.unmask(buffer, mask);
+      };
+    } catch (e2) {}
+  }
+});
+
+// ../../node_modules/ws/lib/limiter.js
+var require_limiter = __commonJS((exports, module) => {
+  var kDone = Symbol("kDone");
+  var kRun = Symbol("kRun");
+
+  class Limiter {
+    constructor(concurrency) {
+      this[kDone] = () => {
+        this.pending--;
+        this[kRun]();
+      };
+      this.concurrency = concurrency || Infinity;
+      this.jobs = [];
+      this.pending = 0;
+    }
+    add(job) {
+      this.jobs.push(job);
+      this[kRun]();
+    }
+    [kRun]() {
+      if (this.pending === this.concurrency)
+        return;
+      if (this.jobs.length) {
+        const job = this.jobs.shift();
+        this.pending++;
+        job(this[kDone]);
+      }
+    }
+  }
+  module.exports = Limiter;
+});
+
+// ../../node_modules/ws/lib/permessage-deflate.js
+var require_permessage_deflate = __commonJS((exports, module) => {
+  var zlib = __require("zlib");
+  var bufferUtil = require_buffer_util();
+  var Limiter = require_limiter();
+  var { kStatusCode } = require_constants();
+  var FastBuffer = Buffer[Symbol.species];
+  var TRAILER = Buffer.from([0, 0, 255, 255]);
+  var kPerMessageDeflate = Symbol("permessage-deflate");
+  var kTotalLength = Symbol("total-length");
+  var kCallback = Symbol("callback");
+  var kBuffers = Symbol("buffers");
+  var kError = Symbol("error");
+  var zlibLimiter;
+
+  class PerMessageDeflate {
+    constructor(options) {
+      this._options = options || {};
+      this._threshold = this._options.threshold !== undefined ? this._options.threshold : 1024;
+      this._maxPayload = this._options.maxPayload | 0;
+      this._isServer = !!this._options.isServer;
+      this._deflate = null;
+      this._inflate = null;
+      this.params = null;
+      if (!zlibLimiter) {
+        const concurrency = this._options.concurrencyLimit !== undefined ? this._options.concurrencyLimit : 10;
+        zlibLimiter = new Limiter(concurrency);
+      }
+    }
+    static get extensionName() {
+      return "permessage-deflate";
+    }
+    offer() {
+      const params = {};
+      if (this._options.serverNoContextTakeover) {
+        params.server_no_context_takeover = true;
+      }
+      if (this._options.clientNoContextTakeover) {
+        params.client_no_context_takeover = true;
+      }
+      if (this._options.serverMaxWindowBits) {
+        params.server_max_window_bits = this._options.serverMaxWindowBits;
+      }
+      if (this._options.clientMaxWindowBits) {
+        params.client_max_window_bits = this._options.clientMaxWindowBits;
+      } else if (this._options.clientMaxWindowBits == null) {
+        params.client_max_window_bits = true;
+      }
+      return params;
+    }
+    accept(configurations) {
+      configurations = this.normalizeParams(configurations);
+      this.params = this._isServer ? this.acceptAsServer(configurations) : this.acceptAsClient(configurations);
+      return this.params;
+    }
+    cleanup() {
+      if (this._inflate) {
+        this._inflate.close();
+        this._inflate = null;
+      }
+      if (this._deflate) {
+        const callback = this._deflate[kCallback];
+        this._deflate.close();
+        this._deflate = null;
+        if (callback) {
+          callback(new Error("The deflate stream was closed while data was being processed"));
+        }
+      }
+    }
+    acceptAsServer(offers) {
+      const opts = this._options;
+      const accepted = offers.find((params) => {
+        if (opts.serverNoContextTakeover === false && params.server_no_context_takeover || params.server_max_window_bits && (opts.serverMaxWindowBits === false || typeof opts.serverMaxWindowBits === "number" && opts.serverMaxWindowBits > params.server_max_window_bits) || typeof opts.clientMaxWindowBits === "number" && !params.client_max_window_bits) {
+          return false;
+        }
+        return true;
+      });
+      if (!accepted) {
+        throw new Error("None of the extension offers can be accepted");
+      }
+      if (opts.serverNoContextTakeover) {
+        accepted.server_no_context_takeover = true;
+      }
+      if (opts.clientNoContextTakeover) {
+        accepted.client_no_context_takeover = true;
+      }
+      if (typeof opts.serverMaxWindowBits === "number") {
+        accepted.server_max_window_bits = opts.serverMaxWindowBits;
+      }
+      if (typeof opts.clientMaxWindowBits === "number") {
+        accepted.client_max_window_bits = opts.clientMaxWindowBits;
+      } else if (accepted.client_max_window_bits === true || opts.clientMaxWindowBits === false) {
+        delete accepted.client_max_window_bits;
+      }
+      return accepted;
+    }
+    acceptAsClient(response) {
+      const params = response[0];
+      if (this._options.clientNoContextTakeover === false && params.client_no_context_takeover) {
+        throw new Error('Unexpected parameter "client_no_context_takeover"');
+      }
+      if (!params.client_max_window_bits) {
+        if (typeof this._options.clientMaxWindowBits === "number") {
+          params.client_max_window_bits = this._options.clientMaxWindowBits;
+        }
+      } else if (this._options.clientMaxWindowBits === false || typeof this._options.clientMaxWindowBits === "number" && params.client_max_window_bits > this._options.clientMaxWindowBits) {
+        throw new Error('Unexpected or invalid parameter "client_max_window_bits"');
+      }
+      return params;
+    }
+    normalizeParams(configurations) {
+      configurations.forEach((params) => {
+        Object.keys(params).forEach((key) => {
+          let value = params[key];
+          if (value.length > 1) {
+            throw new Error(`Parameter "${key}" must have only a single value`);
+          }
+          value = value[0];
+          if (key === "client_max_window_bits") {
+            if (value !== true) {
+              const num = +value;
+              if (!Number.isInteger(num) || num < 8 || num > 15) {
+                throw new TypeError(`Invalid value for parameter "${key}": ${value}`);
+              }
+              value = num;
+            } else if (!this._isServer) {
+              throw new TypeError(`Invalid value for parameter "${key}": ${value}`);
+            }
+          } else if (key === "server_max_window_bits") {
+            const num = +value;
+            if (!Number.isInteger(num) || num < 8 || num > 15) {
+              throw new TypeError(`Invalid value for parameter "${key}": ${value}`);
+            }
+            value = num;
+          } else if (key === "client_no_context_takeover" || key === "server_no_context_takeover") {
+            if (value !== true) {
+              throw new TypeError(`Invalid value for parameter "${key}": ${value}`);
+            }
+          } else {
+            throw new Error(`Unknown parameter "${key}"`);
+          }
+          params[key] = value;
+        });
+      });
+      return configurations;
+    }
+    decompress(data, fin, callback) {
+      zlibLimiter.add((done) => {
+        this._decompress(data, fin, (err, result) => {
+          done();
+          callback(err, result);
+        });
+      });
+    }
+    compress(data, fin, callback) {
+      zlibLimiter.add((done) => {
+        this._compress(data, fin, (err, result) => {
+          done();
+          callback(err, result);
+        });
+      });
+    }
+    _decompress(data, fin, callback) {
+      const endpoint = this._isServer ? "client" : "server";
+      if (!this._inflate) {
+        const key = `${endpoint}_max_window_bits`;
+        const windowBits = typeof this.params[key] !== "number" ? zlib.Z_DEFAULT_WINDOWBITS : this.params[key];
+        this._inflate = zlib.createInflateRaw({
+          ...this._options.zlibInflateOptions,
+          windowBits
+        });
+        this._inflate[kPerMessageDeflate] = this;
+        this._inflate[kTotalLength] = 0;
+        this._inflate[kBuffers] = [];
+        this._inflate.on("error", inflateOnError);
+        this._inflate.on("data", inflateOnData);
+      }
+      this._inflate[kCallback] = callback;
+      this._inflate.write(data);
+      if (fin)
+        this._inflate.write(TRAILER);
+      this._inflate.flush(() => {
+        const err = this._inflate[kError];
+        if (err) {
+          this._inflate.close();
+          this._inflate = null;
+          callback(err);
+          return;
+        }
+        const data2 = bufferUtil.concat(this._inflate[kBuffers], this._inflate[kTotalLength]);
+        if (this._inflate._readableState.endEmitted) {
+          this._inflate.close();
+          this._inflate = null;
+        } else {
+          this._inflate[kTotalLength] = 0;
+          this._inflate[kBuffers] = [];
+          if (fin && this.params[`${endpoint}_no_context_takeover`]) {
+            this._inflate.reset();
+          }
+        }
+        callback(null, data2);
+      });
+    }
+    _compress(data, fin, callback) {
+      const endpoint = this._isServer ? "server" : "client";
+      if (!this._deflate) {
+        const key = `${endpoint}_max_window_bits`;
+        const windowBits = typeof this.params[key] !== "number" ? zlib.Z_DEFAULT_WINDOWBITS : this.params[key];
+        this._deflate = zlib.createDeflateRaw({
+          ...this._options.zlibDeflateOptions,
+          windowBits
+        });
+        this._deflate[kTotalLength] = 0;
+        this._deflate[kBuffers] = [];
+        this._deflate.on("data", deflateOnData);
+      }
+      this._deflate[kCallback] = callback;
+      this._deflate.write(data);
+      this._deflate.flush(zlib.Z_SYNC_FLUSH, () => {
+        if (!this._deflate) {
+          return;
+        }
+        let data2 = bufferUtil.concat(this._deflate[kBuffers], this._deflate[kTotalLength]);
+        if (fin) {
+          data2 = new FastBuffer(data2.buffer, data2.byteOffset, data2.length - 4);
+        }
+        this._deflate[kCallback] = null;
+        this._deflate[kTotalLength] = 0;
+        this._deflate[kBuffers] = [];
+        if (fin && this.params[`${endpoint}_no_context_takeover`]) {
+          this._deflate.reset();
+        }
+        callback(null, data2);
+      });
+    }
+  }
+  module.exports = PerMessageDeflate;
+  function deflateOnData(chunk) {
+    this[kBuffers].push(chunk);
+    this[kTotalLength] += chunk.length;
+  }
+  function inflateOnData(chunk) {
+    this[kTotalLength] += chunk.length;
+    if (this[kPerMessageDeflate]._maxPayload < 1 || this[kTotalLength] <= this[kPerMessageDeflate]._maxPayload) {
+      this[kBuffers].push(chunk);
+      return;
+    }
+    this[kError] = new RangeError("Max payload size exceeded");
+    this[kError].code = "WS_ERR_UNSUPPORTED_MESSAGE_LENGTH";
+    this[kError][kStatusCode] = 1009;
+    this.removeListener("data", inflateOnData);
+    this.reset();
+  }
+  function inflateOnError(err) {
+    this[kPerMessageDeflate]._inflate = null;
+    if (this[kError]) {
+      this[kCallback](this[kError]);
+      return;
+    }
+    err[kStatusCode] = 1007;
+    this[kCallback](err);
+  }
+});
+
+// ../../node_modules/ws/lib/validation.js
+var require_validation = __commonJS((exports, module) => {
+  var { isUtf8 } = __require("buffer");
+  var { hasBlob } = require_constants();
+  var tokenChars = [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    1,
+    1,
+    0,
+    1,
+    1,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0
+  ];
+  function isValidStatusCode(code) {
+    return code >= 1000 && code <= 1014 && code !== 1004 && code !== 1005 && code !== 1006 || code >= 3000 && code <= 4999;
+  }
+  function _isValidUTF8(buf) {
+    const len = buf.length;
+    let i2 = 0;
+    while (i2 < len) {
+      if ((buf[i2] & 128) === 0) {
+        i2++;
+      } else if ((buf[i2] & 224) === 192) {
+        if (i2 + 1 === len || (buf[i2 + 1] & 192) !== 128 || (buf[i2] & 254) === 192) {
+          return false;
+        }
+        i2 += 2;
+      } else if ((buf[i2] & 240) === 224) {
+        if (i2 + 2 >= len || (buf[i2 + 1] & 192) !== 128 || (buf[i2 + 2] & 192) !== 128 || buf[i2] === 224 && (buf[i2 + 1] & 224) === 128 || buf[i2] === 237 && (buf[i2 + 1] & 224) === 160) {
+          return false;
+        }
+        i2 += 3;
+      } else if ((buf[i2] & 248) === 240) {
+        if (i2 + 3 >= len || (buf[i2 + 1] & 192) !== 128 || (buf[i2 + 2] & 192) !== 128 || (buf[i2 + 3] & 192) !== 128 || buf[i2] === 240 && (buf[i2 + 1] & 240) === 128 || buf[i2] === 244 && buf[i2 + 1] > 143 || buf[i2] > 244) {
+          return false;
+        }
+        i2 += 4;
+      } else {
+        return false;
+      }
+    }
+    return true;
+  }
+  function isBlob(value) {
+    return hasBlob && typeof value === "object" && typeof value.arrayBuffer === "function" && typeof value.type === "string" && typeof value.stream === "function" && (value[Symbol.toStringTag] === "Blob" || value[Symbol.toStringTag] === "File");
+  }
+  module.exports = {
+    isBlob,
+    isValidStatusCode,
+    isValidUTF8: _isValidUTF8,
+    tokenChars
+  };
+  if (isUtf8) {
+    module.exports.isValidUTF8 = function(buf) {
+      return buf.length < 24 ? _isValidUTF8(buf) : isUtf8(buf);
+    };
+  } else if (!process.env.WS_NO_UTF_8_VALIDATE) {
+    try {
+      const isValidUTF8 = (()=>{throw new Error("Cannot require module "+"utf-8-validate");})();
+      module.exports.isValidUTF8 = function(buf) {
+        return buf.length < 32 ? _isValidUTF8(buf) : isValidUTF8(buf);
+      };
+    } catch (e2) {}
+  }
+});
+
+// ../../node_modules/ws/lib/receiver.js
+var require_receiver = __commonJS((exports, module) => {
+  var { Writable } = __require("stream");
+  var PerMessageDeflate = require_permessage_deflate();
+  var {
+    BINARY_TYPES,
+    EMPTY_BUFFER,
+    kStatusCode,
+    kWebSocket
+  } = require_constants();
+  var { concat, toArrayBuffer, unmask } = require_buffer_util();
+  var { isValidStatusCode, isValidUTF8 } = require_validation();
+  var FastBuffer = Buffer[Symbol.species];
+  var GET_INFO = 0;
+  var GET_PAYLOAD_LENGTH_16 = 1;
+  var GET_PAYLOAD_LENGTH_64 = 2;
+  var GET_MASK = 3;
+  var GET_DATA = 4;
+  var INFLATING = 5;
+  var DEFER_EVENT = 6;
+
+  class Receiver extends Writable {
+    constructor(options = {}) {
+      super();
+      this._allowSynchronousEvents = options.allowSynchronousEvents !== undefined ? options.allowSynchronousEvents : true;
+      this._binaryType = options.binaryType || BINARY_TYPES[0];
+      this._extensions = options.extensions || {};
+      this._isServer = !!options.isServer;
+      this._maxPayload = options.maxPayload | 0;
+      this._skipUTF8Validation = !!options.skipUTF8Validation;
+      this[kWebSocket] = undefined;
+      this._bufferedBytes = 0;
+      this._buffers = [];
+      this._compressed = false;
+      this._payloadLength = 0;
+      this._mask = undefined;
+      this._fragmented = 0;
+      this._masked = false;
+      this._fin = false;
+      this._opcode = 0;
+      this._totalPayloadLength = 0;
+      this._messageLength = 0;
+      this._fragments = [];
+      this._errored = false;
+      this._loop = false;
+      this._state = GET_INFO;
+    }
+    _write(chunk, encoding, cb) {
+      if (this._opcode === 8 && this._state == GET_INFO)
+        return cb();
+      this._bufferedBytes += chunk.length;
+      this._buffers.push(chunk);
+      this.startLoop(cb);
+    }
+    consume(n2) {
+      this._bufferedBytes -= n2;
+      if (n2 === this._buffers[0].length)
+        return this._buffers.shift();
+      if (n2 < this._buffers[0].length) {
+        const buf = this._buffers[0];
+        this._buffers[0] = new FastBuffer(buf.buffer, buf.byteOffset + n2, buf.length - n2);
+        return new FastBuffer(buf.buffer, buf.byteOffset, n2);
+      }
+      const dst = Buffer.allocUnsafe(n2);
+      do {
+        const buf = this._buffers[0];
+        const offset = dst.length - n2;
+        if (n2 >= buf.length) {
+          dst.set(this._buffers.shift(), offset);
+        } else {
+          dst.set(new Uint8Array(buf.buffer, buf.byteOffset, n2), offset);
+          this._buffers[0] = new FastBuffer(buf.buffer, buf.byteOffset + n2, buf.length - n2);
+        }
+        n2 -= buf.length;
+      } while (n2 > 0);
+      return dst;
+    }
+    startLoop(cb) {
+      this._loop = true;
+      do {
+        switch (this._state) {
+          case GET_INFO:
+            this.getInfo(cb);
+            break;
+          case GET_PAYLOAD_LENGTH_16:
+            this.getPayloadLength16(cb);
+            break;
+          case GET_PAYLOAD_LENGTH_64:
+            this.getPayloadLength64(cb);
+            break;
+          case GET_MASK:
+            this.getMask();
+            break;
+          case GET_DATA:
+            this.getData(cb);
+            break;
+          case INFLATING:
+          case DEFER_EVENT:
+            this._loop = false;
+            return;
+        }
+      } while (this._loop);
+      if (!this._errored)
+        cb();
+    }
+    getInfo(cb) {
+      if (this._bufferedBytes < 2) {
+        this._loop = false;
+        return;
+      }
+      const buf = this.consume(2);
+      if ((buf[0] & 48) !== 0) {
+        const error = this.createError(RangeError, "RSV2 and RSV3 must be clear", true, 1002, "WS_ERR_UNEXPECTED_RSV_2_3");
+        cb(error);
+        return;
+      }
+      const compressed = (buf[0] & 64) === 64;
+      if (compressed && !this._extensions[PerMessageDeflate.extensionName]) {
+        const error = this.createError(RangeError, "RSV1 must be clear", true, 1002, "WS_ERR_UNEXPECTED_RSV_1");
+        cb(error);
+        return;
+      }
+      this._fin = (buf[0] & 128) === 128;
+      this._opcode = buf[0] & 15;
+      this._payloadLength = buf[1] & 127;
+      if (this._opcode === 0) {
+        if (compressed) {
+          const error = this.createError(RangeError, "RSV1 must be clear", true, 1002, "WS_ERR_UNEXPECTED_RSV_1");
+          cb(error);
+          return;
+        }
+        if (!this._fragmented) {
+          const error = this.createError(RangeError, "invalid opcode 0", true, 1002, "WS_ERR_INVALID_OPCODE");
+          cb(error);
+          return;
+        }
+        this._opcode = this._fragmented;
+      } else if (this._opcode === 1 || this._opcode === 2) {
+        if (this._fragmented) {
+          const error = this.createError(RangeError, `invalid opcode ${this._opcode}`, true, 1002, "WS_ERR_INVALID_OPCODE");
+          cb(error);
+          return;
+        }
+        this._compressed = compressed;
+      } else if (this._opcode > 7 && this._opcode < 11) {
+        if (!this._fin) {
+          const error = this.createError(RangeError, "FIN must be set", true, 1002, "WS_ERR_EXPECTED_FIN");
+          cb(error);
+          return;
+        }
+        if (compressed) {
+          const error = this.createError(RangeError, "RSV1 must be clear", true, 1002, "WS_ERR_UNEXPECTED_RSV_1");
+          cb(error);
+          return;
+        }
+        if (this._payloadLength > 125 || this._opcode === 8 && this._payloadLength === 1) {
+          const error = this.createError(RangeError, `invalid payload length ${this._payloadLength}`, true, 1002, "WS_ERR_INVALID_CONTROL_PAYLOAD_LENGTH");
+          cb(error);
+          return;
+        }
+      } else {
+        const error = this.createError(RangeError, `invalid opcode ${this._opcode}`, true, 1002, "WS_ERR_INVALID_OPCODE");
+        cb(error);
+        return;
+      }
+      if (!this._fin && !this._fragmented)
+        this._fragmented = this._opcode;
+      this._masked = (buf[1] & 128) === 128;
+      if (this._isServer) {
+        if (!this._masked) {
+          const error = this.createError(RangeError, "MASK must be set", true, 1002, "WS_ERR_EXPECTED_MASK");
+          cb(error);
+          return;
+        }
+      } else if (this._masked) {
+        const error = this.createError(RangeError, "MASK must be clear", true, 1002, "WS_ERR_UNEXPECTED_MASK");
+        cb(error);
+        return;
+      }
+      if (this._payloadLength === 126)
+        this._state = GET_PAYLOAD_LENGTH_16;
+      else if (this._payloadLength === 127)
+        this._state = GET_PAYLOAD_LENGTH_64;
+      else
+        this.haveLength(cb);
+    }
+    getPayloadLength16(cb) {
+      if (this._bufferedBytes < 2) {
+        this._loop = false;
+        return;
+      }
+      this._payloadLength = this.consume(2).readUInt16BE(0);
+      this.haveLength(cb);
+    }
+    getPayloadLength64(cb) {
+      if (this._bufferedBytes < 8) {
+        this._loop = false;
+        return;
+      }
+      const buf = this.consume(8);
+      const num = buf.readUInt32BE(0);
+      if (num > Math.pow(2, 53 - 32) - 1) {
+        const error = this.createError(RangeError, "Unsupported WebSocket frame: payload length > 2^53 - 1", false, 1009, "WS_ERR_UNSUPPORTED_DATA_PAYLOAD_LENGTH");
+        cb(error);
+        return;
+      }
+      this._payloadLength = num * Math.pow(2, 32) + buf.readUInt32BE(4);
+      this.haveLength(cb);
+    }
+    haveLength(cb) {
+      if (this._payloadLength && this._opcode < 8) {
+        this._totalPayloadLength += this._payloadLength;
+        if (this._totalPayloadLength > this._maxPayload && this._maxPayload > 0) {
+          const error = this.createError(RangeError, "Max payload size exceeded", false, 1009, "WS_ERR_UNSUPPORTED_MESSAGE_LENGTH");
+          cb(error);
+          return;
+        }
+      }
+      if (this._masked)
+        this._state = GET_MASK;
+      else
+        this._state = GET_DATA;
+    }
+    getMask() {
+      if (this._bufferedBytes < 4) {
+        this._loop = false;
+        return;
+      }
+      this._mask = this.consume(4);
+      this._state = GET_DATA;
+    }
+    getData(cb) {
+      let data = EMPTY_BUFFER;
+      if (this._payloadLength) {
+        if (this._bufferedBytes < this._payloadLength) {
+          this._loop = false;
+          return;
+        }
+        data = this.consume(this._payloadLength);
+        if (this._masked && (this._mask[0] | this._mask[1] | this._mask[2] | this._mask[3]) !== 0) {
+          unmask(data, this._mask);
+        }
+      }
+      if (this._opcode > 7) {
+        this.controlMessage(data, cb);
+        return;
+      }
+      if (this._compressed) {
+        this._state = INFLATING;
+        this.decompress(data, cb);
+        return;
+      }
+      if (data.length) {
+        this._messageLength = this._totalPayloadLength;
+        this._fragments.push(data);
+      }
+      this.dataMessage(cb);
+    }
+    decompress(data, cb) {
+      const perMessageDeflate = this._extensions[PerMessageDeflate.extensionName];
+      perMessageDeflate.decompress(data, this._fin, (err, buf) => {
+        if (err)
+          return cb(err);
+        if (buf.length) {
+          this._messageLength += buf.length;
+          if (this._messageLength > this._maxPayload && this._maxPayload > 0) {
+            const error = this.createError(RangeError, "Max payload size exceeded", false, 1009, "WS_ERR_UNSUPPORTED_MESSAGE_LENGTH");
+            cb(error);
+            return;
+          }
+          this._fragments.push(buf);
+        }
+        this.dataMessage(cb);
+        if (this._state === GET_INFO)
+          this.startLoop(cb);
+      });
+    }
+    dataMessage(cb) {
+      if (!this._fin) {
+        this._state = GET_INFO;
+        return;
+      }
+      const messageLength = this._messageLength;
+      const fragments = this._fragments;
+      this._totalPayloadLength = 0;
+      this._messageLength = 0;
+      this._fragmented = 0;
+      this._fragments = [];
+      if (this._opcode === 2) {
+        let data;
+        if (this._binaryType === "nodebuffer") {
+          data = concat(fragments, messageLength);
+        } else if (this._binaryType === "arraybuffer") {
+          data = toArrayBuffer(concat(fragments, messageLength));
+        } else if (this._binaryType === "blob") {
+          data = new Blob(fragments);
+        } else {
+          data = fragments;
+        }
+        if (this._allowSynchronousEvents) {
+          this.emit("message", data, true);
+          this._state = GET_INFO;
+        } else {
+          this._state = DEFER_EVENT;
+          setImmediate(() => {
+            this.emit("message", data, true);
+            this._state = GET_INFO;
+            this.startLoop(cb);
+          });
+        }
+      } else {
+        const buf = concat(fragments, messageLength);
+        if (!this._skipUTF8Validation && !isValidUTF8(buf)) {
+          const error = this.createError(Error, "invalid UTF-8 sequence", true, 1007, "WS_ERR_INVALID_UTF8");
+          cb(error);
+          return;
+        }
+        if (this._state === INFLATING || this._allowSynchronousEvents) {
+          this.emit("message", buf, false);
+          this._state = GET_INFO;
+        } else {
+          this._state = DEFER_EVENT;
+          setImmediate(() => {
+            this.emit("message", buf, false);
+            this._state = GET_INFO;
+            this.startLoop(cb);
+          });
+        }
+      }
+    }
+    controlMessage(data, cb) {
+      if (this._opcode === 8) {
+        if (data.length === 0) {
+          this._loop = false;
+          this.emit("conclude", 1005, EMPTY_BUFFER);
+          this.end();
+        } else {
+          const code = data.readUInt16BE(0);
+          if (!isValidStatusCode(code)) {
+            const error = this.createError(RangeError, `invalid status code ${code}`, true, 1002, "WS_ERR_INVALID_CLOSE_CODE");
+            cb(error);
+            return;
+          }
+          const buf = new FastBuffer(data.buffer, data.byteOffset + 2, data.length - 2);
+          if (!this._skipUTF8Validation && !isValidUTF8(buf)) {
+            const error = this.createError(Error, "invalid UTF-8 sequence", true, 1007, "WS_ERR_INVALID_UTF8");
+            cb(error);
+            return;
+          }
+          this._loop = false;
+          this.emit("conclude", code, buf);
+          this.end();
+        }
+        this._state = GET_INFO;
+        return;
+      }
+      if (this._allowSynchronousEvents) {
+        this.emit(this._opcode === 9 ? "ping" : "pong", data);
+        this._state = GET_INFO;
+      } else {
+        this._state = DEFER_EVENT;
+        setImmediate(() => {
+          this.emit(this._opcode === 9 ? "ping" : "pong", data);
+          this._state = GET_INFO;
+          this.startLoop(cb);
+        });
+      }
+    }
+    createError(ErrorCtor, message, prefix, statusCode, errorCode) {
+      this._loop = false;
+      this._errored = true;
+      const err = new ErrorCtor(prefix ? `Invalid WebSocket frame: ${message}` : message);
+      Error.captureStackTrace(err, this.createError);
+      err.code = errorCode;
+      err[kStatusCode] = statusCode;
+      return err;
+    }
+  }
+  module.exports = Receiver;
+});
+
+// ../../node_modules/ws/lib/sender.js
+var require_sender = __commonJS((exports, module) => {
+  var { Duplex } = __require("stream");
+  var { randomFillSync } = __require("crypto");
+  var PerMessageDeflate = require_permessage_deflate();
+  var { EMPTY_BUFFER, kWebSocket, NOOP } = require_constants();
+  var { isBlob, isValidStatusCode } = require_validation();
+  var { mask: applyMask, toBuffer } = require_buffer_util();
+  var kByteLength = Symbol("kByteLength");
+  var maskBuffer = Buffer.alloc(4);
+  var RANDOM_POOL_SIZE = 8 * 1024;
+  var randomPool;
+  var randomPoolPointer = RANDOM_POOL_SIZE;
+  var DEFAULT = 0;
+  var DEFLATING = 1;
+  var GET_BLOB_DATA = 2;
+
+  class Sender {
+    constructor(socket, extensions, generateMask) {
+      this._extensions = extensions || {};
+      if (generateMask) {
+        this._generateMask = generateMask;
+        this._maskBuffer = Buffer.alloc(4);
+      }
+      this._socket = socket;
+      this._firstFragment = true;
+      this._compress = false;
+      this._bufferedBytes = 0;
+      this._queue = [];
+      this._state = DEFAULT;
+      this.onerror = NOOP;
+      this[kWebSocket] = undefined;
+    }
+    static frame(data, options) {
+      let mask;
+      let merge = false;
+      let offset = 2;
+      let skipMasking = false;
+      if (options.mask) {
+        mask = options.maskBuffer || maskBuffer;
+        if (options.generateMask) {
+          options.generateMask(mask);
+        } else {
+          if (randomPoolPointer === RANDOM_POOL_SIZE) {
+            if (randomPool === undefined) {
+              randomPool = Buffer.alloc(RANDOM_POOL_SIZE);
+            }
+            randomFillSync(randomPool, 0, RANDOM_POOL_SIZE);
+            randomPoolPointer = 0;
+          }
+          mask[0] = randomPool[randomPoolPointer++];
+          mask[1] = randomPool[randomPoolPointer++];
+          mask[2] = randomPool[randomPoolPointer++];
+          mask[3] = randomPool[randomPoolPointer++];
+        }
+        skipMasking = (mask[0] | mask[1] | mask[2] | mask[3]) === 0;
+        offset = 6;
+      }
+      let dataLength;
+      if (typeof data === "string") {
+        if ((!options.mask || skipMasking) && options[kByteLength] !== undefined) {
+          dataLength = options[kByteLength];
+        } else {
+          data = Buffer.from(data);
+          dataLength = data.length;
+        }
+      } else {
+        dataLength = data.length;
+        merge = options.mask && options.readOnly && !skipMasking;
+      }
+      let payloadLength = dataLength;
+      if (dataLength >= 65536) {
+        offset += 8;
+        payloadLength = 127;
+      } else if (dataLength > 125) {
+        offset += 2;
+        payloadLength = 126;
+      }
+      const target = Buffer.allocUnsafe(merge ? dataLength + offset : offset);
+      target[0] = options.fin ? options.opcode | 128 : options.opcode;
+      if (options.rsv1)
+        target[0] |= 64;
+      target[1] = payloadLength;
+      if (payloadLength === 126) {
+        target.writeUInt16BE(dataLength, 2);
+      } else if (payloadLength === 127) {
+        target[2] = target[3] = 0;
+        target.writeUIntBE(dataLength, 4, 6);
+      }
+      if (!options.mask)
+        return [target, data];
+      target[1] |= 128;
+      target[offset - 4] = mask[0];
+      target[offset - 3] = mask[1];
+      target[offset - 2] = mask[2];
+      target[offset - 1] = mask[3];
+      if (skipMasking)
+        return [target, data];
+      if (merge) {
+        applyMask(data, mask, target, offset, dataLength);
+        return [target];
+      }
+      applyMask(data, mask, data, 0, dataLength);
+      return [target, data];
+    }
+    close(code, data, mask, cb) {
+      let buf;
+      if (code === undefined) {
+        buf = EMPTY_BUFFER;
+      } else if (typeof code !== "number" || !isValidStatusCode(code)) {
+        throw new TypeError("First argument must be a valid error code number");
+      } else if (data === undefined || !data.length) {
+        buf = Buffer.allocUnsafe(2);
+        buf.writeUInt16BE(code, 0);
+      } else {
+        const length = Buffer.byteLength(data);
+        if (length > 123) {
+          throw new RangeError("The message must not be greater than 123 bytes");
+        }
+        buf = Buffer.allocUnsafe(2 + length);
+        buf.writeUInt16BE(code, 0);
+        if (typeof data === "string") {
+          buf.write(data, 2);
+        } else {
+          buf.set(data, 2);
+        }
+      }
+      const options = {
+        [kByteLength]: buf.length,
+        fin: true,
+        generateMask: this._generateMask,
+        mask,
+        maskBuffer: this._maskBuffer,
+        opcode: 8,
+        readOnly: false,
+        rsv1: false
+      };
+      if (this._state !== DEFAULT) {
+        this.enqueue([this.dispatch, buf, false, options, cb]);
+      } else {
+        this.sendFrame(Sender.frame(buf, options), cb);
+      }
+    }
+    ping(data, mask, cb) {
+      let byteLength;
+      let readOnly;
+      if (typeof data === "string") {
+        byteLength = Buffer.byteLength(data);
+        readOnly = false;
+      } else if (isBlob(data)) {
+        byteLength = data.size;
+        readOnly = false;
+      } else {
+        data = toBuffer(data);
+        byteLength = data.length;
+        readOnly = toBuffer.readOnly;
+      }
+      if (byteLength > 125) {
+        throw new RangeError("The data size must not be greater than 125 bytes");
+      }
+      const options = {
+        [kByteLength]: byteLength,
+        fin: true,
+        generateMask: this._generateMask,
+        mask,
+        maskBuffer: this._maskBuffer,
+        opcode: 9,
+        readOnly,
+        rsv1: false
+      };
+      if (isBlob(data)) {
+        if (this._state !== DEFAULT) {
+          this.enqueue([this.getBlobData, data, false, options, cb]);
+        } else {
+          this.getBlobData(data, false, options, cb);
+        }
+      } else if (this._state !== DEFAULT) {
+        this.enqueue([this.dispatch, data, false, options, cb]);
+      } else {
+        this.sendFrame(Sender.frame(data, options), cb);
+      }
+    }
+    pong(data, mask, cb) {
+      let byteLength;
+      let readOnly;
+      if (typeof data === "string") {
+        byteLength = Buffer.byteLength(data);
+        readOnly = false;
+      } else if (isBlob(data)) {
+        byteLength = data.size;
+        readOnly = false;
+      } else {
+        data = toBuffer(data);
+        byteLength = data.length;
+        readOnly = toBuffer.readOnly;
+      }
+      if (byteLength > 125) {
+        throw new RangeError("The data size must not be greater than 125 bytes");
+      }
+      const options = {
+        [kByteLength]: byteLength,
+        fin: true,
+        generateMask: this._generateMask,
+        mask,
+        maskBuffer: this._maskBuffer,
+        opcode: 10,
+        readOnly,
+        rsv1: false
+      };
+      if (isBlob(data)) {
+        if (this._state !== DEFAULT) {
+          this.enqueue([this.getBlobData, data, false, options, cb]);
+        } else {
+          this.getBlobData(data, false, options, cb);
+        }
+      } else if (this._state !== DEFAULT) {
+        this.enqueue([this.dispatch, data, false, options, cb]);
+      } else {
+        this.sendFrame(Sender.frame(data, options), cb);
+      }
+    }
+    send(data, options, cb) {
+      const perMessageDeflate = this._extensions[PerMessageDeflate.extensionName];
+      let opcode = options.binary ? 2 : 1;
+      let rsv1 = options.compress;
+      let byteLength;
+      let readOnly;
+      if (typeof data === "string") {
+        byteLength = Buffer.byteLength(data);
+        readOnly = false;
+      } else if (isBlob(data)) {
+        byteLength = data.size;
+        readOnly = false;
+      } else {
+        data = toBuffer(data);
+        byteLength = data.length;
+        readOnly = toBuffer.readOnly;
+      }
+      if (this._firstFragment) {
+        this._firstFragment = false;
+        if (rsv1 && perMessageDeflate && perMessageDeflate.params[perMessageDeflate._isServer ? "server_no_context_takeover" : "client_no_context_takeover"]) {
+          rsv1 = byteLength >= perMessageDeflate._threshold;
+        }
+        this._compress = rsv1;
+      } else {
+        rsv1 = false;
+        opcode = 0;
+      }
+      if (options.fin)
+        this._firstFragment = true;
+      const opts = {
+        [kByteLength]: byteLength,
+        fin: options.fin,
+        generateMask: this._generateMask,
+        mask: options.mask,
+        maskBuffer: this._maskBuffer,
+        opcode,
+        readOnly,
+        rsv1
+      };
+      if (isBlob(data)) {
+        if (this._state !== DEFAULT) {
+          this.enqueue([this.getBlobData, data, this._compress, opts, cb]);
+        } else {
+          this.getBlobData(data, this._compress, opts, cb);
+        }
+      } else if (this._state !== DEFAULT) {
+        this.enqueue([this.dispatch, data, this._compress, opts, cb]);
+      } else {
+        this.dispatch(data, this._compress, opts, cb);
+      }
+    }
+    getBlobData(blob, compress, options, cb) {
+      this._bufferedBytes += options[kByteLength];
+      this._state = GET_BLOB_DATA;
+      blob.arrayBuffer().then((arrayBuffer) => {
+        if (this._socket.destroyed) {
+          const err = new Error("The socket was closed while the blob was being read");
+          process.nextTick(callCallbacks, this, err, cb);
+          return;
+        }
+        this._bufferedBytes -= options[kByteLength];
+        const data = toBuffer(arrayBuffer);
+        if (!compress) {
+          this._state = DEFAULT;
+          this.sendFrame(Sender.frame(data, options), cb);
+          this.dequeue();
+        } else {
+          this.dispatch(data, compress, options, cb);
+        }
+      }).catch((err) => {
+        process.nextTick(onError, this, err, cb);
+      });
+    }
+    dispatch(data, compress, options, cb) {
+      if (!compress) {
+        this.sendFrame(Sender.frame(data, options), cb);
+        return;
+      }
+      const perMessageDeflate = this._extensions[PerMessageDeflate.extensionName];
+      this._bufferedBytes += options[kByteLength];
+      this._state = DEFLATING;
+      perMessageDeflate.compress(data, options.fin, (_3, buf) => {
+        if (this._socket.destroyed) {
+          const err = new Error("The socket was closed while data was being compressed");
+          callCallbacks(this, err, cb);
+          return;
+        }
+        this._bufferedBytes -= options[kByteLength];
+        this._state = DEFAULT;
+        options.readOnly = false;
+        this.sendFrame(Sender.frame(buf, options), cb);
+        this.dequeue();
+      });
+    }
+    dequeue() {
+      while (this._state === DEFAULT && this._queue.length) {
+        const params = this._queue.shift();
+        this._bufferedBytes -= params[3][kByteLength];
+        Reflect.apply(params[0], this, params.slice(1));
+      }
+    }
+    enqueue(params) {
+      this._bufferedBytes += params[3][kByteLength];
+      this._queue.push(params);
+    }
+    sendFrame(list, cb) {
+      if (list.length === 2) {
+        this._socket.cork();
+        this._socket.write(list[0]);
+        this._socket.write(list[1], cb);
+        this._socket.uncork();
+      } else {
+        this._socket.write(list[0], cb);
+      }
+    }
+  }
+  module.exports = Sender;
+  function callCallbacks(sender, err, cb) {
+    if (typeof cb === "function")
+      cb(err);
+    for (let i2 = 0;i2 < sender._queue.length; i2++) {
+      const params = sender._queue[i2];
+      const callback = params[params.length - 1];
+      if (typeof callback === "function")
+        callback(err);
+    }
+  }
+  function onError(sender, err, cb) {
+    callCallbacks(sender, err, cb);
+    sender.onerror(err);
+  }
+});
+
+// ../../node_modules/ws/lib/event-target.js
+var require_event_target = __commonJS((exports, module) => {
+  var { kForOnEventAttribute, kListener } = require_constants();
+  var kCode = Symbol("kCode");
+  var kData = Symbol("kData");
+  var kError = Symbol("kError");
+  var kMessage = Symbol("kMessage");
+  var kReason = Symbol("kReason");
+  var kTarget = Symbol("kTarget");
+  var kType = Symbol("kType");
+  var kWasClean = Symbol("kWasClean");
+
+  class Event {
+    constructor(type) {
+      this[kTarget] = null;
+      this[kType] = type;
+    }
+    get target() {
+      return this[kTarget];
+    }
+    get type() {
+      return this[kType];
+    }
+  }
+  Object.defineProperty(Event.prototype, "target", { enumerable: true });
+  Object.defineProperty(Event.prototype, "type", { enumerable: true });
+
+  class CloseEvent extends Event {
+    constructor(type, options = {}) {
+      super(type);
+      this[kCode] = options.code === undefined ? 0 : options.code;
+      this[kReason] = options.reason === undefined ? "" : options.reason;
+      this[kWasClean] = options.wasClean === undefined ? false : options.wasClean;
+    }
+    get code() {
+      return this[kCode];
+    }
+    get reason() {
+      return this[kReason];
+    }
+    get wasClean() {
+      return this[kWasClean];
+    }
+  }
+  Object.defineProperty(CloseEvent.prototype, "code", { enumerable: true });
+  Object.defineProperty(CloseEvent.prototype, "reason", { enumerable: true });
+  Object.defineProperty(CloseEvent.prototype, "wasClean", { enumerable: true });
+
+  class ErrorEvent extends Event {
+    constructor(type, options = {}) {
+      super(type);
+      this[kError] = options.error === undefined ? null : options.error;
+      this[kMessage] = options.message === undefined ? "" : options.message;
+    }
+    get error() {
+      return this[kError];
+    }
+    get message() {
+      return this[kMessage];
+    }
+  }
+  Object.defineProperty(ErrorEvent.prototype, "error", { enumerable: true });
+  Object.defineProperty(ErrorEvent.prototype, "message", { enumerable: true });
+
+  class MessageEvent extends Event {
+    constructor(type, options = {}) {
+      super(type);
+      this[kData] = options.data === undefined ? null : options.data;
+    }
+    get data() {
+      return this[kData];
+    }
+  }
+  Object.defineProperty(MessageEvent.prototype, "data", { enumerable: true });
+  var EventTarget = {
+    addEventListener(type, handler, options = {}) {
+      for (const listener of this.listeners(type)) {
+        if (!options[kForOnEventAttribute] && listener[kListener] === handler && !listener[kForOnEventAttribute]) {
+          return;
+        }
+      }
+      let wrapper;
+      if (type === "message") {
+        wrapper = function onMessage(data, isBinary) {
+          const event = new MessageEvent("message", {
+            data: isBinary ? data : data.toString()
+          });
+          event[kTarget] = this;
+          callListener(handler, this, event);
+        };
+      } else if (type === "close") {
+        wrapper = function onClose(code, message) {
+          const event = new CloseEvent("close", {
+            code,
+            reason: message.toString(),
+            wasClean: this._closeFrameReceived && this._closeFrameSent
+          });
+          event[kTarget] = this;
+          callListener(handler, this, event);
+        };
+      } else if (type === "error") {
+        wrapper = function onError(error) {
+          const event = new ErrorEvent("error", {
+            error,
+            message: error.message
+          });
+          event[kTarget] = this;
+          callListener(handler, this, event);
+        };
+      } else if (type === "open") {
+        wrapper = function onOpen() {
+          const event = new Event("open");
+          event[kTarget] = this;
+          callListener(handler, this, event);
+        };
+      } else {
+        return;
+      }
+      wrapper[kForOnEventAttribute] = !!options[kForOnEventAttribute];
+      wrapper[kListener] = handler;
+      if (options.once) {
+        this.once(type, wrapper);
+      } else {
+        this.on(type, wrapper);
+      }
+    },
+    removeEventListener(type, handler) {
+      for (const listener of this.listeners(type)) {
+        if (listener[kListener] === handler && !listener[kForOnEventAttribute]) {
+          this.removeListener(type, listener);
+          break;
+        }
+      }
+    }
+  };
+  module.exports = {
+    CloseEvent,
+    ErrorEvent,
+    Event,
+    EventTarget,
+    MessageEvent
+  };
+  function callListener(listener, thisArg, event) {
+    if (typeof listener === "object" && listener.handleEvent) {
+      listener.handleEvent.call(listener, event);
+    } else {
+      listener.call(thisArg, event);
+    }
+  }
+});
+
+// ../../node_modules/ws/lib/extension.js
+var require_extension = __commonJS((exports, module) => {
+  var { tokenChars } = require_validation();
+  function push(dest, name, elem) {
+    if (dest[name] === undefined)
+      dest[name] = [elem];
+    else
+      dest[name].push(elem);
+  }
+  function parse6(header) {
+    const offers = Object.create(null);
+    let params = Object.create(null);
+    let mustUnescape = false;
+    let isEscaping = false;
+    let inQuotes = false;
+    let extensionName;
+    let paramName;
+    let start = -1;
+    let code = -1;
+    let end = -1;
+    let i2 = 0;
+    for (;i2 < header.length; i2++) {
+      code = header.charCodeAt(i2);
+      if (extensionName === undefined) {
+        if (end === -1 && tokenChars[code] === 1) {
+          if (start === -1)
+            start = i2;
+        } else if (i2 !== 0 && (code === 32 || code === 9)) {
+          if (end === -1 && start !== -1)
+            end = i2;
+        } else if (code === 59 || code === 44) {
+          if (start === -1) {
+            throw new SyntaxError(`Unexpected character at index ${i2}`);
+          }
+          if (end === -1)
+            end = i2;
+          const name = header.slice(start, end);
+          if (code === 44) {
+            push(offers, name, params);
+            params = Object.create(null);
+          } else {
+            extensionName = name;
+          }
+          start = end = -1;
+        } else {
+          throw new SyntaxError(`Unexpected character at index ${i2}`);
+        }
+      } else if (paramName === undefined) {
+        if (end === -1 && tokenChars[code] === 1) {
+          if (start === -1)
+            start = i2;
+        } else if (code === 32 || code === 9) {
+          if (end === -1 && start !== -1)
+            end = i2;
+        } else if (code === 59 || code === 44) {
+          if (start === -1) {
+            throw new SyntaxError(`Unexpected character at index ${i2}`);
+          }
+          if (end === -1)
+            end = i2;
+          push(params, header.slice(start, end), true);
+          if (code === 44) {
+            push(offers, extensionName, params);
+            params = Object.create(null);
+            extensionName = undefined;
+          }
+          start = end = -1;
+        } else if (code === 61 && start !== -1 && end === -1) {
+          paramName = header.slice(start, i2);
+          start = end = -1;
+        } else {
+          throw new SyntaxError(`Unexpected character at index ${i2}`);
+        }
+      } else {
+        if (isEscaping) {
+          if (tokenChars[code] !== 1) {
+            throw new SyntaxError(`Unexpected character at index ${i2}`);
+          }
+          if (start === -1)
+            start = i2;
+          else if (!mustUnescape)
+            mustUnescape = true;
+          isEscaping = false;
+        } else if (inQuotes) {
+          if (tokenChars[code] === 1) {
+            if (start === -1)
+              start = i2;
+          } else if (code === 34 && start !== -1) {
+            inQuotes = false;
+            end = i2;
+          } else if (code === 92) {
+            isEscaping = true;
+          } else {
+            throw new SyntaxError(`Unexpected character at index ${i2}`);
+          }
+        } else if (code === 34 && header.charCodeAt(i2 - 1) === 61) {
+          inQuotes = true;
+        } else if (end === -1 && tokenChars[code] === 1) {
+          if (start === -1)
+            start = i2;
+        } else if (start !== -1 && (code === 32 || code === 9)) {
+          if (end === -1)
+            end = i2;
+        } else if (code === 59 || code === 44) {
+          if (start === -1) {
+            throw new SyntaxError(`Unexpected character at index ${i2}`);
+          }
+          if (end === -1)
+            end = i2;
+          let value = header.slice(start, end);
+          if (mustUnescape) {
+            value = value.replace(/\\/g, "");
+            mustUnescape = false;
+          }
+          push(params, paramName, value);
+          if (code === 44) {
+            push(offers, extensionName, params);
+            params = Object.create(null);
+            extensionName = undefined;
+          }
+          paramName = undefined;
+          start = end = -1;
+        } else {
+          throw new SyntaxError(`Unexpected character at index ${i2}`);
+        }
+      }
+    }
+    if (start === -1 || inQuotes || code === 32 || code === 9) {
+      throw new SyntaxError("Unexpected end of input");
+    }
+    if (end === -1)
+      end = i2;
+    const token = header.slice(start, end);
+    if (extensionName === undefined) {
+      push(offers, token, params);
+    } else {
+      if (paramName === undefined) {
+        push(params, token, true);
+      } else if (mustUnescape) {
+        push(params, paramName, token.replace(/\\/g, ""));
+      } else {
+        push(params, paramName, token);
+      }
+      push(offers, extensionName, params);
+    }
+    return offers;
+  }
+  function format(extensions) {
+    return Object.keys(extensions).map((extension) => {
+      let configurations = extensions[extension];
+      if (!Array.isArray(configurations))
+        configurations = [configurations];
+      return configurations.map((params) => {
+        return [extension].concat(Object.keys(params).map((k2) => {
+          let values = params[k2];
+          if (!Array.isArray(values))
+            values = [values];
+          return values.map((v2) => v2 === true ? k2 : `${k2}=${v2}`).join("; ");
+        })).join("; ");
+      }).join(", ");
+    }).join(", ");
+  }
+  module.exports = { format, parse: parse6 };
+});
+
+// ../../node_modules/ws/lib/websocket.js
+var require_websocket = __commonJS((exports, module) => {
+  var EventEmitter = __require("events");
+  var https = __require("https");
+  var http = __require("http");
+  var net = __require("net");
+  var tls = __require("tls");
+  var { randomBytes, createHash: createHash2 } = __require("crypto");
+  var { Duplex, Readable } = __require("stream");
+  var { URL: URL2 } = __require("url");
+  var PerMessageDeflate = require_permessage_deflate();
+  var Receiver = require_receiver();
+  var Sender = require_sender();
+  var { isBlob } = require_validation();
+  var {
+    BINARY_TYPES,
+    CLOSE_TIMEOUT,
+    EMPTY_BUFFER,
+    GUID,
+    kForOnEventAttribute,
+    kListener,
+    kStatusCode,
+    kWebSocket,
+    NOOP
+  } = require_constants();
+  var {
+    EventTarget: { addEventListener, removeEventListener }
+  } = require_event_target();
+  var { format, parse: parse6 } = require_extension();
+  var { toBuffer } = require_buffer_util();
+  var kAborted = Symbol("kAborted");
+  var protocolVersions = [8, 13];
+  var readyStates = ["CONNECTING", "OPEN", "CLOSING", "CLOSED"];
+  var subprotocolRegex = /^[!#$%&'*+\-.0-9A-Z^_`|a-z~]+$/;
+
+  class WebSocket extends EventEmitter {
+    constructor(address, protocols, options) {
+      super();
+      this._binaryType = BINARY_TYPES[0];
+      this._closeCode = 1006;
+      this._closeFrameReceived = false;
+      this._closeFrameSent = false;
+      this._closeMessage = EMPTY_BUFFER;
+      this._closeTimer = null;
+      this._errorEmitted = false;
+      this._extensions = {};
+      this._paused = false;
+      this._protocol = "";
+      this._readyState = WebSocket.CONNECTING;
+      this._receiver = null;
+      this._sender = null;
+      this._socket = null;
+      if (address !== null) {
+        this._bufferedAmount = 0;
+        this._isServer = false;
+        this._redirects = 0;
+        if (protocols === undefined) {
+          protocols = [];
+        } else if (!Array.isArray(protocols)) {
+          if (typeof protocols === "object" && protocols !== null) {
+            options = protocols;
+            protocols = [];
+          } else {
+            protocols = [protocols];
+          }
+        }
+        initAsClient(this, address, protocols, options);
+      } else {
+        this._autoPong = options.autoPong;
+        this._closeTimeout = options.closeTimeout;
+        this._isServer = true;
+      }
+    }
+    get binaryType() {
+      return this._binaryType;
+    }
+    set binaryType(type) {
+      if (!BINARY_TYPES.includes(type))
+        return;
+      this._binaryType = type;
+      if (this._receiver)
+        this._receiver._binaryType = type;
+    }
+    get bufferedAmount() {
+      if (!this._socket)
+        return this._bufferedAmount;
+      return this._socket._writableState.length + this._sender._bufferedBytes;
+    }
+    get extensions() {
+      return Object.keys(this._extensions).join();
+    }
+    get isPaused() {
+      return this._paused;
+    }
+    get onclose() {
+      return null;
+    }
+    get onerror() {
+      return null;
+    }
+    get onopen() {
+      return null;
+    }
+    get onmessage() {
+      return null;
+    }
+    get protocol() {
+      return this._protocol;
+    }
+    get readyState() {
+      return this._readyState;
+    }
+    get url() {
+      return this._url;
+    }
+    setSocket(socket, head, options) {
+      const receiver = new Receiver({
+        allowSynchronousEvents: options.allowSynchronousEvents,
+        binaryType: this.binaryType,
+        extensions: this._extensions,
+        isServer: this._isServer,
+        maxPayload: options.maxPayload,
+        skipUTF8Validation: options.skipUTF8Validation
+      });
+      const sender = new Sender(socket, this._extensions, options.generateMask);
+      this._receiver = receiver;
+      this._sender = sender;
+      this._socket = socket;
+      receiver[kWebSocket] = this;
+      sender[kWebSocket] = this;
+      socket[kWebSocket] = this;
+      receiver.on("conclude", receiverOnConclude);
+      receiver.on("drain", receiverOnDrain);
+      receiver.on("error", receiverOnError);
+      receiver.on("message", receiverOnMessage);
+      receiver.on("ping", receiverOnPing);
+      receiver.on("pong", receiverOnPong);
+      sender.onerror = senderOnError;
+      if (socket.setTimeout)
+        socket.setTimeout(0);
+      if (socket.setNoDelay)
+        socket.setNoDelay();
+      if (head.length > 0)
+        socket.unshift(head);
+      socket.on("close", socketOnClose);
+      socket.on("data", socketOnData);
+      socket.on("end", socketOnEnd);
+      socket.on("error", socketOnError);
+      this._readyState = WebSocket.OPEN;
+      this.emit("open");
+    }
+    emitClose() {
+      if (!this._socket) {
+        this._readyState = WebSocket.CLOSED;
+        this.emit("close", this._closeCode, this._closeMessage);
+        return;
+      }
+      if (this._extensions[PerMessageDeflate.extensionName]) {
+        this._extensions[PerMessageDeflate.extensionName].cleanup();
+      }
+      this._receiver.removeAllListeners();
+      this._readyState = WebSocket.CLOSED;
+      this.emit("close", this._closeCode, this._closeMessage);
+    }
+    close(code, data) {
+      if (this.readyState === WebSocket.CLOSED)
+        return;
+      if (this.readyState === WebSocket.CONNECTING) {
+        const msg = "WebSocket was closed before the connection was established";
+        abortHandshake(this, this._req, msg);
+        return;
+      }
+      if (this.readyState === WebSocket.CLOSING) {
+        if (this._closeFrameSent && (this._closeFrameReceived || this._receiver._writableState.errorEmitted)) {
+          this._socket.end();
+        }
+        return;
+      }
+      this._readyState = WebSocket.CLOSING;
+      this._sender.close(code, data, !this._isServer, (err) => {
+        if (err)
+          return;
+        this._closeFrameSent = true;
+        if (this._closeFrameReceived || this._receiver._writableState.errorEmitted) {
+          this._socket.end();
+        }
+      });
+      setCloseTimer(this);
+    }
+    pause() {
+      if (this.readyState === WebSocket.CONNECTING || this.readyState === WebSocket.CLOSED) {
+        return;
+      }
+      this._paused = true;
+      this._socket.pause();
+    }
+    ping(data, mask, cb) {
+      if (this.readyState === WebSocket.CONNECTING) {
+        throw new Error("WebSocket is not open: readyState 0 (CONNECTING)");
+      }
+      if (typeof data === "function") {
+        cb = data;
+        data = mask = undefined;
+      } else if (typeof mask === "function") {
+        cb = mask;
+        mask = undefined;
+      }
+      if (typeof data === "number")
+        data = data.toString();
+      if (this.readyState !== WebSocket.OPEN) {
+        sendAfterClose(this, data, cb);
+        return;
+      }
+      if (mask === undefined)
+        mask = !this._isServer;
+      this._sender.ping(data || EMPTY_BUFFER, mask, cb);
+    }
+    pong(data, mask, cb) {
+      if (this.readyState === WebSocket.CONNECTING) {
+        throw new Error("WebSocket is not open: readyState 0 (CONNECTING)");
+      }
+      if (typeof data === "function") {
+        cb = data;
+        data = mask = undefined;
+      } else if (typeof mask === "function") {
+        cb = mask;
+        mask = undefined;
+      }
+      if (typeof data === "number")
+        data = data.toString();
+      if (this.readyState !== WebSocket.OPEN) {
+        sendAfterClose(this, data, cb);
+        return;
+      }
+      if (mask === undefined)
+        mask = !this._isServer;
+      this._sender.pong(data || EMPTY_BUFFER, mask, cb);
+    }
+    resume() {
+      if (this.readyState === WebSocket.CONNECTING || this.readyState === WebSocket.CLOSED) {
+        return;
+      }
+      this._paused = false;
+      if (!this._receiver._writableState.needDrain)
+        this._socket.resume();
+    }
+    send(data, options, cb) {
+      if (this.readyState === WebSocket.CONNECTING) {
+        throw new Error("WebSocket is not open: readyState 0 (CONNECTING)");
+      }
+      if (typeof options === "function") {
+        cb = options;
+        options = {};
+      }
+      if (typeof data === "number")
+        data = data.toString();
+      if (this.readyState !== WebSocket.OPEN) {
+        sendAfterClose(this, data, cb);
+        return;
+      }
+      const opts = {
+        binary: typeof data !== "string",
+        mask: !this._isServer,
+        compress: true,
+        fin: true,
+        ...options
+      };
+      if (!this._extensions[PerMessageDeflate.extensionName]) {
+        opts.compress = false;
+      }
+      this._sender.send(data || EMPTY_BUFFER, opts, cb);
+    }
+    terminate() {
+      if (this.readyState === WebSocket.CLOSED)
+        return;
+      if (this.readyState === WebSocket.CONNECTING) {
+        const msg = "WebSocket was closed before the connection was established";
+        abortHandshake(this, this._req, msg);
+        return;
+      }
+      if (this._socket) {
+        this._readyState = WebSocket.CLOSING;
+        this._socket.destroy();
+      }
+    }
+  }
+  Object.defineProperty(WebSocket, "CONNECTING", {
+    enumerable: true,
+    value: readyStates.indexOf("CONNECTING")
+  });
+  Object.defineProperty(WebSocket.prototype, "CONNECTING", {
+    enumerable: true,
+    value: readyStates.indexOf("CONNECTING")
+  });
+  Object.defineProperty(WebSocket, "OPEN", {
+    enumerable: true,
+    value: readyStates.indexOf("OPEN")
+  });
+  Object.defineProperty(WebSocket.prototype, "OPEN", {
+    enumerable: true,
+    value: readyStates.indexOf("OPEN")
+  });
+  Object.defineProperty(WebSocket, "CLOSING", {
+    enumerable: true,
+    value: readyStates.indexOf("CLOSING")
+  });
+  Object.defineProperty(WebSocket.prototype, "CLOSING", {
+    enumerable: true,
+    value: readyStates.indexOf("CLOSING")
+  });
+  Object.defineProperty(WebSocket, "CLOSED", {
+    enumerable: true,
+    value: readyStates.indexOf("CLOSED")
+  });
+  Object.defineProperty(WebSocket.prototype, "CLOSED", {
+    enumerable: true,
+    value: readyStates.indexOf("CLOSED")
+  });
+  [
+    "binaryType",
+    "bufferedAmount",
+    "extensions",
+    "isPaused",
+    "protocol",
+    "readyState",
+    "url"
+  ].forEach((property) => {
+    Object.defineProperty(WebSocket.prototype, property, { enumerable: true });
+  });
+  ["open", "error", "close", "message"].forEach((method) => {
+    Object.defineProperty(WebSocket.prototype, `on${method}`, {
+      enumerable: true,
+      get() {
+        for (const listener of this.listeners(method)) {
+          if (listener[kForOnEventAttribute])
+            return listener[kListener];
+        }
+        return null;
+      },
+      set(handler) {
+        for (const listener of this.listeners(method)) {
+          if (listener[kForOnEventAttribute]) {
+            this.removeListener(method, listener);
+            break;
+          }
+        }
+        if (typeof handler !== "function")
+          return;
+        this.addEventListener(method, handler, {
+          [kForOnEventAttribute]: true
+        });
+      }
+    });
+  });
+  WebSocket.prototype.addEventListener = addEventListener;
+  WebSocket.prototype.removeEventListener = removeEventListener;
+  module.exports = WebSocket;
+  function initAsClient(websocket, address, protocols, options) {
+    const opts = {
+      allowSynchronousEvents: true,
+      autoPong: true,
+      closeTimeout: CLOSE_TIMEOUT,
+      protocolVersion: protocolVersions[1],
+      maxPayload: 100 * 1024 * 1024,
+      skipUTF8Validation: false,
+      perMessageDeflate: true,
+      followRedirects: false,
+      maxRedirects: 10,
+      ...options,
+      socketPath: undefined,
+      hostname: undefined,
+      protocol: undefined,
+      timeout: undefined,
+      method: "GET",
+      host: undefined,
+      path: undefined,
+      port: undefined
+    };
+    websocket._autoPong = opts.autoPong;
+    websocket._closeTimeout = opts.closeTimeout;
+    if (!protocolVersions.includes(opts.protocolVersion)) {
+      throw new RangeError(`Unsupported protocol version: ${opts.protocolVersion} ` + `(supported versions: ${protocolVersions.join(", ")})`);
+    }
+    let parsedUrl;
+    if (address instanceof URL2) {
+      parsedUrl = address;
+    } else {
+      try {
+        parsedUrl = new URL2(address);
+      } catch {
+        throw new SyntaxError(`Invalid URL: ${address}`);
+      }
+    }
+    if (parsedUrl.protocol === "http:") {
+      parsedUrl.protocol = "ws:";
+    } else if (parsedUrl.protocol === "https:") {
+      parsedUrl.protocol = "wss:";
+    }
+    websocket._url = parsedUrl.href;
+    const isSecure = parsedUrl.protocol === "wss:";
+    const isIpcUrl = parsedUrl.protocol === "ws+unix:";
+    let invalidUrlMessage;
+    if (parsedUrl.protocol !== "ws:" && !isSecure && !isIpcUrl) {
+      invalidUrlMessage = `The URL's protocol must be one of "ws:", "wss:", ` + '"http:", "https:", or "ws+unix:"';
+    } else if (isIpcUrl && !parsedUrl.pathname) {
+      invalidUrlMessage = "The URL's pathname is empty";
+    } else if (parsedUrl.hash) {
+      invalidUrlMessage = "The URL contains a fragment identifier";
+    }
+    if (invalidUrlMessage) {
+      const err = new SyntaxError(invalidUrlMessage);
+      if (websocket._redirects === 0) {
+        throw err;
+      } else {
+        emitErrorAndClose(websocket, err);
+        return;
+      }
+    }
+    const defaultPort = isSecure ? 443 : 80;
+    const key = randomBytes(16).toString("base64");
+    const request = isSecure ? https.request : http.request;
+    const protocolSet = new Set;
+    let perMessageDeflate;
+    opts.createConnection = opts.createConnection || (isSecure ? tlsConnect : netConnect);
+    opts.defaultPort = opts.defaultPort || defaultPort;
+    opts.port = parsedUrl.port || defaultPort;
+    opts.host = parsedUrl.hostname.startsWith("[") ? parsedUrl.hostname.slice(1, -1) : parsedUrl.hostname;
+    opts.headers = {
+      ...opts.headers,
+      "Sec-WebSocket-Version": opts.protocolVersion,
+      "Sec-WebSocket-Key": key,
+      Connection: "Upgrade",
+      Upgrade: "websocket"
+    };
+    opts.path = parsedUrl.pathname + parsedUrl.search;
+    opts.timeout = opts.handshakeTimeout;
+    if (opts.perMessageDeflate) {
+      perMessageDeflate = new PerMessageDeflate({
+        ...opts.perMessageDeflate,
+        isServer: false,
+        maxPayload: opts.maxPayload
+      });
+      opts.headers["Sec-WebSocket-Extensions"] = format({
+        [PerMessageDeflate.extensionName]: perMessageDeflate.offer()
+      });
+    }
+    if (protocols.length) {
+      for (const protocol of protocols) {
+        if (typeof protocol !== "string" || !subprotocolRegex.test(protocol) || protocolSet.has(protocol)) {
+          throw new SyntaxError("An invalid or duplicated subprotocol was specified");
+        }
+        protocolSet.add(protocol);
+      }
+      opts.headers["Sec-WebSocket-Protocol"] = protocols.join(",");
+    }
+    if (opts.origin) {
+      if (opts.protocolVersion < 13) {
+        opts.headers["Sec-WebSocket-Origin"] = opts.origin;
+      } else {
+        opts.headers.Origin = opts.origin;
+      }
+    }
+    if (parsedUrl.username || parsedUrl.password) {
+      opts.auth = `${parsedUrl.username}:${parsedUrl.password}`;
+    }
+    if (isIpcUrl) {
+      const parts = opts.path.split(":");
+      opts.socketPath = parts[0];
+      opts.path = parts[1];
+    }
+    let req;
+    if (opts.followRedirects) {
+      if (websocket._redirects === 0) {
+        websocket._originalIpc = isIpcUrl;
+        websocket._originalSecure = isSecure;
+        websocket._originalHostOrSocketPath = isIpcUrl ? opts.socketPath : parsedUrl.host;
+        const headers = options && options.headers;
+        options = { ...options, headers: {} };
+        if (headers) {
+          for (const [key2, value] of Object.entries(headers)) {
+            options.headers[key2.toLowerCase()] = value;
+          }
+        }
+      } else if (websocket.listenerCount("redirect") === 0) {
+        const isSameHost = isIpcUrl ? websocket._originalIpc ? opts.socketPath === websocket._originalHostOrSocketPath : false : websocket._originalIpc ? false : parsedUrl.host === websocket._originalHostOrSocketPath;
+        if (!isSameHost || websocket._originalSecure && !isSecure) {
+          delete opts.headers.authorization;
+          delete opts.headers.cookie;
+          if (!isSameHost)
+            delete opts.headers.host;
+          opts.auth = undefined;
+        }
+      }
+      if (opts.auth && !options.headers.authorization) {
+        options.headers.authorization = "Basic " + Buffer.from(opts.auth).toString("base64");
+      }
+      req = websocket._req = request(opts);
+      if (websocket._redirects) {
+        websocket.emit("redirect", websocket.url, req);
+      }
+    } else {
+      req = websocket._req = request(opts);
+    }
+    if (opts.timeout) {
+      req.on("timeout", () => {
+        abortHandshake(websocket, req, "Opening handshake has timed out");
+      });
+    }
+    req.on("error", (err) => {
+      if (req === null || req[kAborted])
+        return;
+      req = websocket._req = null;
+      emitErrorAndClose(websocket, err);
+    });
+    req.on("response", (res) => {
+      const location = res.headers.location;
+      const statusCode = res.statusCode;
+      if (location && opts.followRedirects && statusCode >= 300 && statusCode < 400) {
+        if (++websocket._redirects > opts.maxRedirects) {
+          abortHandshake(websocket, req, "Maximum redirects exceeded");
+          return;
+        }
+        req.abort();
+        let addr;
+        try {
+          addr = new URL2(location, address);
+        } catch (e2) {
+          const err = new SyntaxError(`Invalid URL: ${location}`);
+          emitErrorAndClose(websocket, err);
+          return;
+        }
+        initAsClient(websocket, addr, protocols, options);
+      } else if (!websocket.emit("unexpected-response", req, res)) {
+        abortHandshake(websocket, req, `Unexpected server response: ${res.statusCode}`);
+      }
+    });
+    req.on("upgrade", (res, socket, head) => {
+      websocket.emit("upgrade", res);
+      if (websocket.readyState !== WebSocket.CONNECTING)
+        return;
+      req = websocket._req = null;
+      const upgrade = res.headers.upgrade;
+      if (upgrade === undefined || upgrade.toLowerCase() !== "websocket") {
+        abortHandshake(websocket, socket, "Invalid Upgrade header");
+        return;
+      }
+      const digest = createHash2("sha1").update(key + GUID).digest("base64");
+      if (res.headers["sec-websocket-accept"] !== digest) {
+        abortHandshake(websocket, socket, "Invalid Sec-WebSocket-Accept header");
+        return;
+      }
+      const serverProt = res.headers["sec-websocket-protocol"];
+      let protError;
+      if (serverProt !== undefined) {
+        if (!protocolSet.size) {
+          protError = "Server sent a subprotocol but none was requested";
+        } else if (!protocolSet.has(serverProt)) {
+          protError = "Server sent an invalid subprotocol";
+        }
+      } else if (protocolSet.size) {
+        protError = "Server sent no subprotocol";
+      }
+      if (protError) {
+        abortHandshake(websocket, socket, protError);
+        return;
+      }
+      if (serverProt)
+        websocket._protocol = serverProt;
+      const secWebSocketExtensions = res.headers["sec-websocket-extensions"];
+      if (secWebSocketExtensions !== undefined) {
+        if (!perMessageDeflate) {
+          const message = "Server sent a Sec-WebSocket-Extensions header but no extension " + "was requested";
+          abortHandshake(websocket, socket, message);
+          return;
+        }
+        let extensions;
+        try {
+          extensions = parse6(secWebSocketExtensions);
+        } catch (err) {
+          const message = "Invalid Sec-WebSocket-Extensions header";
+          abortHandshake(websocket, socket, message);
+          return;
+        }
+        const extensionNames = Object.keys(extensions);
+        if (extensionNames.length !== 1 || extensionNames[0] !== PerMessageDeflate.extensionName) {
+          const message = "Server indicated an extension that was not requested";
+          abortHandshake(websocket, socket, message);
+          return;
+        }
+        try {
+          perMessageDeflate.accept(extensions[PerMessageDeflate.extensionName]);
+        } catch (err) {
+          const message = "Invalid Sec-WebSocket-Extensions header";
+          abortHandshake(websocket, socket, message);
+          return;
+        }
+        websocket._extensions[PerMessageDeflate.extensionName] = perMessageDeflate;
+      }
+      websocket.setSocket(socket, head, {
+        allowSynchronousEvents: opts.allowSynchronousEvents,
+        generateMask: opts.generateMask,
+        maxPayload: opts.maxPayload,
+        skipUTF8Validation: opts.skipUTF8Validation
+      });
+    });
+    if (opts.finishRequest) {
+      opts.finishRequest(req, websocket);
+    } else {
+      req.end();
+    }
+  }
+  function emitErrorAndClose(websocket, err) {
+    websocket._readyState = WebSocket.CLOSING;
+    websocket._errorEmitted = true;
+    websocket.emit("error", err);
+    websocket.emitClose();
+  }
+  function netConnect(options) {
+    options.path = options.socketPath;
+    return net.connect(options);
+  }
+  function tlsConnect(options) {
+    options.path = undefined;
+    if (!options.servername && options.servername !== "") {
+      options.servername = net.isIP(options.host) ? "" : options.host;
+    }
+    return tls.connect(options);
+  }
+  function abortHandshake(websocket, stream, message) {
+    websocket._readyState = WebSocket.CLOSING;
+    const err = new Error(message);
+    Error.captureStackTrace(err, abortHandshake);
+    if (stream.setHeader) {
+      stream[kAborted] = true;
+      stream.abort();
+      if (stream.socket && !stream.socket.destroyed) {
+        stream.socket.destroy();
+      }
+      process.nextTick(emitErrorAndClose, websocket, err);
+    } else {
+      stream.destroy(err);
+      stream.once("error", websocket.emit.bind(websocket, "error"));
+      stream.once("close", websocket.emitClose.bind(websocket));
+    }
+  }
+  function sendAfterClose(websocket, data, cb) {
+    if (data) {
+      const length = isBlob(data) ? data.size : toBuffer(data).length;
+      if (websocket._socket)
+        websocket._sender._bufferedBytes += length;
+      else
+        websocket._bufferedAmount += length;
+    }
+    if (cb) {
+      const err = new Error(`WebSocket is not open: readyState ${websocket.readyState} ` + `(${readyStates[websocket.readyState]})`);
+      process.nextTick(cb, err);
+    }
+  }
+  function receiverOnConclude(code, reason) {
+    const websocket = this[kWebSocket];
+    websocket._closeFrameReceived = true;
+    websocket._closeMessage = reason;
+    websocket._closeCode = code;
+    if (websocket._socket[kWebSocket] === undefined)
+      return;
+    websocket._socket.removeListener("data", socketOnData);
+    process.nextTick(resume, websocket._socket);
+    if (code === 1005)
+      websocket.close();
+    else
+      websocket.close(code, reason);
+  }
+  function receiverOnDrain() {
+    const websocket = this[kWebSocket];
+    if (!websocket.isPaused)
+      websocket._socket.resume();
+  }
+  function receiverOnError(err) {
+    const websocket = this[kWebSocket];
+    if (websocket._socket[kWebSocket] !== undefined) {
+      websocket._socket.removeListener("data", socketOnData);
+      process.nextTick(resume, websocket._socket);
+      websocket.close(err[kStatusCode]);
+    }
+    if (!websocket._errorEmitted) {
+      websocket._errorEmitted = true;
+      websocket.emit("error", err);
+    }
+  }
+  function receiverOnFinish() {
+    this[kWebSocket].emitClose();
+  }
+  function receiverOnMessage(data, isBinary) {
+    this[kWebSocket].emit("message", data, isBinary);
+  }
+  function receiverOnPing(data) {
+    const websocket = this[kWebSocket];
+    if (websocket._autoPong)
+      websocket.pong(data, !this._isServer, NOOP);
+    websocket.emit("ping", data);
+  }
+  function receiverOnPong(data) {
+    this[kWebSocket].emit("pong", data);
+  }
+  function resume(stream) {
+    stream.resume();
+  }
+  function senderOnError(err) {
+    const websocket = this[kWebSocket];
+    if (websocket.readyState === WebSocket.CLOSED)
+      return;
+    if (websocket.readyState === WebSocket.OPEN) {
+      websocket._readyState = WebSocket.CLOSING;
+      setCloseTimer(websocket);
+    }
+    this._socket.end();
+    if (!websocket._errorEmitted) {
+      websocket._errorEmitted = true;
+      websocket.emit("error", err);
+    }
+  }
+  function setCloseTimer(websocket) {
+    websocket._closeTimer = setTimeout(websocket._socket.destroy.bind(websocket._socket), websocket._closeTimeout);
+  }
+  function socketOnClose() {
+    const websocket = this[kWebSocket];
+    this.removeListener("close", socketOnClose);
+    this.removeListener("data", socketOnData);
+    this.removeListener("end", socketOnEnd);
+    websocket._readyState = WebSocket.CLOSING;
+    if (!this._readableState.endEmitted && !websocket._closeFrameReceived && !websocket._receiver._writableState.errorEmitted && this._readableState.length !== 0) {
+      const chunk = this.read(this._readableState.length);
+      websocket._receiver.write(chunk);
+    }
+    websocket._receiver.end();
+    this[kWebSocket] = undefined;
+    clearTimeout(websocket._closeTimer);
+    if (websocket._receiver._writableState.finished || websocket._receiver._writableState.errorEmitted) {
+      websocket.emitClose();
+    } else {
+      websocket._receiver.on("error", receiverOnFinish);
+      websocket._receiver.on("finish", receiverOnFinish);
+    }
+  }
+  function socketOnData(chunk) {
+    if (!this[kWebSocket]._receiver.write(chunk)) {
+      this.pause();
+    }
+  }
+  function socketOnEnd() {
+    const websocket = this[kWebSocket];
+    websocket._readyState = WebSocket.CLOSING;
+    websocket._receiver.end();
+    this.end();
+  }
+  function socketOnError() {
+    const websocket = this[kWebSocket];
+    this.removeListener("error", socketOnError);
+    this.on("error", NOOP);
+    if (websocket) {
+      websocket._readyState = WebSocket.CLOSING;
+      this.destroy();
+    }
+  }
+});
+
+// ../../node_modules/ws/lib/stream.js
+var require_stream = __commonJS((exports, module) => {
+  var WebSocket = require_websocket();
+  var { Duplex } = __require("stream");
+  function emitClose(stream) {
+    stream.emit("close");
+  }
+  function duplexOnEnd() {
+    if (!this.destroyed && this._writableState.finished) {
+      this.destroy();
+    }
+  }
+  function duplexOnError(err) {
+    this.removeListener("error", duplexOnError);
+    this.destroy();
+    if (this.listenerCount("error") === 0) {
+      this.emit("error", err);
+    }
+  }
+  function createWebSocketStream(ws, options) {
+    let terminateOnDestroy = true;
+    const duplex = new Duplex({
+      ...options,
+      autoDestroy: false,
+      emitClose: false,
+      objectMode: false,
+      writableObjectMode: false
+    });
+    ws.on("message", function message(msg, isBinary) {
+      const data = !isBinary && duplex._readableState.objectMode ? msg.toString() : msg;
+      if (!duplex.push(data))
+        ws.pause();
+    });
+    ws.once("error", function error(err) {
+      if (duplex.destroyed)
+        return;
+      terminateOnDestroy = false;
+      duplex.destroy(err);
+    });
+    ws.once("close", function close() {
+      if (duplex.destroyed)
+        return;
+      duplex.push(null);
+    });
+    duplex._destroy = function(err, callback) {
+      if (ws.readyState === ws.CLOSED) {
+        callback(err);
+        process.nextTick(emitClose, duplex);
+        return;
+      }
+      let called = false;
+      ws.once("error", function error(err2) {
+        called = true;
+        callback(err2);
+      });
+      ws.once("close", function close() {
+        if (!called)
+          callback(err);
+        process.nextTick(emitClose, duplex);
+      });
+      if (terminateOnDestroy)
+        ws.terminate();
+    };
+    duplex._final = function(callback) {
+      if (ws.readyState === ws.CONNECTING) {
+        ws.once("open", function open() {
+          duplex._final(callback);
+        });
+        return;
+      }
+      if (ws._socket === null)
+        return;
+      if (ws._socket._writableState.finished) {
+        callback();
+        if (duplex._readableState.endEmitted)
+          duplex.destroy();
+      } else {
+        ws._socket.once("finish", function finish() {
+          callback();
+        });
+        ws.close();
+      }
+    };
+    duplex._read = function() {
+      if (ws.isPaused)
+        ws.resume();
+    };
+    duplex._write = function(chunk, encoding, callback) {
+      if (ws.readyState === ws.CONNECTING) {
+        ws.once("open", function open() {
+          duplex._write(chunk, encoding, callback);
+        });
+        return;
+      }
+      ws.send(chunk, callback);
+    };
+    duplex.on("end", duplexOnEnd);
+    duplex.on("error", duplexOnError);
+    return duplex;
+  }
+  module.exports = createWebSocketStream;
+});
+
+// ../../node_modules/ws/lib/subprotocol.js
+var require_subprotocol = __commonJS((exports, module) => {
+  var { tokenChars } = require_validation();
+  function parse6(header) {
+    const protocols = new Set;
+    let start = -1;
+    let end = -1;
+    let i2 = 0;
+    for (i2;i2 < header.length; i2++) {
+      const code = header.charCodeAt(i2);
+      if (end === -1 && tokenChars[code] === 1) {
+        if (start === -1)
+          start = i2;
+      } else if (i2 !== 0 && (code === 32 || code === 9)) {
+        if (end === -1 && start !== -1)
+          end = i2;
+      } else if (code === 44) {
+        if (start === -1) {
+          throw new SyntaxError(`Unexpected character at index ${i2}`);
+        }
+        if (end === -1)
+          end = i2;
+        const protocol2 = header.slice(start, end);
+        if (protocols.has(protocol2)) {
+          throw new SyntaxError(`The "${protocol2}" subprotocol is duplicated`);
+        }
+        protocols.add(protocol2);
+        start = end = -1;
+      } else {
+        throw new SyntaxError(`Unexpected character at index ${i2}`);
+      }
+    }
+    if (start === -1 || end !== -1) {
+      throw new SyntaxError("Unexpected end of input");
+    }
+    const protocol = header.slice(start, i2);
+    if (protocols.has(protocol)) {
+      throw new SyntaxError(`The "${protocol}" subprotocol is duplicated`);
+    }
+    protocols.add(protocol);
+    return protocols;
+  }
+  module.exports = { parse: parse6 };
+});
+
+// ../../node_modules/ws/lib/websocket-server.js
+var require_websocket_server = __commonJS((exports, module) => {
+  var EventEmitter = __require("events");
+  var http = __require("http");
+  var { Duplex } = __require("stream");
+  var { createHash: createHash2 } = __require("crypto");
+  var extension = require_extension();
+  var PerMessageDeflate = require_permessage_deflate();
+  var subprotocol = require_subprotocol();
+  var WebSocket = require_websocket();
+  var { CLOSE_TIMEOUT, GUID, kWebSocket } = require_constants();
+  var keyRegex = /^[+/0-9A-Za-z]{22}==$/;
+  var RUNNING = 0;
+  var CLOSING = 1;
+  var CLOSED = 2;
+
+  class WebSocketServer extends EventEmitter {
+    constructor(options, callback) {
+      super();
+      options = {
+        allowSynchronousEvents: true,
+        autoPong: true,
+        maxPayload: 100 * 1024 * 1024,
+        skipUTF8Validation: false,
+        perMessageDeflate: false,
+        handleProtocols: null,
+        clientTracking: true,
+        closeTimeout: CLOSE_TIMEOUT,
+        verifyClient: null,
+        noServer: false,
+        backlog: null,
+        server: null,
+        host: null,
+        path: null,
+        port: null,
+        WebSocket,
+        ...options
+      };
+      if (options.port == null && !options.server && !options.noServer || options.port != null && (options.server || options.noServer) || options.server && options.noServer) {
+        throw new TypeError('One and only one of the "port", "server", or "noServer" options ' + "must be specified");
+      }
+      if (options.port != null) {
+        this._server = http.createServer((req, res) => {
+          const body = http.STATUS_CODES[426];
+          res.writeHead(426, {
+            "Content-Length": body.length,
+            "Content-Type": "text/plain"
+          });
+          res.end(body);
+        });
+        this._server.listen(options.port, options.host, options.backlog, callback);
+      } else if (options.server) {
+        this._server = options.server;
+      }
+      if (this._server) {
+        const emitConnection = this.emit.bind(this, "connection");
+        this._removeListeners = addListeners(this._server, {
+          listening: this.emit.bind(this, "listening"),
+          error: this.emit.bind(this, "error"),
+          upgrade: (req, socket, head) => {
+            this.handleUpgrade(req, socket, head, emitConnection);
+          }
+        });
+      }
+      if (options.perMessageDeflate === true)
+        options.perMessageDeflate = {};
+      if (options.clientTracking) {
+        this.clients = new Set;
+        this._shouldEmitClose = false;
+      }
+      this.options = options;
+      this._state = RUNNING;
+    }
+    address() {
+      if (this.options.noServer) {
+        throw new Error('The server is operating in "noServer" mode');
+      }
+      if (!this._server)
+        return null;
+      return this._server.address();
+    }
+    close(cb) {
+      if (this._state === CLOSED) {
+        if (cb) {
+          this.once("close", () => {
+            cb(new Error("The server is not running"));
+          });
+        }
+        process.nextTick(emitClose, this);
+        return;
+      }
+      if (cb)
+        this.once("close", cb);
+      if (this._state === CLOSING)
+        return;
+      this._state = CLOSING;
+      if (this.options.noServer || this.options.server) {
+        if (this._server) {
+          this._removeListeners();
+          this._removeListeners = this._server = null;
+        }
+        if (this.clients) {
+          if (!this.clients.size) {
+            process.nextTick(emitClose, this);
+          } else {
+            this._shouldEmitClose = true;
+          }
+        } else {
+          process.nextTick(emitClose, this);
+        }
+      } else {
+        const server = this._server;
+        this._removeListeners();
+        this._removeListeners = this._server = null;
+        server.close(() => {
+          emitClose(this);
+        });
+      }
+    }
+    shouldHandle(req) {
+      if (this.options.path) {
+        const index = req.url.indexOf("?");
+        const pathname = index !== -1 ? req.url.slice(0, index) : req.url;
+        if (pathname !== this.options.path)
+          return false;
+      }
+      return true;
+    }
+    handleUpgrade(req, socket, head, cb) {
+      socket.on("error", socketOnError);
+      const key = req.headers["sec-websocket-key"];
+      const upgrade = req.headers.upgrade;
+      const version2 = +req.headers["sec-websocket-version"];
+      if (req.method !== "GET") {
+        const message = "Invalid HTTP method";
+        abortHandshakeOrEmitwsClientError(this, req, socket, 405, message);
+        return;
+      }
+      if (upgrade === undefined || upgrade.toLowerCase() !== "websocket") {
+        const message = "Invalid Upgrade header";
+        abortHandshakeOrEmitwsClientError(this, req, socket, 400, message);
+        return;
+      }
+      if (key === undefined || !keyRegex.test(key)) {
+        const message = "Missing or invalid Sec-WebSocket-Key header";
+        abortHandshakeOrEmitwsClientError(this, req, socket, 400, message);
+        return;
+      }
+      if (version2 !== 13 && version2 !== 8) {
+        const message = "Missing or invalid Sec-WebSocket-Version header";
+        abortHandshakeOrEmitwsClientError(this, req, socket, 400, message, {
+          "Sec-WebSocket-Version": "13, 8"
+        });
+        return;
+      }
+      if (!this.shouldHandle(req)) {
+        abortHandshake(socket, 400);
+        return;
+      }
+      const secWebSocketProtocol = req.headers["sec-websocket-protocol"];
+      let protocols = new Set;
+      if (secWebSocketProtocol !== undefined) {
+        try {
+          protocols = subprotocol.parse(secWebSocketProtocol);
+        } catch (err) {
+          const message = "Invalid Sec-WebSocket-Protocol header";
+          abortHandshakeOrEmitwsClientError(this, req, socket, 400, message);
+          return;
+        }
+      }
+      const secWebSocketExtensions = req.headers["sec-websocket-extensions"];
+      const extensions = {};
+      if (this.options.perMessageDeflate && secWebSocketExtensions !== undefined) {
+        const perMessageDeflate = new PerMessageDeflate({
+          ...this.options.perMessageDeflate,
+          isServer: true,
+          maxPayload: this.options.maxPayload
+        });
+        try {
+          const offers = extension.parse(secWebSocketExtensions);
+          if (offers[PerMessageDeflate.extensionName]) {
+            perMessageDeflate.accept(offers[PerMessageDeflate.extensionName]);
+            extensions[PerMessageDeflate.extensionName] = perMessageDeflate;
+          }
+        } catch (err) {
+          const message = "Invalid or unacceptable Sec-WebSocket-Extensions header";
+          abortHandshakeOrEmitwsClientError(this, req, socket, 400, message);
+          return;
+        }
+      }
+      if (this.options.verifyClient) {
+        const info = {
+          origin: req.headers[`${version2 === 8 ? "sec-websocket-origin" : "origin"}`],
+          secure: !!(req.socket.authorized || req.socket.encrypted),
+          req
+        };
+        if (this.options.verifyClient.length === 2) {
+          this.options.verifyClient(info, (verified, code, message, headers) => {
+            if (!verified) {
+              return abortHandshake(socket, code || 401, message, headers);
+            }
+            this.completeUpgrade(extensions, key, protocols, req, socket, head, cb);
+          });
+          return;
+        }
+        if (!this.options.verifyClient(info))
+          return abortHandshake(socket, 401);
+      }
+      this.completeUpgrade(extensions, key, protocols, req, socket, head, cb);
+    }
+    completeUpgrade(extensions, key, protocols, req, socket, head, cb) {
+      if (!socket.readable || !socket.writable)
+        return socket.destroy();
+      if (socket[kWebSocket]) {
+        throw new Error("server.handleUpgrade() was called more than once with the same " + "socket, possibly due to a misconfiguration");
+      }
+      if (this._state > RUNNING)
+        return abortHandshake(socket, 503);
+      const digest = createHash2("sha1").update(key + GUID).digest("base64");
+      const headers = [
+        "HTTP/1.1 101 Switching Protocols",
+        "Upgrade: websocket",
+        "Connection: Upgrade",
+        `Sec-WebSocket-Accept: ${digest}`
+      ];
+      const ws = new this.options.WebSocket(null, undefined, this.options);
+      if (protocols.size) {
+        const protocol = this.options.handleProtocols ? this.options.handleProtocols(protocols, req) : protocols.values().next().value;
+        if (protocol) {
+          headers.push(`Sec-WebSocket-Protocol: ${protocol}`);
+          ws._protocol = protocol;
+        }
+      }
+      if (extensions[PerMessageDeflate.extensionName]) {
+        const params = extensions[PerMessageDeflate.extensionName].params;
+        const value = extension.format({
+          [PerMessageDeflate.extensionName]: [params]
+        });
+        headers.push(`Sec-WebSocket-Extensions: ${value}`);
+        ws._extensions = extensions;
+      }
+      this.emit("headers", headers, req);
+      socket.write(headers.concat(`\r
+`).join(`\r
+`));
+      socket.removeListener("error", socketOnError);
+      ws.setSocket(socket, head, {
+        allowSynchronousEvents: this.options.allowSynchronousEvents,
+        maxPayload: this.options.maxPayload,
+        skipUTF8Validation: this.options.skipUTF8Validation
+      });
+      if (this.clients) {
+        this.clients.add(ws);
+        ws.on("close", () => {
+          this.clients.delete(ws);
+          if (this._shouldEmitClose && !this.clients.size) {
+            process.nextTick(emitClose, this);
+          }
+        });
+      }
+      cb(ws, req);
+    }
+  }
+  module.exports = WebSocketServer;
+  function addListeners(server, map) {
+    for (const event of Object.keys(map))
+      server.on(event, map[event]);
+    return function removeListeners() {
+      for (const event of Object.keys(map)) {
+        server.removeListener(event, map[event]);
+      }
+    };
+  }
+  function emitClose(server) {
+    server._state = CLOSED;
+    server.emit("close");
+  }
+  function socketOnError() {
+    this.destroy();
+  }
+  function abortHandshake(socket, code, message, headers) {
+    message = message || http.STATUS_CODES[code];
+    headers = {
+      Connection: "close",
+      "Content-Type": "text/html",
+      "Content-Length": Buffer.byteLength(message),
+      ...headers
+    };
+    socket.once("finish", socket.destroy);
+    socket.end(`HTTP/1.1 ${code} ${http.STATUS_CODES[code]}\r
+` + Object.keys(headers).map((h2) => `${h2}: ${headers[h2]}`).join(`\r
+`) + `\r
+\r
+` + message);
+  }
+  function abortHandshakeOrEmitwsClientError(server, req, socket, code, message, headers) {
+    if (server.listenerCount("wsClientError")) {
+      const err = new Error(message);
+      Error.captureStackTrace(err, abortHandshakeOrEmitwsClientError);
+      server.emit("wsClientError", err, socket, req);
+    } else {
+      abortHandshake(socket, code, message, headers);
+    }
+  }
+});
+
 // src/parsers/yaml-parser.ts
 var import_yaml = __toESM(require_dist(), 1);
 function parseFrontMatter(content) {
@@ -18636,6 +22129,4469 @@ class RebaseManager {
   }
   async continueRebase() {
     console.log("Continuing rebase");
+  }
+}
+// ../../node_modules/@libsql/core/lib-esm/api.js
+class LibsqlError extends Error {
+  code;
+  rawCode;
+  constructor(message, code, rawCode, cause) {
+    if (code !== undefined) {
+      message = `${code}: ${message}`;
+    }
+    super(message, { cause });
+    this.code = code;
+    this.rawCode = rawCode;
+    this.name = "LibsqlError";
+  }
+}
+
+// ../../node_modules/@libsql/core/lib-esm/uri.js
+var URI_RE = (() => {
+  const SCHEME = "(?<scheme>[A-Za-z][A-Za-z.+-]*)";
+  const AUTHORITY = "(?<authority>[^/?#]*)";
+  const PATH = "(?<path>[^?#]*)";
+  const QUERY = "(?<query>[^#]*)";
+  const FRAGMENT = "(?<fragment>.*)";
+  return new RegExp(`^${SCHEME}:(//${AUTHORITY})?${PATH}(\\?${QUERY})?(#${FRAGMENT})?$`, "su");
+})();
+var AUTHORITY_RE = (() => {
+  return new RegExp(`^((?<username>[^:]*)(:(?<password>.*))?@)?((?<host>[^:\\[\\]]*)|(\\[(?<host_br>[^\\[\\]]*)\\]))(:(?<port>[0-9]*))?$`, "su");
+})();
+
+// ../../node_modules/js-base64/base64.mjs
+var version = "3.7.8";
+var VERSION = version;
+var _hasBuffer = typeof Buffer === "function";
+var _TD = typeof TextDecoder === "function" ? new TextDecoder : undefined;
+var _TE = typeof TextEncoder === "function" ? new TextEncoder : undefined;
+var b64ch = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+var b64chs = Array.prototype.slice.call(b64ch);
+var b64tab = ((a2) => {
+  let tab = {};
+  a2.forEach((c3, i2) => tab[c3] = i2);
+  return tab;
+})(b64chs);
+var b64re = /^(?:[A-Za-z\d+\/]{4})*?(?:[A-Za-z\d+\/]{2}(?:==)?|[A-Za-z\d+\/]{3}=?)?$/;
+var _fromCC = String.fromCharCode.bind(String);
+var _U8Afrom = typeof Uint8Array.from === "function" ? Uint8Array.from.bind(Uint8Array) : (it) => new Uint8Array(Array.prototype.slice.call(it, 0));
+var _mkUriSafe = (src2) => src2.replace(/=/g, "").replace(/[+\/]/g, (m0) => m0 == "+" ? "-" : "_");
+var _tidyB64 = (s2) => s2.replace(/[^A-Za-z0-9\+\/]/g, "");
+var btoaPolyfill = (bin) => {
+  let u32, c0, c1, c22, asc = "";
+  const pad = bin.length % 3;
+  for (let i2 = 0;i2 < bin.length; ) {
+    if ((c0 = bin.charCodeAt(i2++)) > 255 || (c1 = bin.charCodeAt(i2++)) > 255 || (c22 = bin.charCodeAt(i2++)) > 255)
+      throw new TypeError("invalid character found");
+    u32 = c0 << 16 | c1 << 8 | c22;
+    asc += b64chs[u32 >> 18 & 63] + b64chs[u32 >> 12 & 63] + b64chs[u32 >> 6 & 63] + b64chs[u32 & 63];
+  }
+  return pad ? asc.slice(0, pad - 3) + "===".substring(pad) : asc;
+};
+var _btoa = typeof btoa === "function" ? (bin) => btoa(bin) : _hasBuffer ? (bin) => Buffer.from(bin, "binary").toString("base64") : btoaPolyfill;
+var _fromUint8Array = _hasBuffer ? (u8a) => Buffer.from(u8a).toString("base64") : (u8a) => {
+  const maxargs = 4096;
+  let strs = [];
+  for (let i2 = 0, l2 = u8a.length;i2 < l2; i2 += maxargs) {
+    strs.push(_fromCC.apply(null, u8a.subarray(i2, i2 + maxargs)));
+  }
+  return _btoa(strs.join(""));
+};
+var fromUint8Array = (u8a, urlsafe = false) => urlsafe ? _mkUriSafe(_fromUint8Array(u8a)) : _fromUint8Array(u8a);
+var cb_utob = (c3) => {
+  if (c3.length < 2) {
+    var cc = c3.charCodeAt(0);
+    return cc < 128 ? c3 : cc < 2048 ? _fromCC(192 | cc >>> 6) + _fromCC(128 | cc & 63) : _fromCC(224 | cc >>> 12 & 15) + _fromCC(128 | cc >>> 6 & 63) + _fromCC(128 | cc & 63);
+  } else {
+    var cc = 65536 + (c3.charCodeAt(0) - 55296) * 1024 + (c3.charCodeAt(1) - 56320);
+    return _fromCC(240 | cc >>> 18 & 7) + _fromCC(128 | cc >>> 12 & 63) + _fromCC(128 | cc >>> 6 & 63) + _fromCC(128 | cc & 63);
+  }
+};
+var re_utob = /[\uD800-\uDBFF][\uDC00-\uDFFFF]|[^\x00-\x7F]/g;
+var utob = (u3) => u3.replace(re_utob, cb_utob);
+var _encode = _hasBuffer ? (s2) => Buffer.from(s2, "utf8").toString("base64") : _TE ? (s2) => _fromUint8Array(_TE.encode(s2)) : (s2) => _btoa(utob(s2));
+var encode = (src2, urlsafe = false) => urlsafe ? _mkUriSafe(_encode(src2)) : _encode(src2);
+var encodeURI2 = (src2) => encode(src2, true);
+var re_btou = /[\xC0-\xDF][\x80-\xBF]|[\xE0-\xEF][\x80-\xBF]{2}|[\xF0-\xF7][\x80-\xBF]{3}/g;
+var cb_btou = (cccc) => {
+  switch (cccc.length) {
+    case 4:
+      var cp = (7 & cccc.charCodeAt(0)) << 18 | (63 & cccc.charCodeAt(1)) << 12 | (63 & cccc.charCodeAt(2)) << 6 | 63 & cccc.charCodeAt(3), offset = cp - 65536;
+      return _fromCC((offset >>> 10) + 55296) + _fromCC((offset & 1023) + 56320);
+    case 3:
+      return _fromCC((15 & cccc.charCodeAt(0)) << 12 | (63 & cccc.charCodeAt(1)) << 6 | 63 & cccc.charCodeAt(2));
+    default:
+      return _fromCC((31 & cccc.charCodeAt(0)) << 6 | 63 & cccc.charCodeAt(1));
+  }
+};
+var btou = (b2) => b2.replace(re_btou, cb_btou);
+var atobPolyfill = (asc) => {
+  asc = asc.replace(/\s+/g, "");
+  if (!b64re.test(asc))
+    throw new TypeError("malformed base64.");
+  asc += "==".slice(2 - (asc.length & 3));
+  let u24, r1, r22;
+  let binArray = [];
+  for (let i2 = 0;i2 < asc.length; ) {
+    u24 = b64tab[asc.charAt(i2++)] << 18 | b64tab[asc.charAt(i2++)] << 12 | (r1 = b64tab[asc.charAt(i2++)]) << 6 | (r22 = b64tab[asc.charAt(i2++)]);
+    if (r1 === 64) {
+      binArray.push(_fromCC(u24 >> 16 & 255));
+    } else if (r22 === 64) {
+      binArray.push(_fromCC(u24 >> 16 & 255, u24 >> 8 & 255));
+    } else {
+      binArray.push(_fromCC(u24 >> 16 & 255, u24 >> 8 & 255, u24 & 255));
+    }
+  }
+  return binArray.join("");
+};
+var _atob = typeof atob === "function" ? (asc) => atob(_tidyB64(asc)) : _hasBuffer ? (asc) => Buffer.from(asc, "base64").toString("binary") : atobPolyfill;
+var _toUint8Array = _hasBuffer ? (a2) => _U8Afrom(Buffer.from(a2, "base64")) : (a2) => _U8Afrom(_atob(a2).split("").map((c3) => c3.charCodeAt(0)));
+var toUint8Array = (a2) => _toUint8Array(_unURI(a2));
+var _decode = _hasBuffer ? (a2) => Buffer.from(a2, "base64").toString("utf8") : _TD ? (a2) => _TD.decode(_toUint8Array(a2)) : (a2) => btou(_atob(a2));
+var _unURI = (a2) => _tidyB64(a2.replace(/[-_]/g, (m0) => m0 == "-" ? "+" : "/"));
+var decode = (src2) => _decode(_unURI(src2));
+var isValid2 = (src2) => {
+  if (typeof src2 !== "string")
+    return false;
+  const s2 = src2.replace(/\s+/g, "").replace(/={0,2}$/, "");
+  return !/[^\s0-9a-zA-Z\+/]/.test(s2) || !/[^\s0-9a-zA-Z\-_]/.test(s2);
+};
+var _noEnum = (v2) => {
+  return {
+    value: v2,
+    enumerable: false,
+    writable: true,
+    configurable: true
+  };
+};
+var extendString = function() {
+  const _add = (name, body) => Object.defineProperty(String.prototype, name, _noEnum(body));
+  _add("fromBase64", function() {
+    return decode(this);
+  });
+  _add("toBase64", function(urlsafe) {
+    return encode(this, urlsafe);
+  });
+  _add("toBase64URI", function() {
+    return encode(this, true);
+  });
+  _add("toBase64URL", function() {
+    return encode(this, true);
+  });
+  _add("toUint8Array", function() {
+    return toUint8Array(this);
+  });
+};
+var extendUint8Array = function() {
+  const _add = (name, body) => Object.defineProperty(Uint8Array.prototype, name, _noEnum(body));
+  _add("toBase64", function(urlsafe) {
+    return fromUint8Array(this, urlsafe);
+  });
+  _add("toBase64URI", function() {
+    return fromUint8Array(this, true);
+  });
+  _add("toBase64URL", function() {
+    return fromUint8Array(this, true);
+  });
+};
+var extendBuiltins = () => {
+  extendString();
+  extendUint8Array();
+};
+var gBase64 = {
+  version,
+  VERSION,
+  atob: _atob,
+  atobPolyfill,
+  btoa: _btoa,
+  btoaPolyfill,
+  fromBase64: decode,
+  toBase64: encode,
+  encode,
+  encodeURI: encodeURI2,
+  encodeURL: encodeURI2,
+  utob,
+  btou,
+  decode,
+  isValid: isValid2,
+  fromUint8Array,
+  toUint8Array,
+  extendString,
+  extendUint8Array,
+  extendBuiltins
+};
+
+// ../../node_modules/@libsql/core/lib-esm/util.js
+function transactionModeToBegin(mode) {
+  if (mode === "write") {
+    return "BEGIN IMMEDIATE";
+  } else if (mode === "read") {
+    return "BEGIN TRANSACTION READONLY";
+  } else if (mode === "deferred") {
+    return "BEGIN DEFERRED";
+  } else {
+    throw RangeError('Unknown transaction mode, supported values are "write", "read" and "deferred"');
+  }
+}
+
+class ResultSetImpl {
+  columns;
+  columnTypes;
+  rows;
+  rowsAffected;
+  lastInsertRowid;
+  constructor(columns, columnTypes, rows, rowsAffected, lastInsertRowid) {
+    this.columns = columns;
+    this.columnTypes = columnTypes;
+    this.rows = rows;
+    this.rowsAffected = rowsAffected;
+    this.lastInsertRowid = lastInsertRowid;
+  }
+  toJSON() {
+    return {
+      columns: this.columns,
+      columnTypes: this.columnTypes,
+      rows: this.rows.map(rowToJson),
+      rowsAffected: this.rowsAffected,
+      lastInsertRowid: this.lastInsertRowid !== undefined ? "" + this.lastInsertRowid : null
+    };
+  }
+}
+function rowToJson(row) {
+  return Array.prototype.map.call(row, valueToJson);
+}
+function valueToJson(value) {
+  if (typeof value === "bigint") {
+    return "" + value;
+  } else if (value instanceof ArrayBuffer) {
+    return gBase64.fromUint8Array(new Uint8Array(value));
+  } else {
+    return value;
+  }
+}
+
+// ../../node_modules/@libsql/client/lib-esm/sqlite3.js
+var import_libsql = __toESM(require_libsql(), 1);
+import { Buffer as Buffer2 } from "node:buffer";
+class Sqlite3Client {
+  #path;
+  #options;
+  #db;
+  #intMode;
+  closed;
+  protocol;
+  constructor(path, options, db, intMode) {
+    this.#path = path;
+    this.#options = options;
+    this.#db = db;
+    this.#intMode = intMode;
+    this.closed = false;
+    this.protocol = "file";
+  }
+  async execute(stmt) {
+    this.#checkNotClosed();
+    return executeStmt(this.#getDb(), stmt, this.#intMode);
+  }
+  async batch(stmts, mode = "deferred") {
+    this.#checkNotClosed();
+    const db = this.#getDb();
+    try {
+      executeStmt(db, transactionModeToBegin(mode), this.#intMode);
+      const resultSets = stmts.map((stmt) => {
+        if (!db.inTransaction) {
+          throw new LibsqlError("The transaction has been rolled back", "TRANSACTION_CLOSED");
+        }
+        return executeStmt(db, stmt, this.#intMode);
+      });
+      executeStmt(db, "COMMIT", this.#intMode);
+      return resultSets;
+    } finally {
+      if (db.inTransaction) {
+        executeStmt(db, "ROLLBACK", this.#intMode);
+      }
+    }
+  }
+  async transaction(mode = "write") {
+    const db = this.#getDb();
+    executeStmt(db, transactionModeToBegin(mode), this.#intMode);
+    this.#db = null;
+    return new Sqlite3Transaction(db, this.#intMode);
+  }
+  async executeMultiple(sql) {
+    this.#checkNotClosed();
+    const db = this.#getDb();
+    try {
+      return executeMultiple(db, sql);
+    } finally {
+      if (db.inTransaction) {
+        executeStmt(db, "ROLLBACK", this.#intMode);
+      }
+    }
+  }
+  async sync() {
+    this.#checkNotClosed();
+    await this.#getDb().sync();
+  }
+  close() {
+    this.closed = true;
+    if (this.#db !== null) {
+      this.#db.close();
+    }
+  }
+  #checkNotClosed() {
+    if (this.closed) {
+      throw new LibsqlError("The client is closed", "CLIENT_CLOSED");
+    }
+  }
+  #getDb() {
+    if (this.#db === null) {
+      this.#db = new import_libsql.default(this.#path, this.#options);
+    }
+    return this.#db;
+  }
+}
+
+class Sqlite3Transaction {
+  #database;
+  #intMode;
+  constructor(database, intMode) {
+    this.#database = database;
+    this.#intMode = intMode;
+  }
+  async execute(stmt) {
+    this.#checkNotClosed();
+    return executeStmt(this.#database, stmt, this.#intMode);
+  }
+  async batch(stmts) {
+    return stmts.map((stmt) => {
+      this.#checkNotClosed();
+      return executeStmt(this.#database, stmt, this.#intMode);
+    });
+  }
+  async executeMultiple(sql) {
+    this.#checkNotClosed();
+    return executeMultiple(this.#database, sql);
+  }
+  async rollback() {
+    if (!this.#database.open) {
+      return;
+    }
+    this.#checkNotClosed();
+    executeStmt(this.#database, "ROLLBACK", this.#intMode);
+  }
+  async commit() {
+    this.#checkNotClosed();
+    executeStmt(this.#database, "COMMIT", this.#intMode);
+  }
+  close() {
+    if (this.#database.inTransaction) {
+      executeStmt(this.#database, "ROLLBACK", this.#intMode);
+    }
+  }
+  get closed() {
+    return !this.#database.inTransaction;
+  }
+  #checkNotClosed() {
+    if (this.closed) {
+      throw new LibsqlError("The transaction is closed", "TRANSACTION_CLOSED");
+    }
+  }
+}
+function executeStmt(db, stmt, intMode) {
+  let sql;
+  let args;
+  if (typeof stmt === "string") {
+    sql = stmt;
+    args = [];
+  } else {
+    sql = stmt.sql;
+    if (Array.isArray(stmt.args)) {
+      args = stmt.args.map((value) => valueToSql(value, intMode));
+    } else {
+      args = {};
+      for (const name in stmt.args) {
+        const argName = name[0] === "@" || name[0] === "$" || name[0] === ":" ? name.substring(1) : name;
+        args[argName] = valueToSql(stmt.args[name], intMode);
+      }
+    }
+  }
+  try {
+    const sqlStmt = db.prepare(sql);
+    sqlStmt.safeIntegers(true);
+    let returnsData = true;
+    try {
+      sqlStmt.raw(true);
+    } catch {
+      returnsData = false;
+    }
+    if (returnsData) {
+      const columns = Array.from(sqlStmt.columns().map((col) => col.name));
+      const columnTypes = Array.from(sqlStmt.columns().map((col) => col.type ?? ""));
+      const rows = sqlStmt.all(args).map((sqlRow) => {
+        return rowFromSql(sqlRow, columns, intMode);
+      });
+      const rowsAffected = 0;
+      const lastInsertRowid = undefined;
+      return new ResultSetImpl(columns, columnTypes, rows, rowsAffected, lastInsertRowid);
+    } else {
+      const info = sqlStmt.run(args);
+      const rowsAffected = info.changes;
+      const lastInsertRowid = BigInt(info.lastInsertRowid);
+      return new ResultSetImpl([], [], [], rowsAffected, lastInsertRowid);
+    }
+  } catch (e2) {
+    throw mapSqliteError(e2);
+  }
+}
+function rowFromSql(sqlRow, columns, intMode) {
+  const row = {};
+  Object.defineProperty(row, "length", { value: sqlRow.length });
+  for (let i2 = 0;i2 < sqlRow.length; ++i2) {
+    const value = valueFromSql(sqlRow[i2], intMode);
+    Object.defineProperty(row, i2, { value });
+    const column = columns[i2];
+    if (!Object.hasOwn(row, column)) {
+      Object.defineProperty(row, column, {
+        value,
+        enumerable: true,
+        configurable: true,
+        writable: true
+      });
+    }
+  }
+  return row;
+}
+function valueFromSql(sqlValue, intMode) {
+  if (typeof sqlValue === "bigint") {
+    if (intMode === "number") {
+      if (sqlValue < minSafeBigint || sqlValue > maxSafeBigint) {
+        throw new RangeError("Received integer which cannot be safely represented as a JavaScript number");
+      }
+      return Number(sqlValue);
+    } else if (intMode === "bigint") {
+      return sqlValue;
+    } else if (intMode === "string") {
+      return "" + sqlValue;
+    } else {
+      throw new Error("Invalid value for IntMode");
+    }
+  } else if (sqlValue instanceof Buffer2) {
+    return sqlValue.buffer;
+  }
+  return sqlValue;
+}
+var minSafeBigint = -9007199254740991n;
+var maxSafeBigint = 9007199254740991n;
+function valueToSql(value, intMode) {
+  if (typeof value === "number") {
+    if (!Number.isFinite(value)) {
+      throw new RangeError("Only finite numbers (not Infinity or NaN) can be passed as arguments");
+    }
+    return value;
+  } else if (typeof value === "bigint") {
+    if (value < minInteger || value > maxInteger) {
+      throw new RangeError("bigint is too large to be represented as a 64-bit integer and passed as argument");
+    }
+    return value;
+  } else if (typeof value === "boolean") {
+    switch (intMode) {
+      case "bigint":
+        return value ? 1n : 0n;
+      case "string":
+        return value ? "1" : "0";
+      default:
+        return value ? 1 : 0;
+    }
+  } else if (value instanceof ArrayBuffer) {
+    return Buffer2.from(value);
+  } else if (value instanceof Date) {
+    return value.valueOf();
+  } else if (value === undefined) {
+    throw new TypeError("undefined cannot be passed as argument to the database");
+  } else {
+    return value;
+  }
+}
+var minInteger = -9223372036854775808n;
+var maxInteger = 9223372036854775807n;
+function executeMultiple(db, sql) {
+  try {
+    db.exec(sql);
+  } catch (e2) {
+    throw mapSqliteError(e2);
+  }
+}
+function mapSqliteError(e2) {
+  if (e2 instanceof import_libsql.default.SqliteError) {
+    return new LibsqlError(e2.message, e2.code, e2.rawCode, e2);
+  }
+  return e2;
+}
+
+// ../../node_modules/ws/wrapper.mjs
+var import_stream = __toESM(require_stream(), 1);
+var import_extension = __toESM(require_extension(), 1);
+var import_permessage_deflate = __toESM(require_permessage_deflate(), 1);
+var import_receiver = __toESM(require_receiver(), 1);
+var import_sender = __toESM(require_sender(), 1);
+var import_subprotocol = __toESM(require_subprotocol(), 1);
+var import_websocket = __toESM(require_websocket(), 1);
+var import_websocket_server = __toESM(require_websocket_server(), 1);
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/client.js
+class Client {
+  constructor() {
+    this.intMode = "number";
+  }
+  intMode;
+}
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/errors.js
+class ClientError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "ClientError";
+  }
+}
+
+class ProtoError extends ClientError {
+  constructor(message) {
+    super(message);
+    this.name = "ProtoError";
+  }
+}
+
+class ResponseError extends ClientError {
+  code;
+  proto;
+  constructor(message, protoError) {
+    super(message);
+    this.name = "ResponseError";
+    this.code = protoError.code;
+    this.proto = protoError;
+    this.stack = undefined;
+  }
+}
+
+class ClosedError extends ClientError {
+  constructor(message, cause) {
+    if (cause !== undefined) {
+      super(`${message}: ${cause}`);
+      this.cause = cause;
+    } else {
+      super(message);
+    }
+    this.name = "ClosedError";
+  }
+}
+
+class WebSocketUnsupportedError extends ClientError {
+  constructor(message) {
+    super(message);
+    this.name = "WebSocketUnsupportedError";
+  }
+}
+
+class WebSocketError extends ClientError {
+  constructor(message) {
+    super(message);
+    this.name = "WebSocketError";
+  }
+}
+
+class HttpServerError extends ClientError {
+  status;
+  constructor(message, status) {
+    super(message);
+    this.status = status;
+    this.name = "HttpServerError";
+  }
+}
+class ProtocolVersionError extends ClientError {
+  constructor(message) {
+    super(message);
+    this.name = "ProtocolVersionError";
+  }
+}
+
+class InternalError extends ClientError {
+  constructor(message) {
+    super(message);
+    this.name = "InternalError";
+  }
+}
+
+class MisuseError extends ClientError {
+  constructor(message) {
+    super(message);
+    this.name = "MisuseError";
+  }
+}
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/encoding/json/decode.js
+function string(value) {
+  if (typeof value === "string") {
+    return value;
+  }
+  throw typeError(value, "string");
+}
+function stringOpt(value) {
+  if (value === null || value === undefined) {
+    return;
+  } else if (typeof value === "string") {
+    return value;
+  }
+  throw typeError(value, "string or null");
+}
+function number(value) {
+  if (typeof value === "number") {
+    return value;
+  }
+  throw typeError(value, "number");
+}
+function boolean(value) {
+  if (typeof value === "boolean") {
+    return value;
+  }
+  throw typeError(value, "boolean");
+}
+function array(value) {
+  if (Array.isArray(value)) {
+    return value;
+  }
+  throw typeError(value, "array");
+}
+function object(value) {
+  if (value !== null && typeof value === "object" && !Array.isArray(value)) {
+    return value;
+  }
+  throw typeError(value, "object");
+}
+function arrayObjectsMap(value, fun) {
+  return array(value).map((elemValue) => fun(object(elemValue)));
+}
+function typeError(value, expected) {
+  if (value === undefined) {
+    return new ProtoError(`Expected ${expected}, but the property was missing`);
+  }
+  let received = typeof value;
+  if (value === null) {
+    received = "null";
+  } else if (Array.isArray(value)) {
+    received = "array";
+  }
+  return new ProtoError(`Expected ${expected}, received ${received}`);
+}
+function readJsonObject(value, fun) {
+  return fun(object(value));
+}
+// ../../node_modules/@libsql/hrana-client/lib-esm/encoding/json/encode.js
+class ObjectWriter {
+  #output;
+  #isFirst;
+  constructor(output) {
+    this.#output = output;
+    this.#isFirst = false;
+  }
+  begin() {
+    this.#output.push("{");
+    this.#isFirst = true;
+  }
+  end() {
+    this.#output.push("}");
+    this.#isFirst = false;
+  }
+  #key(name) {
+    if (this.#isFirst) {
+      this.#output.push('"');
+      this.#isFirst = false;
+    } else {
+      this.#output.push(',"');
+    }
+    this.#output.push(name);
+    this.#output.push('":');
+  }
+  string(name, value) {
+    this.#key(name);
+    this.#output.push(JSON.stringify(value));
+  }
+  stringRaw(name, value) {
+    this.#key(name);
+    this.#output.push('"');
+    this.#output.push(value);
+    this.#output.push('"');
+  }
+  number(name, value) {
+    this.#key(name);
+    this.#output.push("" + value);
+  }
+  boolean(name, value) {
+    this.#key(name);
+    this.#output.push(value ? "true" : "false");
+  }
+  object(name, value, valueFun) {
+    this.#key(name);
+    this.begin();
+    valueFun(this, value);
+    this.end();
+  }
+  arrayObjects(name, values, valueFun) {
+    this.#key(name);
+    this.#output.push("[");
+    for (let i2 = 0;i2 < values.length; ++i2) {
+      if (i2 !== 0) {
+        this.#output.push(",");
+      }
+      this.begin();
+      valueFun(this, values[i2]);
+      this.end();
+    }
+    this.#output.push("]");
+  }
+}
+function writeJsonObject(value, fun) {
+  const output = [];
+  const writer = new ObjectWriter(output);
+  writer.begin();
+  fun(writer, value);
+  writer.end();
+  return output.join("");
+}
+// ../../node_modules/@libsql/hrana-client/lib-esm/encoding/protobuf/util.js
+var VARINT = 0;
+var FIXED_64 = 1;
+var LENGTH_DELIMITED = 2;
+var FIXED_32 = 5;
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/encoding/protobuf/decode.js
+class MessageReader {
+  #array;
+  #view;
+  #pos;
+  constructor(array2) {
+    this.#array = array2;
+    this.#view = new DataView(array2.buffer, array2.byteOffset, array2.byteLength);
+    this.#pos = 0;
+  }
+  varint() {
+    let value = 0;
+    for (let shift = 0;; shift += 7) {
+      const byte = this.#array[this.#pos++];
+      value |= (byte & 127) << shift;
+      if (!(byte & 128)) {
+        break;
+      }
+    }
+    return value;
+  }
+  varintBig() {
+    let value = 0n;
+    for (let shift = 0n;; shift += 7n) {
+      const byte = this.#array[this.#pos++];
+      value |= BigInt(byte & 127) << shift;
+      if (!(byte & 128)) {
+        break;
+      }
+    }
+    return value;
+  }
+  bytes(length) {
+    const array2 = new Uint8Array(this.#array.buffer, this.#array.byteOffset + this.#pos, length);
+    this.#pos += length;
+    return array2;
+  }
+  double() {
+    const value = this.#view.getFloat64(this.#pos, true);
+    this.#pos += 8;
+    return value;
+  }
+  skipVarint() {
+    for (;; ) {
+      const byte = this.#array[this.#pos++];
+      if (!(byte & 128)) {
+        break;
+      }
+    }
+  }
+  skip(count) {
+    this.#pos += count;
+  }
+  eof() {
+    return this.#pos >= this.#array.byteLength;
+  }
+}
+
+class FieldReader {
+  #reader;
+  #wireType;
+  constructor(reader) {
+    this.#reader = reader;
+    this.#wireType = -1;
+  }
+  setup(wireType) {
+    this.#wireType = wireType;
+  }
+  #expect(expectedWireType) {
+    if (this.#wireType !== expectedWireType) {
+      throw new ProtoError(`Expected wire type ${expectedWireType}, got ${this.#wireType}`);
+    }
+    this.#wireType = -1;
+  }
+  bytes() {
+    this.#expect(LENGTH_DELIMITED);
+    const length = this.#reader.varint();
+    return this.#reader.bytes(length);
+  }
+  string() {
+    return new TextDecoder().decode(this.bytes());
+  }
+  message(def) {
+    return readProtobufMessage(this.bytes(), def);
+  }
+  int32() {
+    this.#expect(VARINT);
+    return this.#reader.varint();
+  }
+  uint32() {
+    return this.int32();
+  }
+  bool() {
+    return this.int32() !== 0;
+  }
+  uint64() {
+    this.#expect(VARINT);
+    return this.#reader.varintBig();
+  }
+  sint64() {
+    const value = this.uint64();
+    return value >> 1n ^ -(value & 1n);
+  }
+  double() {
+    this.#expect(FIXED_64);
+    return this.#reader.double();
+  }
+  maybeSkip() {
+    if (this.#wireType < 0) {
+      return;
+    } else if (this.#wireType === VARINT) {
+      this.#reader.skipVarint();
+    } else if (this.#wireType === FIXED_64) {
+      this.#reader.skip(8);
+    } else if (this.#wireType === LENGTH_DELIMITED) {
+      const length = this.#reader.varint();
+      this.#reader.skip(length);
+    } else if (this.#wireType === FIXED_32) {
+      this.#reader.skip(4);
+    } else {
+      throw new ProtoError(`Unexpected wire type ${this.#wireType}`);
+    }
+    this.#wireType = -1;
+  }
+}
+function readProtobufMessage(data, def) {
+  const msgReader = new MessageReader(data);
+  const fieldReader = new FieldReader(msgReader);
+  let value = def.default();
+  while (!msgReader.eof()) {
+    const key = msgReader.varint();
+    const tag = key >> 3;
+    const wireType = key & 7;
+    fieldReader.setup(wireType);
+    const tagFun = def[tag];
+    if (tagFun !== undefined) {
+      const returnedValue = tagFun(fieldReader, value);
+      if (returnedValue !== undefined) {
+        value = returnedValue;
+      }
+    }
+    fieldReader.maybeSkip();
+  }
+  return value;
+}
+// ../../node_modules/@libsql/hrana-client/lib-esm/encoding/protobuf/encode.js
+class MessageWriter {
+  #buf;
+  #array;
+  #view;
+  #pos;
+  constructor() {
+    this.#buf = new ArrayBuffer(256);
+    this.#array = new Uint8Array(this.#buf);
+    this.#view = new DataView(this.#buf);
+    this.#pos = 0;
+  }
+  #ensure(extra) {
+    if (this.#pos + extra <= this.#buf.byteLength) {
+      return;
+    }
+    let newCap = this.#buf.byteLength;
+    while (newCap < this.#pos + extra) {
+      newCap *= 2;
+    }
+    const newBuf = new ArrayBuffer(newCap);
+    const newArray = new Uint8Array(newBuf);
+    const newView = new DataView(newBuf);
+    newArray.set(new Uint8Array(this.#buf, 0, this.#pos));
+    this.#buf = newBuf;
+    this.#array = newArray;
+    this.#view = newView;
+  }
+  #varint(value) {
+    this.#ensure(5);
+    value = 0 | value;
+    do {
+      let byte = value & 127;
+      value >>>= 7;
+      byte |= value ? 128 : 0;
+      this.#array[this.#pos++] = byte;
+    } while (value);
+  }
+  #varintBig(value) {
+    this.#ensure(10);
+    value = value & 0xffffffffffffffffn;
+    do {
+      let byte = Number(value & 0x7fn);
+      value >>= 7n;
+      byte |= value ? 128 : 0;
+      this.#array[this.#pos++] = byte;
+    } while (value);
+  }
+  #tag(tag, wireType) {
+    this.#varint(tag << 3 | wireType);
+  }
+  bytes(tag, value) {
+    this.#tag(tag, LENGTH_DELIMITED);
+    this.#varint(value.byteLength);
+    this.#ensure(value.byteLength);
+    this.#array.set(value, this.#pos);
+    this.#pos += value.byteLength;
+  }
+  string(tag, value) {
+    this.bytes(tag, new TextEncoder().encode(value));
+  }
+  message(tag, value, fun) {
+    const writer = new MessageWriter;
+    fun(writer, value);
+    this.bytes(tag, writer.data());
+  }
+  int32(tag, value) {
+    this.#tag(tag, VARINT);
+    this.#varint(value);
+  }
+  uint32(tag, value) {
+    this.int32(tag, value);
+  }
+  bool(tag, value) {
+    this.int32(tag, value ? 1 : 0);
+  }
+  sint64(tag, value) {
+    this.#tag(tag, VARINT);
+    this.#varintBig(value << 1n ^ value >> 63n);
+  }
+  double(tag, value) {
+    this.#tag(tag, FIXED_64);
+    this.#ensure(8);
+    this.#view.setFloat64(this.#pos, value, true);
+    this.#pos += 8;
+  }
+  data() {
+    return new Uint8Array(this.#buf, 0, this.#pos);
+  }
+}
+function writeProtobufMessage(value, fun) {
+  const w2 = new MessageWriter;
+  fun(w2, value);
+  return w2.data();
+}
+// ../../node_modules/@libsql/hrana-client/lib-esm/id_alloc.js
+class IdAlloc {
+  #usedIds;
+  #freeIds;
+  constructor() {
+    this.#usedIds = new Set;
+    this.#freeIds = new Set;
+  }
+  alloc() {
+    for (const freeId2 of this.#freeIds) {
+      this.#freeIds.delete(freeId2);
+      this.#usedIds.add(freeId2);
+      if (!this.#usedIds.has(this.#usedIds.size - 1)) {
+        this.#freeIds.add(this.#usedIds.size - 1);
+      }
+      return freeId2;
+    }
+    const freeId = this.#usedIds.size;
+    this.#usedIds.add(freeId);
+    return freeId;
+  }
+  free(id) {
+    if (!this.#usedIds.delete(id)) {
+      throw new InternalError("Freeing an id that is not allocated");
+    }
+    this.#freeIds.delete(this.#usedIds.size);
+    if (id < this.#usedIds.size) {
+      this.#freeIds.add(id);
+    }
+  }
+}
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/util.js
+function impossible(value, message) {
+  throw new InternalError(message);
+}
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/value.js
+function valueToProto(value) {
+  if (value === null) {
+    return null;
+  } else if (typeof value === "string") {
+    return value;
+  } else if (typeof value === "number") {
+    if (!Number.isFinite(value)) {
+      throw new RangeError("Only finite numbers (not Infinity or NaN) can be passed as arguments");
+    }
+    return value;
+  } else if (typeof value === "bigint") {
+    if (value < minInteger2 || value > maxInteger2) {
+      throw new RangeError("This bigint value is too large to be represented as a 64-bit integer and passed as argument");
+    }
+    return value;
+  } else if (typeof value === "boolean") {
+    return value ? 1n : 0n;
+  } else if (value instanceof ArrayBuffer) {
+    return new Uint8Array(value);
+  } else if (value instanceof Uint8Array) {
+    return value;
+  } else if (value instanceof Date) {
+    return +value.valueOf();
+  } else if (typeof value === "object") {
+    return "" + value.toString();
+  } else {
+    throw new TypeError("Unsupported type of value");
+  }
+}
+var minInteger2 = -9223372036854775808n;
+var maxInteger2 = 9223372036854775807n;
+function valueFromProto(value, intMode) {
+  if (value === null) {
+    return null;
+  } else if (typeof value === "number") {
+    return value;
+  } else if (typeof value === "string") {
+    return value;
+  } else if (typeof value === "bigint") {
+    if (intMode === "number") {
+      const num = Number(value);
+      if (!Number.isSafeInteger(num)) {
+        throw new RangeError("Received integer which is too large to be safely represented as a JavaScript number");
+      }
+      return num;
+    } else if (intMode === "bigint") {
+      return value;
+    } else if (intMode === "string") {
+      return "" + value;
+    } else {
+      throw new MisuseError("Invalid value for IntMode");
+    }
+  } else if (value instanceof Uint8Array) {
+    return value.slice().buffer;
+  } else if (value === undefined) {
+    throw new ProtoError("Received unrecognized type of Value");
+  } else {
+    throw impossible(value, "Impossible type of Value");
+  }
+}
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/result.js
+function stmtResultFromProto(result) {
+  return {
+    affectedRowCount: result.affectedRowCount,
+    lastInsertRowid: result.lastInsertRowid,
+    columnNames: result.cols.map((col) => col.name),
+    columnDecltypes: result.cols.map((col) => col.decltype)
+  };
+}
+function rowsResultFromProto(result, intMode) {
+  const stmtResult = stmtResultFromProto(result);
+  const rows = result.rows.map((row) => rowFromProto(stmtResult.columnNames, row, intMode));
+  return { ...stmtResult, rows };
+}
+function rowResultFromProto(result, intMode) {
+  const stmtResult = stmtResultFromProto(result);
+  let row;
+  if (result.rows.length > 0) {
+    row = rowFromProto(stmtResult.columnNames, result.rows[0], intMode);
+  }
+  return { ...stmtResult, row };
+}
+function valueResultFromProto(result, intMode) {
+  const stmtResult = stmtResultFromProto(result);
+  let value;
+  if (result.rows.length > 0 && stmtResult.columnNames.length > 0) {
+    value = valueFromProto(result.rows[0][0], intMode);
+  }
+  return { ...stmtResult, value };
+}
+function rowFromProto(colNames, values, intMode) {
+  const row = {};
+  Object.defineProperty(row, "length", { value: values.length });
+  for (let i2 = 0;i2 < values.length; ++i2) {
+    const value = valueFromProto(values[i2], intMode);
+    Object.defineProperty(row, i2, { value });
+    const colName = colNames[i2];
+    if (colName !== undefined && !Object.hasOwn(row, colName)) {
+      Object.defineProperty(row, colName, { value, enumerable: true, configurable: true, writable: true });
+    }
+  }
+  return row;
+}
+function errorFromProto(error) {
+  return new ResponseError(error.message, error);
+}
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/sql.js
+class Sql {
+  #owner;
+  #sqlId;
+  #closed;
+  constructor(owner, sqlId) {
+    this.#owner = owner;
+    this.#sqlId = sqlId;
+    this.#closed = undefined;
+  }
+  _getSqlId(owner) {
+    if (this.#owner !== owner) {
+      throw new MisuseError("Attempted to use SQL text opened with other object");
+    } else if (this.#closed !== undefined) {
+      throw new ClosedError("SQL text is closed", this.#closed);
+    }
+    return this.#sqlId;
+  }
+  close() {
+    this._setClosed(new ClientError("SQL text was manually closed"));
+  }
+  _setClosed(error) {
+    if (this.#closed === undefined) {
+      this.#closed = error;
+      this.#owner._closeSql(this.#sqlId);
+    }
+  }
+  get closed() {
+    return this.#closed !== undefined;
+  }
+}
+function sqlToProto(owner, sql) {
+  if (sql instanceof Sql) {
+    return { sqlId: sql._getSqlId(owner) };
+  } else {
+    return { sql: "" + sql };
+  }
+}
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/queue.js
+class Queue {
+  #pushStack;
+  #shiftStack;
+  constructor() {
+    this.#pushStack = [];
+    this.#shiftStack = [];
+  }
+  get length() {
+    return this.#pushStack.length + this.#shiftStack.length;
+  }
+  push(elem) {
+    this.#pushStack.push(elem);
+  }
+  shift() {
+    if (this.#shiftStack.length === 0 && this.#pushStack.length > 0) {
+      this.#shiftStack = this.#pushStack.reverse();
+      this.#pushStack = [];
+    }
+    return this.#shiftStack.pop();
+  }
+  first() {
+    return this.#shiftStack.length !== 0 ? this.#shiftStack[this.#shiftStack.length - 1] : this.#pushStack[0];
+  }
+}
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/stmt.js
+class Stmt {
+  sql;
+  _args;
+  _namedArgs;
+  constructor(sql) {
+    this.sql = sql;
+    this._args = [];
+    this._namedArgs = new Map;
+  }
+  bindIndexes(values) {
+    this._args.length = 0;
+    for (const value of values) {
+      this._args.push(valueToProto(value));
+    }
+    return this;
+  }
+  bindIndex(index, value) {
+    if (index !== (index | 0) || index <= 0) {
+      throw new RangeError("Index of a positional argument must be positive integer");
+    }
+    while (this._args.length < index) {
+      this._args.push(null);
+    }
+    this._args[index - 1] = valueToProto(value);
+    return this;
+  }
+  bindName(name, value) {
+    this._namedArgs.set(name, valueToProto(value));
+    return this;
+  }
+  unbindAll() {
+    this._args.length = 0;
+    this._namedArgs.clear();
+    return this;
+  }
+}
+function stmtToProto(sqlOwner, stmt, wantRows) {
+  let inSql;
+  let args = [];
+  let namedArgs = [];
+  if (stmt instanceof Stmt) {
+    inSql = stmt.sql;
+    args = stmt._args;
+    for (const [name, value] of stmt._namedArgs.entries()) {
+      namedArgs.push({ name, value });
+    }
+  } else if (Array.isArray(stmt)) {
+    inSql = stmt[0];
+    if (Array.isArray(stmt[1])) {
+      args = stmt[1].map((arg) => valueToProto(arg));
+    } else {
+      namedArgs = Object.entries(stmt[1]).map(([name, value]) => {
+        return { name, value: valueToProto(value) };
+      });
+    }
+  } else {
+    inSql = stmt;
+  }
+  const { sql, sqlId } = sqlToProto(sqlOwner, inSql);
+  return { sql, sqlId, args, namedArgs, wantRows };
+}
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/batch.js
+class Batch {
+  _stream;
+  #useCursor;
+  _steps;
+  #executed;
+  constructor(stream, useCursor) {
+    this._stream = stream;
+    this.#useCursor = useCursor;
+    this._steps = [];
+    this.#executed = false;
+  }
+  step() {
+    return new BatchStep(this);
+  }
+  execute() {
+    if (this.#executed) {
+      throw new MisuseError("This batch has already been executed");
+    }
+    this.#executed = true;
+    const batch = {
+      steps: this._steps.map((step) => step.proto)
+    };
+    if (this.#useCursor) {
+      return executeCursor(this._stream, this._steps, batch);
+    } else {
+      return executeRegular(this._stream, this._steps, batch);
+    }
+  }
+}
+function executeRegular(stream, steps, batch) {
+  return stream._batch(batch).then((result) => {
+    for (let step = 0;step < steps.length; ++step) {
+      const stepResult = result.stepResults.get(step);
+      const stepError = result.stepErrors.get(step);
+      steps[step].callback(stepResult, stepError);
+    }
+  });
+}
+async function executeCursor(stream, steps, batch) {
+  const cursor = await stream._openCursor(batch);
+  try {
+    let nextStep = 0;
+    let beginEntry = undefined;
+    let rows = [];
+    for (;; ) {
+      const entry = await cursor.next();
+      if (entry === undefined) {
+        break;
+      }
+      if (entry.type === "step_begin") {
+        if (entry.step < nextStep || entry.step >= steps.length) {
+          throw new ProtoError("Server produced StepBeginEntry for unexpected step");
+        } else if (beginEntry !== undefined) {
+          throw new ProtoError("Server produced StepBeginEntry before terminating previous step");
+        }
+        for (let step = nextStep;step < entry.step; ++step) {
+          steps[step].callback(undefined, undefined);
+        }
+        nextStep = entry.step + 1;
+        beginEntry = entry;
+        rows = [];
+      } else if (entry.type === "step_end") {
+        if (beginEntry === undefined) {
+          throw new ProtoError("Server produced StepEndEntry but no step is active");
+        }
+        const stmtResult = {
+          cols: beginEntry.cols,
+          rows,
+          affectedRowCount: entry.affectedRowCount,
+          lastInsertRowid: entry.lastInsertRowid
+        };
+        steps[beginEntry.step].callback(stmtResult, undefined);
+        beginEntry = undefined;
+        rows = [];
+      } else if (entry.type === "step_error") {
+        if (beginEntry === undefined) {
+          if (entry.step >= steps.length) {
+            throw new ProtoError("Server produced StepErrorEntry for unexpected step");
+          }
+          for (let step = nextStep;step < entry.step; ++step) {
+            steps[step].callback(undefined, undefined);
+          }
+        } else {
+          if (entry.step !== beginEntry.step) {
+            throw new ProtoError("Server produced StepErrorEntry for unexpected step");
+          }
+          beginEntry = undefined;
+          rows = [];
+        }
+        steps[entry.step].callback(undefined, entry.error);
+        nextStep = entry.step + 1;
+      } else if (entry.type === "row") {
+        if (beginEntry === undefined) {
+          throw new ProtoError("Server produced RowEntry but no step is active");
+        }
+        rows.push(entry.row);
+      } else if (entry.type === "error") {
+        throw errorFromProto(entry.error);
+      } else if (entry.type === "none") {
+        throw new ProtoError("Server produced unrecognized CursorEntry");
+      } else {
+        throw impossible(entry, "Impossible CursorEntry");
+      }
+    }
+    if (beginEntry !== undefined) {
+      throw new ProtoError("Server closed Cursor before terminating active step");
+    }
+    for (let step = nextStep;step < steps.length; ++step) {
+      steps[step].callback(undefined, undefined);
+    }
+  } finally {
+    cursor.close();
+  }
+}
+
+class BatchStep {
+  _batch;
+  #conds;
+  _index;
+  constructor(batch) {
+    this._batch = batch;
+    this.#conds = [];
+    this._index = undefined;
+  }
+  condition(cond) {
+    this.#conds.push(cond._proto);
+    return this;
+  }
+  query(stmt) {
+    return this.#add(stmt, true, rowsResultFromProto);
+  }
+  queryRow(stmt) {
+    return this.#add(stmt, true, rowResultFromProto);
+  }
+  queryValue(stmt) {
+    return this.#add(stmt, true, valueResultFromProto);
+  }
+  run(stmt) {
+    return this.#add(stmt, false, stmtResultFromProto);
+  }
+  #add(inStmt, wantRows, fromProto) {
+    if (this._index !== undefined) {
+      throw new MisuseError("This BatchStep has already been added to the batch");
+    }
+    const stmt = stmtToProto(this._batch._stream._sqlOwner(), inStmt, wantRows);
+    let condition;
+    if (this.#conds.length === 0) {
+      condition = undefined;
+    } else if (this.#conds.length === 1) {
+      condition = this.#conds[0];
+    } else {
+      condition = { type: "and", conds: this.#conds.slice() };
+    }
+    const proto = { stmt, condition };
+    return new Promise((outputCallback, errorCallback) => {
+      const callback = (stepResult, stepError) => {
+        if (stepResult !== undefined && stepError !== undefined) {
+          errorCallback(new ProtoError("Server returned both result and error"));
+        } else if (stepError !== undefined) {
+          errorCallback(errorFromProto(stepError));
+        } else if (stepResult !== undefined) {
+          outputCallback(fromProto(stepResult, this._batch._stream.intMode));
+        } else {
+          outputCallback(undefined);
+        }
+      };
+      this._index = this._batch._steps.length;
+      this._batch._steps.push({ proto, callback });
+    });
+  }
+}
+
+class BatchCond {
+  _batch;
+  _proto;
+  constructor(batch, proto) {
+    this._batch = batch;
+    this._proto = proto;
+  }
+  static ok(step) {
+    return new BatchCond(step._batch, { type: "ok", step: stepIndex(step) });
+  }
+  static error(step) {
+    return new BatchCond(step._batch, { type: "error", step: stepIndex(step) });
+  }
+  static not(cond) {
+    return new BatchCond(cond._batch, { type: "not", cond: cond._proto });
+  }
+  static and(batch, conds) {
+    for (const cond of conds) {
+      checkCondBatch(batch, cond);
+    }
+    return new BatchCond(batch, { type: "and", conds: conds.map((e2) => e2._proto) });
+  }
+  static or(batch, conds) {
+    for (const cond of conds) {
+      checkCondBatch(batch, cond);
+    }
+    return new BatchCond(batch, { type: "or", conds: conds.map((e2) => e2._proto) });
+  }
+  static isAutocommit(batch) {
+    batch._stream.client()._ensureVersion(3, "BatchCond.isAutocommit()");
+    return new BatchCond(batch, { type: "is_autocommit" });
+  }
+}
+function stepIndex(step) {
+  if (step._index === undefined) {
+    throw new MisuseError("Cannot add a condition referencing a step that has not been added to the batch");
+  }
+  return step._index;
+}
+function checkCondBatch(expectedBatch, cond) {
+  if (cond._batch !== expectedBatch) {
+    throw new MisuseError("Cannot mix BatchCond objects for different Batch objects");
+  }
+}
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/describe.js
+function describeResultFromProto(result) {
+  return {
+    paramNames: result.params.map((p) => p.name),
+    columns: result.cols,
+    isExplain: result.isExplain,
+    isReadonly: result.isReadonly
+  };
+}
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/stream.js
+class Stream {
+  constructor(intMode) {
+    this.intMode = intMode;
+  }
+  query(stmt) {
+    return this.#execute(stmt, true, rowsResultFromProto);
+  }
+  queryRow(stmt) {
+    return this.#execute(stmt, true, rowResultFromProto);
+  }
+  queryValue(stmt) {
+    return this.#execute(stmt, true, valueResultFromProto);
+  }
+  run(stmt) {
+    return this.#execute(stmt, false, stmtResultFromProto);
+  }
+  #execute(inStmt, wantRows, fromProto) {
+    const stmt = stmtToProto(this._sqlOwner(), inStmt, wantRows);
+    return this._execute(stmt).then((r3) => fromProto(r3, this.intMode));
+  }
+  batch(useCursor = false) {
+    return new Batch(this, useCursor);
+  }
+  describe(inSql) {
+    const protoSql = sqlToProto(this._sqlOwner(), inSql);
+    return this._describe(protoSql).then(describeResultFromProto);
+  }
+  sequence(inSql) {
+    const protoSql = sqlToProto(this._sqlOwner(), inSql);
+    return this._sequence(protoSql);
+  }
+  intMode;
+}
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/cursor.js
+class Cursor {
+}
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/ws/cursor.js
+var fetchChunkSize = 1000;
+var fetchQueueSize = 10;
+
+class WsCursor extends Cursor {
+  #client;
+  #stream;
+  #cursorId;
+  #entryQueue;
+  #fetchQueue;
+  #closed;
+  #done;
+  constructor(client, stream, cursorId) {
+    super();
+    this.#client = client;
+    this.#stream = stream;
+    this.#cursorId = cursorId;
+    this.#entryQueue = new Queue;
+    this.#fetchQueue = new Queue;
+    this.#closed = undefined;
+    this.#done = false;
+  }
+  async next() {
+    for (;; ) {
+      if (this.#closed !== undefined) {
+        throw new ClosedError("Cursor is closed", this.#closed);
+      }
+      while (!this.#done && this.#fetchQueue.length < fetchQueueSize) {
+        this.#fetchQueue.push(this.#fetch());
+      }
+      const entry = this.#entryQueue.shift();
+      if (this.#done || entry !== undefined) {
+        return entry;
+      }
+      await this.#fetchQueue.shift().then((response) => {
+        if (response === undefined) {
+          return;
+        }
+        for (const entry2 of response.entries) {
+          this.#entryQueue.push(entry2);
+        }
+        this.#done ||= response.done;
+      });
+    }
+  }
+  #fetch() {
+    return this.#stream._sendCursorRequest(this, {
+      type: "fetch_cursor",
+      cursorId: this.#cursorId,
+      maxCount: fetchChunkSize
+    }).then((resp) => resp, (error) => {
+      this._setClosed(error);
+      return;
+    });
+  }
+  _setClosed(error) {
+    if (this.#closed !== undefined) {
+      return;
+    }
+    this.#closed = error;
+    this.#stream._sendCursorRequest(this, {
+      type: "close_cursor",
+      cursorId: this.#cursorId
+    }).catch(() => {
+      return;
+    });
+    this.#stream._cursorClosed(this);
+  }
+  close() {
+    this._setClosed(new ClientError("Cursor was manually closed"));
+  }
+  get closed() {
+    return this.#closed !== undefined;
+  }
+}
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/ws/stream.js
+class WsStream extends Stream {
+  #client;
+  #streamId;
+  #queue;
+  #cursor;
+  #closing;
+  #closed;
+  static open(client) {
+    const streamId = client._streamIdAlloc.alloc();
+    const stream = new WsStream(client, streamId);
+    const responseCallback = () => {
+      return;
+    };
+    const errorCallback = (e2) => stream.#setClosed(e2);
+    const request = { type: "open_stream", streamId };
+    client._sendRequest(request, { responseCallback, errorCallback });
+    return stream;
+  }
+  constructor(client, streamId) {
+    super(client.intMode);
+    this.#client = client;
+    this.#streamId = streamId;
+    this.#queue = new Queue;
+    this.#cursor = undefined;
+    this.#closing = false;
+    this.#closed = undefined;
+  }
+  client() {
+    return this.#client;
+  }
+  _sqlOwner() {
+    return this.#client;
+  }
+  _execute(stmt) {
+    return this.#sendStreamRequest({
+      type: "execute",
+      streamId: this.#streamId,
+      stmt
+    }).then((response) => {
+      return response.result;
+    });
+  }
+  _batch(batch) {
+    return this.#sendStreamRequest({
+      type: "batch",
+      streamId: this.#streamId,
+      batch
+    }).then((response) => {
+      return response.result;
+    });
+  }
+  _describe(protoSql) {
+    this.#client._ensureVersion(2, "describe()");
+    return this.#sendStreamRequest({
+      type: "describe",
+      streamId: this.#streamId,
+      sql: protoSql.sql,
+      sqlId: protoSql.sqlId
+    }).then((response) => {
+      return response.result;
+    });
+  }
+  _sequence(protoSql) {
+    this.#client._ensureVersion(2, "sequence()");
+    return this.#sendStreamRequest({
+      type: "sequence",
+      streamId: this.#streamId,
+      sql: protoSql.sql,
+      sqlId: protoSql.sqlId
+    }).then((_response) => {
+      return;
+    });
+  }
+  getAutocommit() {
+    this.#client._ensureVersion(3, "getAutocommit()");
+    return this.#sendStreamRequest({
+      type: "get_autocommit",
+      streamId: this.#streamId
+    }).then((response) => {
+      return response.isAutocommit;
+    });
+  }
+  #sendStreamRequest(request) {
+    return new Promise((responseCallback, errorCallback) => {
+      this.#pushToQueue({ type: "request", request, responseCallback, errorCallback });
+    });
+  }
+  _openCursor(batch) {
+    this.#client._ensureVersion(3, "cursor");
+    return new Promise((cursorCallback, errorCallback) => {
+      this.#pushToQueue({ type: "cursor", batch, cursorCallback, errorCallback });
+    });
+  }
+  _sendCursorRequest(cursor, request) {
+    if (cursor !== this.#cursor) {
+      throw new InternalError("Cursor not associated with the stream attempted to execute a request");
+    }
+    return new Promise((responseCallback, errorCallback) => {
+      if (this.#closed !== undefined) {
+        errorCallback(new ClosedError("Stream is closed", this.#closed));
+      } else {
+        this.#client._sendRequest(request, { responseCallback, errorCallback });
+      }
+    });
+  }
+  _cursorClosed(cursor) {
+    if (cursor !== this.#cursor) {
+      throw new InternalError("Cursor was closed, but it was not associated with the stream");
+    }
+    this.#cursor = undefined;
+    this.#flushQueue();
+  }
+  #pushToQueue(entry) {
+    if (this.#closed !== undefined) {
+      entry.errorCallback(new ClosedError("Stream is closed", this.#closed));
+    } else if (this.#closing) {
+      entry.errorCallback(new ClosedError("Stream is closing", undefined));
+    } else {
+      this.#queue.push(entry);
+      this.#flushQueue();
+    }
+  }
+  #flushQueue() {
+    for (;; ) {
+      const entry = this.#queue.first();
+      if (entry === undefined && this.#cursor === undefined && this.#closing) {
+        this.#setClosed(new ClientError("Stream was gracefully closed"));
+        break;
+      } else if (entry?.type === "request" && this.#cursor === undefined) {
+        const { request, responseCallback, errorCallback } = entry;
+        this.#queue.shift();
+        this.#client._sendRequest(request, { responseCallback, errorCallback });
+      } else if (entry?.type === "cursor" && this.#cursor === undefined) {
+        const { batch, cursorCallback } = entry;
+        this.#queue.shift();
+        const cursorId = this.#client._cursorIdAlloc.alloc();
+        const cursor = new WsCursor(this.#client, this, cursorId);
+        const request = {
+          type: "open_cursor",
+          streamId: this.#streamId,
+          cursorId,
+          batch
+        };
+        const responseCallback = () => {
+          return;
+        };
+        const errorCallback = (e2) => cursor._setClosed(e2);
+        this.#client._sendRequest(request, { responseCallback, errorCallback });
+        this.#cursor = cursor;
+        cursorCallback(cursor);
+      } else {
+        break;
+      }
+    }
+  }
+  #setClosed(error) {
+    if (this.#closed !== undefined) {
+      return;
+    }
+    this.#closed = error;
+    if (this.#cursor !== undefined) {
+      this.#cursor._setClosed(error);
+    }
+    for (;; ) {
+      const entry = this.#queue.shift();
+      if (entry !== undefined) {
+        entry.errorCallback(error);
+      } else {
+        break;
+      }
+    }
+    const request = { type: "close_stream", streamId: this.#streamId };
+    const responseCallback = () => this.#client._streamIdAlloc.free(this.#streamId);
+    const errorCallback = () => {
+      return;
+    };
+    this.#client._sendRequest(request, { responseCallback, errorCallback });
+  }
+  close() {
+    this.#setClosed(new ClientError("Stream was manually closed"));
+  }
+  closeGracefully() {
+    this.#closing = true;
+    this.#flushQueue();
+  }
+  get closed() {
+    return this.#closed !== undefined || this.#closing;
+  }
+}
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/shared/json_encode.js
+function Stmt2(w2, msg) {
+  if (msg.sql !== undefined) {
+    w2.string("sql", msg.sql);
+  }
+  if (msg.sqlId !== undefined) {
+    w2.number("sql_id", msg.sqlId);
+  }
+  w2.arrayObjects("args", msg.args, Value);
+  w2.arrayObjects("named_args", msg.namedArgs, NamedArg);
+  w2.boolean("want_rows", msg.wantRows);
+}
+function NamedArg(w2, msg) {
+  w2.string("name", msg.name);
+  w2.object("value", msg.value, Value);
+}
+function Batch2(w2, msg) {
+  w2.arrayObjects("steps", msg.steps, BatchStep2);
+}
+function BatchStep2(w2, msg) {
+  if (msg.condition !== undefined) {
+    w2.object("condition", msg.condition, BatchCond2);
+  }
+  w2.object("stmt", msg.stmt, Stmt2);
+}
+function BatchCond2(w2, msg) {
+  w2.stringRaw("type", msg.type);
+  if (msg.type === "ok" || msg.type === "error") {
+    w2.number("step", msg.step);
+  } else if (msg.type === "not") {
+    w2.object("cond", msg.cond, BatchCond2);
+  } else if (msg.type === "and" || msg.type === "or") {
+    w2.arrayObjects("conds", msg.conds, BatchCond2);
+  } else if (msg.type === "is_autocommit") {} else {
+    throw impossible(msg, "Impossible type of BatchCond");
+  }
+}
+function Value(w2, msg) {
+  if (msg === null) {
+    w2.stringRaw("type", "null");
+  } else if (typeof msg === "bigint") {
+    w2.stringRaw("type", "integer");
+    w2.stringRaw("value", "" + msg);
+  } else if (typeof msg === "number") {
+    w2.stringRaw("type", "float");
+    w2.number("value", msg);
+  } else if (typeof msg === "string") {
+    w2.stringRaw("type", "text");
+    w2.string("value", msg);
+  } else if (msg instanceof Uint8Array) {
+    w2.stringRaw("type", "blob");
+    w2.stringRaw("base64", gBase64.fromUint8Array(msg));
+  } else if (msg === undefined) {} else {
+    throw impossible(msg, "Impossible type of Value");
+  }
+}
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/ws/json_encode.js
+function ClientMsg(w2, msg) {
+  w2.stringRaw("type", msg.type);
+  if (msg.type === "hello") {
+    if (msg.jwt !== undefined) {
+      w2.string("jwt", msg.jwt);
+    }
+  } else if (msg.type === "request") {
+    w2.number("request_id", msg.requestId);
+    w2.object("request", msg.request, Request2);
+  } else {
+    throw impossible(msg, "Impossible type of ClientMsg");
+  }
+}
+function Request2(w2, msg) {
+  w2.stringRaw("type", msg.type);
+  if (msg.type === "open_stream") {
+    w2.number("stream_id", msg.streamId);
+  } else if (msg.type === "close_stream") {
+    w2.number("stream_id", msg.streamId);
+  } else if (msg.type === "execute") {
+    w2.number("stream_id", msg.streamId);
+    w2.object("stmt", msg.stmt, Stmt2);
+  } else if (msg.type === "batch") {
+    w2.number("stream_id", msg.streamId);
+    w2.object("batch", msg.batch, Batch2);
+  } else if (msg.type === "open_cursor") {
+    w2.number("stream_id", msg.streamId);
+    w2.number("cursor_id", msg.cursorId);
+    w2.object("batch", msg.batch, Batch2);
+  } else if (msg.type === "close_cursor") {
+    w2.number("cursor_id", msg.cursorId);
+  } else if (msg.type === "fetch_cursor") {
+    w2.number("cursor_id", msg.cursorId);
+    w2.number("max_count", msg.maxCount);
+  } else if (msg.type === "sequence") {
+    w2.number("stream_id", msg.streamId);
+    if (msg.sql !== undefined) {
+      w2.string("sql", msg.sql);
+    }
+    if (msg.sqlId !== undefined) {
+      w2.number("sql_id", msg.sqlId);
+    }
+  } else if (msg.type === "describe") {
+    w2.number("stream_id", msg.streamId);
+    if (msg.sql !== undefined) {
+      w2.string("sql", msg.sql);
+    }
+    if (msg.sqlId !== undefined) {
+      w2.number("sql_id", msg.sqlId);
+    }
+  } else if (msg.type === "store_sql") {
+    w2.number("sql_id", msg.sqlId);
+    w2.string("sql", msg.sql);
+  } else if (msg.type === "close_sql") {
+    w2.number("sql_id", msg.sqlId);
+  } else if (msg.type === "get_autocommit") {
+    w2.number("stream_id", msg.streamId);
+  } else {
+    throw impossible(msg, "Impossible type of Request");
+  }
+}
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/shared/protobuf_encode.js
+function Stmt3(w2, msg) {
+  if (msg.sql !== undefined) {
+    w2.string(1, msg.sql);
+  }
+  if (msg.sqlId !== undefined) {
+    w2.int32(2, msg.sqlId);
+  }
+  for (const arg of msg.args) {
+    w2.message(3, arg, Value2);
+  }
+  for (const arg of msg.namedArgs) {
+    w2.message(4, arg, NamedArg2);
+  }
+  w2.bool(5, msg.wantRows);
+}
+function NamedArg2(w2, msg) {
+  w2.string(1, msg.name);
+  w2.message(2, msg.value, Value2);
+}
+function Batch3(w2, msg) {
+  for (const step of msg.steps) {
+    w2.message(1, step, BatchStep3);
+  }
+}
+function BatchStep3(w2, msg) {
+  if (msg.condition !== undefined) {
+    w2.message(1, msg.condition, BatchCond3);
+  }
+  w2.message(2, msg.stmt, Stmt3);
+}
+function BatchCond3(w2, msg) {
+  if (msg.type === "ok") {
+    w2.uint32(1, msg.step);
+  } else if (msg.type === "error") {
+    w2.uint32(2, msg.step);
+  } else if (msg.type === "not") {
+    w2.message(3, msg.cond, BatchCond3);
+  } else if (msg.type === "and") {
+    w2.message(4, msg.conds, BatchCondList);
+  } else if (msg.type === "or") {
+    w2.message(5, msg.conds, BatchCondList);
+  } else if (msg.type === "is_autocommit") {
+    w2.message(6, undefined, Empty);
+  } else {
+    throw impossible(msg, "Impossible type of BatchCond");
+  }
+}
+function BatchCondList(w2, msg) {
+  for (const cond of msg) {
+    w2.message(1, cond, BatchCond3);
+  }
+}
+function Value2(w2, msg) {
+  if (msg === null) {
+    w2.message(1, undefined, Empty);
+  } else if (typeof msg === "bigint") {
+    w2.sint64(2, msg);
+  } else if (typeof msg === "number") {
+    w2.double(3, msg);
+  } else if (typeof msg === "string") {
+    w2.string(4, msg);
+  } else if (msg instanceof Uint8Array) {
+    w2.bytes(5, msg);
+  } else if (msg === undefined) {} else {
+    throw impossible(msg, "Impossible type of Value");
+  }
+}
+function Empty(_w, _msg) {}
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/ws/protobuf_encode.js
+function ClientMsg2(w2, msg) {
+  if (msg.type === "hello") {
+    w2.message(1, msg, HelloMsg);
+  } else if (msg.type === "request") {
+    w2.message(2, msg, RequestMsg);
+  } else {
+    throw impossible(msg, "Impossible type of ClientMsg");
+  }
+}
+function HelloMsg(w2, msg) {
+  if (msg.jwt !== undefined) {
+    w2.string(1, msg.jwt);
+  }
+}
+function RequestMsg(w2, msg) {
+  w2.int32(1, msg.requestId);
+  const request = msg.request;
+  if (request.type === "open_stream") {
+    w2.message(2, request, OpenStreamReq);
+  } else if (request.type === "close_stream") {
+    w2.message(3, request, CloseStreamReq);
+  } else if (request.type === "execute") {
+    w2.message(4, request, ExecuteReq);
+  } else if (request.type === "batch") {
+    w2.message(5, request, BatchReq);
+  } else if (request.type === "open_cursor") {
+    w2.message(6, request, OpenCursorReq);
+  } else if (request.type === "close_cursor") {
+    w2.message(7, request, CloseCursorReq);
+  } else if (request.type === "fetch_cursor") {
+    w2.message(8, request, FetchCursorReq);
+  } else if (request.type === "sequence") {
+    w2.message(9, request, SequenceReq);
+  } else if (request.type === "describe") {
+    w2.message(10, request, DescribeReq);
+  } else if (request.type === "store_sql") {
+    w2.message(11, request, StoreSqlReq);
+  } else if (request.type === "close_sql") {
+    w2.message(12, request, CloseSqlReq);
+  } else if (request.type === "get_autocommit") {
+    w2.message(13, request, GetAutocommitReq);
+  } else {
+    throw impossible(request, "Impossible type of Request");
+  }
+}
+function OpenStreamReq(w2, msg) {
+  w2.int32(1, msg.streamId);
+}
+function CloseStreamReq(w2, msg) {
+  w2.int32(1, msg.streamId);
+}
+function ExecuteReq(w2, msg) {
+  w2.int32(1, msg.streamId);
+  w2.message(2, msg.stmt, Stmt3);
+}
+function BatchReq(w2, msg) {
+  w2.int32(1, msg.streamId);
+  w2.message(2, msg.batch, Batch3);
+}
+function OpenCursorReq(w2, msg) {
+  w2.int32(1, msg.streamId);
+  w2.int32(2, msg.cursorId);
+  w2.message(3, msg.batch, Batch3);
+}
+function CloseCursorReq(w2, msg) {
+  w2.int32(1, msg.cursorId);
+}
+function FetchCursorReq(w2, msg) {
+  w2.int32(1, msg.cursorId);
+  w2.uint32(2, msg.maxCount);
+}
+function SequenceReq(w2, msg) {
+  w2.int32(1, msg.streamId);
+  if (msg.sql !== undefined) {
+    w2.string(2, msg.sql);
+  }
+  if (msg.sqlId !== undefined) {
+    w2.int32(3, msg.sqlId);
+  }
+}
+function DescribeReq(w2, msg) {
+  w2.int32(1, msg.streamId);
+  if (msg.sql !== undefined) {
+    w2.string(2, msg.sql);
+  }
+  if (msg.sqlId !== undefined) {
+    w2.int32(3, msg.sqlId);
+  }
+}
+function StoreSqlReq(w2, msg) {
+  w2.int32(1, msg.sqlId);
+  w2.string(2, msg.sql);
+}
+function CloseSqlReq(w2, msg) {
+  w2.int32(1, msg.sqlId);
+}
+function GetAutocommitReq(w2, msg) {
+  w2.int32(1, msg.streamId);
+}
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/shared/json_decode.js
+function Error2(obj) {
+  const message = string(obj["message"]);
+  const code = stringOpt(obj["code"]);
+  return { message, code };
+}
+function StmtResult(obj) {
+  const cols = arrayObjectsMap(obj["cols"], Col);
+  const rows = array(obj["rows"]).map((rowObj) => arrayObjectsMap(rowObj, Value3));
+  const affectedRowCount = number(obj["affected_row_count"]);
+  const lastInsertRowidStr = stringOpt(obj["last_insert_rowid"]);
+  const lastInsertRowid = lastInsertRowidStr !== undefined ? BigInt(lastInsertRowidStr) : undefined;
+  return { cols, rows, affectedRowCount, lastInsertRowid };
+}
+function Col(obj) {
+  const name = stringOpt(obj["name"]);
+  const decltype = stringOpt(obj["decltype"]);
+  return { name, decltype };
+}
+function BatchResult(obj) {
+  const stepResults = new Map;
+  array(obj["step_results"]).forEach((value, i2) => {
+    if (value !== null) {
+      stepResults.set(i2, StmtResult(object(value)));
+    }
+  });
+  const stepErrors = new Map;
+  array(obj["step_errors"]).forEach((value, i2) => {
+    if (value !== null) {
+      stepErrors.set(i2, Error2(object(value)));
+    }
+  });
+  return { stepResults, stepErrors };
+}
+function CursorEntry(obj) {
+  const type = string(obj["type"]);
+  if (type === "step_begin") {
+    const step = number(obj["step"]);
+    const cols = arrayObjectsMap(obj["cols"], Col);
+    return { type: "step_begin", step, cols };
+  } else if (type === "step_end") {
+    const affectedRowCount = number(obj["affected_row_count"]);
+    const lastInsertRowidStr = stringOpt(obj["last_insert_rowid"]);
+    const lastInsertRowid = lastInsertRowidStr !== undefined ? BigInt(lastInsertRowidStr) : undefined;
+    return { type: "step_end", affectedRowCount, lastInsertRowid };
+  } else if (type === "step_error") {
+    const step = number(obj["step"]);
+    const error = Error2(object(obj["error"]));
+    return { type: "step_error", step, error };
+  } else if (type === "row") {
+    const row = arrayObjectsMap(obj["row"], Value3);
+    return { type: "row", row };
+  } else if (type === "error") {
+    const error = Error2(object(obj["error"]));
+    return { type: "error", error };
+  } else {
+    throw new ProtoError("Unexpected type of CursorEntry");
+  }
+}
+function DescribeResult(obj) {
+  const params = arrayObjectsMap(obj["params"], DescribeParam);
+  const cols = arrayObjectsMap(obj["cols"], DescribeCol);
+  const isExplain = boolean(obj["is_explain"]);
+  const isReadonly = boolean(obj["is_readonly"]);
+  return { params, cols, isExplain, isReadonly };
+}
+function DescribeParam(obj) {
+  const name = stringOpt(obj["name"]);
+  return { name };
+}
+function DescribeCol(obj) {
+  const name = string(obj["name"]);
+  const decltype = stringOpt(obj["decltype"]);
+  return { name, decltype };
+}
+function Value3(obj) {
+  const type = string(obj["type"]);
+  if (type === "null") {
+    return null;
+  } else if (type === "integer") {
+    const value = string(obj["value"]);
+    return BigInt(value);
+  } else if (type === "float") {
+    return number(obj["value"]);
+  } else if (type === "text") {
+    return string(obj["value"]);
+  } else if (type === "blob") {
+    return gBase64.toUint8Array(string(obj["base64"]));
+  } else {
+    throw new ProtoError("Unexpected type of Value");
+  }
+}
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/ws/json_decode.js
+function ServerMsg(obj) {
+  const type = string(obj["type"]);
+  if (type === "hello_ok") {
+    return { type: "hello_ok" };
+  } else if (type === "hello_error") {
+    const error = Error2(object(obj["error"]));
+    return { type: "hello_error", error };
+  } else if (type === "response_ok") {
+    const requestId = number(obj["request_id"]);
+    const response = Response(object(obj["response"]));
+    return { type: "response_ok", requestId, response };
+  } else if (type === "response_error") {
+    const requestId = number(obj["request_id"]);
+    const error = Error2(object(obj["error"]));
+    return { type: "response_error", requestId, error };
+  } else {
+    throw new ProtoError("Unexpected type of ServerMsg");
+  }
+}
+function Response(obj) {
+  const type = string(obj["type"]);
+  if (type === "open_stream") {
+    return { type: "open_stream" };
+  } else if (type === "close_stream") {
+    return { type: "close_stream" };
+  } else if (type === "execute") {
+    const result = StmtResult(object(obj["result"]));
+    return { type: "execute", result };
+  } else if (type === "batch") {
+    const result = BatchResult(object(obj["result"]));
+    return { type: "batch", result };
+  } else if (type === "open_cursor") {
+    return { type: "open_cursor" };
+  } else if (type === "close_cursor") {
+    return { type: "close_cursor" };
+  } else if (type === "fetch_cursor") {
+    const entries = arrayObjectsMap(obj["entries"], CursorEntry);
+    const done = boolean(obj["done"]);
+    return { type: "fetch_cursor", entries, done };
+  } else if (type === "sequence") {
+    return { type: "sequence" };
+  } else if (type === "describe") {
+    const result = DescribeResult(object(obj["result"]));
+    return { type: "describe", result };
+  } else if (type === "store_sql") {
+    return { type: "store_sql" };
+  } else if (type === "close_sql") {
+    return { type: "close_sql" };
+  } else if (type === "get_autocommit") {
+    const isAutocommit = boolean(obj["is_autocommit"]);
+    return { type: "get_autocommit", isAutocommit };
+  } else {
+    throw new ProtoError("Unexpected type of Response");
+  }
+}
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/shared/protobuf_decode.js
+var Error3 = {
+  default() {
+    return { message: "", code: undefined };
+  },
+  1(r3, msg) {
+    msg.message = r3.string();
+  },
+  2(r3, msg) {
+    msg.code = r3.string();
+  }
+};
+var StmtResult2 = {
+  default() {
+    return {
+      cols: [],
+      rows: [],
+      affectedRowCount: 0,
+      lastInsertRowid: undefined
+    };
+  },
+  1(r3, msg) {
+    msg.cols.push(r3.message(Col2));
+  },
+  2(r3, msg) {
+    msg.rows.push(r3.message(Row));
+  },
+  3(r3, msg) {
+    msg.affectedRowCount = Number(r3.uint64());
+  },
+  4(r3, msg) {
+    msg.lastInsertRowid = r3.sint64();
+  }
+};
+var Col2 = {
+  default() {
+    return { name: undefined, decltype: undefined };
+  },
+  1(r3, msg) {
+    msg.name = r3.string();
+  },
+  2(r3, msg) {
+    msg.decltype = r3.string();
+  }
+};
+var Row = {
+  default() {
+    return [];
+  },
+  1(r3, msg) {
+    msg.push(r3.message(Value4));
+  }
+};
+var BatchResult2 = {
+  default() {
+    return { stepResults: new Map, stepErrors: new Map };
+  },
+  1(r3, msg) {
+    const [key, value] = r3.message(BatchResultStepResult);
+    msg.stepResults.set(key, value);
+  },
+  2(r3, msg) {
+    const [key, value] = r3.message(BatchResultStepError);
+    msg.stepErrors.set(key, value);
+  }
+};
+var BatchResultStepResult = {
+  default() {
+    return [0, StmtResult2.default()];
+  },
+  1(r3, msg) {
+    msg[0] = r3.uint32();
+  },
+  2(r3, msg) {
+    msg[1] = r3.message(StmtResult2);
+  }
+};
+var BatchResultStepError = {
+  default() {
+    return [0, Error3.default()];
+  },
+  1(r3, msg) {
+    msg[0] = r3.uint32();
+  },
+  2(r3, msg) {
+    msg[1] = r3.message(Error3);
+  }
+};
+var CursorEntry2 = {
+  default() {
+    return { type: "none" };
+  },
+  1(r3) {
+    return r3.message(StepBeginEntry);
+  },
+  2(r3) {
+    return r3.message(StepEndEntry);
+  },
+  3(r3) {
+    return r3.message(StepErrorEntry);
+  },
+  4(r3) {
+    return { type: "row", row: r3.message(Row) };
+  },
+  5(r3) {
+    return { type: "error", error: r3.message(Error3) };
+  }
+};
+var StepBeginEntry = {
+  default() {
+    return { type: "step_begin", step: 0, cols: [] };
+  },
+  1(r3, msg) {
+    msg.step = r3.uint32();
+  },
+  2(r3, msg) {
+    msg.cols.push(r3.message(Col2));
+  }
+};
+var StepEndEntry = {
+  default() {
+    return {
+      type: "step_end",
+      affectedRowCount: 0,
+      lastInsertRowid: undefined
+    };
+  },
+  1(r3, msg) {
+    msg.affectedRowCount = r3.uint32();
+  },
+  2(r3, msg) {
+    msg.lastInsertRowid = r3.uint64();
+  }
+};
+var StepErrorEntry = {
+  default() {
+    return {
+      type: "step_error",
+      step: 0,
+      error: Error3.default()
+    };
+  },
+  1(r3, msg) {
+    msg.step = r3.uint32();
+  },
+  2(r3, msg) {
+    msg.error = r3.message(Error3);
+  }
+};
+var DescribeResult2 = {
+  default() {
+    return {
+      params: [],
+      cols: [],
+      isExplain: false,
+      isReadonly: false
+    };
+  },
+  1(r3, msg) {
+    msg.params.push(r3.message(DescribeParam2));
+  },
+  2(r3, msg) {
+    msg.cols.push(r3.message(DescribeCol2));
+  },
+  3(r3, msg) {
+    msg.isExplain = r3.bool();
+  },
+  4(r3, msg) {
+    msg.isReadonly = r3.bool();
+  }
+};
+var DescribeParam2 = {
+  default() {
+    return { name: undefined };
+  },
+  1(r3, msg) {
+    msg.name = r3.string();
+  }
+};
+var DescribeCol2 = {
+  default() {
+    return { name: "", decltype: undefined };
+  },
+  1(r3, msg) {
+    msg.name = r3.string();
+  },
+  2(r3, msg) {
+    msg.decltype = r3.string();
+  }
+};
+var Value4 = {
+  default() {
+    return;
+  },
+  1(r3) {
+    return null;
+  },
+  2(r3) {
+    return r3.sint64();
+  },
+  3(r3) {
+    return r3.double();
+  },
+  4(r3) {
+    return r3.string();
+  },
+  5(r3) {
+    return r3.bytes();
+  }
+};
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/ws/protobuf_decode.js
+var ServerMsg2 = {
+  default() {
+    return { type: "none" };
+  },
+  1(r3) {
+    return { type: "hello_ok" };
+  },
+  2(r3) {
+    return r3.message(HelloErrorMsg);
+  },
+  3(r3) {
+    return r3.message(ResponseOkMsg);
+  },
+  4(r3) {
+    return r3.message(ResponseErrorMsg);
+  }
+};
+var HelloErrorMsg = {
+  default() {
+    return { type: "hello_error", error: Error3.default() };
+  },
+  1(r3, msg) {
+    msg.error = r3.message(Error3);
+  }
+};
+var ResponseErrorMsg = {
+  default() {
+    return { type: "response_error", requestId: 0, error: Error3.default() };
+  },
+  1(r3, msg) {
+    msg.requestId = r3.int32();
+  },
+  2(r3, msg) {
+    msg.error = r3.message(Error3);
+  }
+};
+var ResponseOkMsg = {
+  default() {
+    return {
+      type: "response_ok",
+      requestId: 0,
+      response: { type: "none" }
+    };
+  },
+  1(r3, msg) {
+    msg.requestId = r3.int32();
+  },
+  2(r3, msg) {
+    msg.response = { type: "open_stream" };
+  },
+  3(r3, msg) {
+    msg.response = { type: "close_stream" };
+  },
+  4(r3, msg) {
+    msg.response = r3.message(ExecuteResp);
+  },
+  5(r3, msg) {
+    msg.response = r3.message(BatchResp);
+  },
+  6(r3, msg) {
+    msg.response = { type: "open_cursor" };
+  },
+  7(r3, msg) {
+    msg.response = { type: "close_cursor" };
+  },
+  8(r3, msg) {
+    msg.response = r3.message(FetchCursorResp);
+  },
+  9(r3, msg) {
+    msg.response = { type: "sequence" };
+  },
+  10(r3, msg) {
+    msg.response = r3.message(DescribeResp);
+  },
+  11(r3, msg) {
+    msg.response = { type: "store_sql" };
+  },
+  12(r3, msg) {
+    msg.response = { type: "close_sql" };
+  },
+  13(r3, msg) {
+    msg.response = r3.message(GetAutocommitResp);
+  }
+};
+var ExecuteResp = {
+  default() {
+    return { type: "execute", result: StmtResult2.default() };
+  },
+  1(r3, msg) {
+    msg.result = r3.message(StmtResult2);
+  }
+};
+var BatchResp = {
+  default() {
+    return { type: "batch", result: BatchResult2.default() };
+  },
+  1(r3, msg) {
+    msg.result = r3.message(BatchResult2);
+  }
+};
+var FetchCursorResp = {
+  default() {
+    return { type: "fetch_cursor", entries: [], done: false };
+  },
+  1(r3, msg) {
+    msg.entries.push(r3.message(CursorEntry2));
+  },
+  2(r3, msg) {
+    msg.done = r3.bool();
+  }
+};
+var DescribeResp = {
+  default() {
+    return { type: "describe", result: DescribeResult2.default() };
+  },
+  1(r3, msg) {
+    msg.result = r3.message(DescribeResult2);
+  }
+};
+var GetAutocommitResp = {
+  default() {
+    return { type: "get_autocommit", isAutocommit: false };
+  },
+  1(r3, msg) {
+    msg.isAutocommit = r3.bool();
+  }
+};
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/ws/client.js
+var subprotocolsV2 = new Map([
+  ["hrana2", { version: 2, encoding: "json" }],
+  ["hrana1", { version: 1, encoding: "json" }]
+]);
+var subprotocolsV3 = new Map([
+  ["hrana3-protobuf", { version: 3, encoding: "protobuf" }],
+  ["hrana3", { version: 3, encoding: "json" }],
+  ["hrana2", { version: 2, encoding: "json" }],
+  ["hrana1", { version: 1, encoding: "json" }]
+]);
+
+class WsClient extends Client {
+  #socket;
+  #openCallbacks;
+  #opened;
+  #closed;
+  #recvdHello;
+  #subprotocol;
+  #getVersionCalled;
+  #responseMap;
+  #requestIdAlloc;
+  _streamIdAlloc;
+  _cursorIdAlloc;
+  #sqlIdAlloc;
+  constructor(socket, jwt) {
+    super();
+    this.#socket = socket;
+    this.#openCallbacks = [];
+    this.#opened = false;
+    this.#closed = undefined;
+    this.#recvdHello = false;
+    this.#subprotocol = undefined;
+    this.#getVersionCalled = false;
+    this.#responseMap = new Map;
+    this.#requestIdAlloc = new IdAlloc;
+    this._streamIdAlloc = new IdAlloc;
+    this._cursorIdAlloc = new IdAlloc;
+    this.#sqlIdAlloc = new IdAlloc;
+    this.#socket.binaryType = "arraybuffer";
+    this.#socket.addEventListener("open", () => this.#onSocketOpen());
+    this.#socket.addEventListener("close", (event) => this.#onSocketClose(event));
+    this.#socket.addEventListener("error", (event) => this.#onSocketError(event));
+    this.#socket.addEventListener("message", (event) => this.#onSocketMessage(event));
+    this.#send({ type: "hello", jwt });
+  }
+  #send(msg) {
+    if (this.#closed !== undefined) {
+      throw new InternalError("Trying to send a message on a closed client");
+    }
+    if (this.#opened) {
+      this.#sendToSocket(msg);
+    } else {
+      const openCallback = () => this.#sendToSocket(msg);
+      const errorCallback = () => {
+        return;
+      };
+      this.#openCallbacks.push({ openCallback, errorCallback });
+    }
+  }
+  #onSocketOpen() {
+    const protocol = this.#socket.protocol;
+    if (protocol === undefined) {
+      this.#setClosed(new ClientError("The `WebSocket.protocol` property is undefined. This most likely means that the WebSocket " + "implementation provided by the environment is broken. If you are using Miniflare 2, " + "please update to Miniflare 3, which fixes this problem."));
+      return;
+    } else if (protocol === "") {
+      this.#subprotocol = { version: 1, encoding: "json" };
+    } else {
+      this.#subprotocol = subprotocolsV3.get(protocol);
+      if (this.#subprotocol === undefined) {
+        this.#setClosed(new ProtoError(`Unrecognized WebSocket subprotocol: ${JSON.stringify(protocol)}`));
+        return;
+      }
+    }
+    for (const callbacks of this.#openCallbacks) {
+      callbacks.openCallback();
+    }
+    this.#openCallbacks.length = 0;
+    this.#opened = true;
+  }
+  #sendToSocket(msg) {
+    const encoding = this.#subprotocol.encoding;
+    if (encoding === "json") {
+      const jsonMsg = writeJsonObject(msg, ClientMsg);
+      this.#socket.send(jsonMsg);
+    } else if (encoding === "protobuf") {
+      const protobufMsg = writeProtobufMessage(msg, ClientMsg2);
+      this.#socket.send(protobufMsg);
+    } else {
+      throw impossible(encoding, "Impossible encoding");
+    }
+  }
+  getVersion() {
+    return new Promise((versionCallback, errorCallback) => {
+      this.#getVersionCalled = true;
+      if (this.#closed !== undefined) {
+        errorCallback(this.#closed);
+      } else if (!this.#opened) {
+        const openCallback = () => versionCallback(this.#subprotocol.version);
+        this.#openCallbacks.push({ openCallback, errorCallback });
+      } else {
+        versionCallback(this.#subprotocol.version);
+      }
+    });
+  }
+  _ensureVersion(minVersion, feature) {
+    if (this.#subprotocol === undefined || !this.#getVersionCalled) {
+      throw new ProtocolVersionError(`${feature} is supported only on protocol version ${minVersion} and higher, ` + "but the version supported by the WebSocket server is not yet known. " + "Use Client.getVersion() to wait until the version is available.");
+    } else if (this.#subprotocol.version < minVersion) {
+      throw new ProtocolVersionError(`${feature} is supported on protocol version ${minVersion} and higher, ` + `but the WebSocket server only supports version ${this.#subprotocol.version}`);
+    }
+  }
+  _sendRequest(request, callbacks) {
+    if (this.#closed !== undefined) {
+      callbacks.errorCallback(new ClosedError("Client is closed", this.#closed));
+      return;
+    }
+    const requestId = this.#requestIdAlloc.alloc();
+    this.#responseMap.set(requestId, { ...callbacks, type: request.type });
+    this.#send({ type: "request", requestId, request });
+  }
+  #onSocketError(event) {
+    const eventMessage = event.message;
+    const message = eventMessage ?? "WebSocket was closed due to an error";
+    this.#setClosed(new WebSocketError(message));
+  }
+  #onSocketClose(event) {
+    let message = `WebSocket was closed with code ${event.code}`;
+    if (event.reason) {
+      message += `: ${event.reason}`;
+    }
+    this.#setClosed(new WebSocketError(message));
+  }
+  #setClosed(error) {
+    if (this.#closed !== undefined) {
+      return;
+    }
+    this.#closed = error;
+    for (const callbacks of this.#openCallbacks) {
+      callbacks.errorCallback(error);
+    }
+    this.#openCallbacks.length = 0;
+    for (const [requestId, responseState] of this.#responseMap.entries()) {
+      responseState.errorCallback(error);
+      this.#requestIdAlloc.free(requestId);
+    }
+    this.#responseMap.clear();
+    this.#socket.close();
+  }
+  #onSocketMessage(event) {
+    if (this.#closed !== undefined) {
+      return;
+    }
+    try {
+      let msg;
+      const encoding = this.#subprotocol.encoding;
+      if (encoding === "json") {
+        if (typeof event.data !== "string") {
+          this.#socket.close(3003, "Only text messages are accepted with JSON encoding");
+          this.#setClosed(new ProtoError("Received non-text message from server with JSON encoding"));
+          return;
+        }
+        msg = readJsonObject(JSON.parse(event.data), ServerMsg);
+      } else if (encoding === "protobuf") {
+        if (!(event.data instanceof ArrayBuffer)) {
+          this.#socket.close(3003, "Only binary messages are accepted with Protobuf encoding");
+          this.#setClosed(new ProtoError("Received non-binary message from server with Protobuf encoding"));
+          return;
+        }
+        msg = readProtobufMessage(new Uint8Array(event.data), ServerMsg2);
+      } else {
+        throw impossible(encoding, "Impossible encoding");
+      }
+      this.#handleMsg(msg);
+    } catch (e2) {
+      this.#socket.close(3007, "Could not handle message");
+      this.#setClosed(e2);
+    }
+  }
+  #handleMsg(msg) {
+    if (msg.type === "none") {
+      throw new ProtoError("Received an unrecognized ServerMsg");
+    } else if (msg.type === "hello_ok" || msg.type === "hello_error") {
+      if (this.#recvdHello) {
+        throw new ProtoError("Received a duplicated hello response");
+      }
+      this.#recvdHello = true;
+      if (msg.type === "hello_error") {
+        throw errorFromProto(msg.error);
+      }
+      return;
+    } else if (!this.#recvdHello) {
+      throw new ProtoError("Received a non-hello message before a hello response");
+    }
+    if (msg.type === "response_ok") {
+      const requestId = msg.requestId;
+      const responseState = this.#responseMap.get(requestId);
+      this.#responseMap.delete(requestId);
+      if (responseState === undefined) {
+        throw new ProtoError("Received unexpected OK response");
+      }
+      this.#requestIdAlloc.free(requestId);
+      try {
+        if (responseState.type !== msg.response.type) {
+          console.dir({ responseState, msg });
+          throw new ProtoError("Received unexpected type of response");
+        }
+        responseState.responseCallback(msg.response);
+      } catch (e2) {
+        responseState.errorCallback(e2);
+        throw e2;
+      }
+    } else if (msg.type === "response_error") {
+      const requestId = msg.requestId;
+      const responseState = this.#responseMap.get(requestId);
+      this.#responseMap.delete(requestId);
+      if (responseState === undefined) {
+        throw new ProtoError("Received unexpected error response");
+      }
+      this.#requestIdAlloc.free(requestId);
+      responseState.errorCallback(errorFromProto(msg.error));
+    } else {
+      throw impossible(msg, "Impossible ServerMsg type");
+    }
+  }
+  openStream() {
+    return WsStream.open(this);
+  }
+  storeSql(sql) {
+    this._ensureVersion(2, "storeSql()");
+    const sqlId = this.#sqlIdAlloc.alloc();
+    const sqlObj = new Sql(this, sqlId);
+    const responseCallback = () => {
+      return;
+    };
+    const errorCallback = (e2) => sqlObj._setClosed(e2);
+    const request = { type: "store_sql", sqlId, sql };
+    this._sendRequest(request, { responseCallback, errorCallback });
+    return sqlObj;
+  }
+  _closeSql(sqlId) {
+    if (this.#closed !== undefined) {
+      return;
+    }
+    const responseCallback = () => this.#sqlIdAlloc.free(sqlId);
+    const errorCallback = (e2) => this.#setClosed(e2);
+    const request = { type: "close_sql", sqlId };
+    this._sendRequest(request, { responseCallback, errorCallback });
+  }
+  close() {
+    this.#setClosed(new ClientError("Client was manually closed"));
+  }
+  get closed() {
+    return this.#closed !== undefined;
+  }
+}
+
+// ../../node_modules/@libsql/isomorphic-fetch/node.js
+import http from "http";
+import https from "https";
+var _Request = Request;
+var _Headers = Headers;
+var httpAgent = new http.Agent({ keepAlive: true });
+var httpsAgent = new https.Agent({ keepAlive: true });
+function agentSelector(parsedUrl) {
+  if (parsedUrl.protocol === "https:") {
+    return httpsAgent;
+  } else {
+    return httpAgent;
+  }
+}
+function fetchWithAgentSelection(resource, options = {}) {
+  return fetch(resource, { agent: agentSelector, ...options });
+}
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/queue_microtask.js
+var _queueMicrotask;
+if (typeof queueMicrotask !== "undefined") {
+  _queueMicrotask = queueMicrotask;
+} else {
+  const resolved = Promise.resolve();
+  _queueMicrotask = (callback) => {
+    resolved.then(callback);
+  };
+}
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/byte_queue.js
+class ByteQueue {
+  #array;
+  #shiftPos;
+  #pushPos;
+  constructor(initialCap) {
+    this.#array = new Uint8Array(new ArrayBuffer(initialCap));
+    this.#shiftPos = 0;
+    this.#pushPos = 0;
+  }
+  get length() {
+    return this.#pushPos - this.#shiftPos;
+  }
+  data() {
+    return this.#array.slice(this.#shiftPos, this.#pushPos);
+  }
+  push(chunk) {
+    this.#ensurePush(chunk.byteLength);
+    this.#array.set(chunk, this.#pushPos);
+    this.#pushPos += chunk.byteLength;
+  }
+  #ensurePush(pushLength) {
+    if (this.#pushPos + pushLength <= this.#array.byteLength) {
+      return;
+    }
+    const filledLength = this.#pushPos - this.#shiftPos;
+    if (filledLength + pushLength <= this.#array.byteLength && 2 * this.#pushPos >= this.#array.byteLength) {
+      this.#array.copyWithin(0, this.#shiftPos, this.#pushPos);
+    } else {
+      let newCap = this.#array.byteLength;
+      do {
+        newCap *= 2;
+      } while (filledLength + pushLength > newCap);
+      const newArray = new Uint8Array(new ArrayBuffer(newCap));
+      newArray.set(this.#array.slice(this.#shiftPos, this.#pushPos), 0);
+      this.#array = newArray;
+    }
+    this.#pushPos = filledLength;
+    this.#shiftPos = 0;
+  }
+  shift(length) {
+    this.#shiftPos += length;
+  }
+}
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/http/json_decode.js
+function PipelineRespBody(obj) {
+  const baton = stringOpt(obj["baton"]);
+  const baseUrl = stringOpt(obj["base_url"]);
+  const results = arrayObjectsMap(obj["results"], StreamResult);
+  return { baton, baseUrl, results };
+}
+function StreamResult(obj) {
+  const type = string(obj["type"]);
+  if (type === "ok") {
+    const response = StreamResponse(object(obj["response"]));
+    return { type: "ok", response };
+  } else if (type === "error") {
+    const error = Error2(object(obj["error"]));
+    return { type: "error", error };
+  } else {
+    throw new ProtoError("Unexpected type of StreamResult");
+  }
+}
+function StreamResponse(obj) {
+  const type = string(obj["type"]);
+  if (type === "close") {
+    return { type: "close" };
+  } else if (type === "execute") {
+    const result = StmtResult(object(obj["result"]));
+    return { type: "execute", result };
+  } else if (type === "batch") {
+    const result = BatchResult(object(obj["result"]));
+    return { type: "batch", result };
+  } else if (type === "sequence") {
+    return { type: "sequence" };
+  } else if (type === "describe") {
+    const result = DescribeResult(object(obj["result"]));
+    return { type: "describe", result };
+  } else if (type === "store_sql") {
+    return { type: "store_sql" };
+  } else if (type === "close_sql") {
+    return { type: "close_sql" };
+  } else if (type === "get_autocommit") {
+    const isAutocommit = boolean(obj["is_autocommit"]);
+    return { type: "get_autocommit", isAutocommit };
+  } else {
+    throw new ProtoError("Unexpected type of StreamResponse");
+  }
+}
+function CursorRespBody(obj) {
+  const baton = stringOpt(obj["baton"]);
+  const baseUrl = stringOpt(obj["base_url"]);
+  return { baton, baseUrl };
+}
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/http/protobuf_decode.js
+var PipelineRespBody2 = {
+  default() {
+    return { baton: undefined, baseUrl: undefined, results: [] };
+  },
+  1(r3, msg) {
+    msg.baton = r3.string();
+  },
+  2(r3, msg) {
+    msg.baseUrl = r3.string();
+  },
+  3(r3, msg) {
+    msg.results.push(r3.message(StreamResult2));
+  }
+};
+var StreamResult2 = {
+  default() {
+    return { type: "none" };
+  },
+  1(r3) {
+    return { type: "ok", response: r3.message(StreamResponse2) };
+  },
+  2(r3) {
+    return { type: "error", error: r3.message(Error3) };
+  }
+};
+var StreamResponse2 = {
+  default() {
+    return { type: "none" };
+  },
+  1(r3) {
+    return { type: "close" };
+  },
+  2(r3) {
+    return r3.message(ExecuteStreamResp);
+  },
+  3(r3) {
+    return r3.message(BatchStreamResp);
+  },
+  4(r3) {
+    return { type: "sequence" };
+  },
+  5(r3) {
+    return r3.message(DescribeStreamResp);
+  },
+  6(r3) {
+    return { type: "store_sql" };
+  },
+  7(r3) {
+    return { type: "close_sql" };
+  },
+  8(r3) {
+    return r3.message(GetAutocommitStreamResp);
+  }
+};
+var ExecuteStreamResp = {
+  default() {
+    return { type: "execute", result: StmtResult2.default() };
+  },
+  1(r3, msg) {
+    msg.result = r3.message(StmtResult2);
+  }
+};
+var BatchStreamResp = {
+  default() {
+    return { type: "batch", result: BatchResult2.default() };
+  },
+  1(r3, msg) {
+    msg.result = r3.message(BatchResult2);
+  }
+};
+var DescribeStreamResp = {
+  default() {
+    return { type: "describe", result: DescribeResult2.default() };
+  },
+  1(r3, msg) {
+    msg.result = r3.message(DescribeResult2);
+  }
+};
+var GetAutocommitStreamResp = {
+  default() {
+    return { type: "get_autocommit", isAutocommit: false };
+  },
+  1(r3, msg) {
+    msg.isAutocommit = r3.bool();
+  }
+};
+var CursorRespBody2 = {
+  default() {
+    return { baton: undefined, baseUrl: undefined };
+  },
+  1(r3, msg) {
+    msg.baton = r3.string();
+  },
+  2(r3, msg) {
+    msg.baseUrl = r3.string();
+  }
+};
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/http/cursor.js
+class HttpCursor extends Cursor {
+  #stream;
+  #encoding;
+  #reader;
+  #queue;
+  #closed;
+  #done;
+  constructor(stream, encoding) {
+    super();
+    this.#stream = stream;
+    this.#encoding = encoding;
+    this.#reader = undefined;
+    this.#queue = new ByteQueue(16 * 1024);
+    this.#closed = undefined;
+    this.#done = false;
+  }
+  async open(response) {
+    if (response.body === null) {
+      throw new ProtoError("No response body for cursor request");
+    }
+    this.#reader = response.body.getReader();
+    const respBody = await this.#nextItem(CursorRespBody, CursorRespBody2);
+    if (respBody === undefined) {
+      throw new ProtoError("Empty response to cursor request");
+    }
+    return respBody;
+  }
+  next() {
+    return this.#nextItem(CursorEntry, CursorEntry2);
+  }
+  close() {
+    this._setClosed(new ClientError("Cursor was manually closed"));
+  }
+  _setClosed(error) {
+    if (this.#closed !== undefined) {
+      return;
+    }
+    this.#closed = error;
+    this.#stream._cursorClosed(this);
+    if (this.#reader !== undefined) {
+      this.#reader.cancel();
+    }
+  }
+  get closed() {
+    return this.#closed !== undefined;
+  }
+  async#nextItem(jsonFun, protobufDef) {
+    for (;; ) {
+      if (this.#done) {
+        return;
+      } else if (this.#closed !== undefined) {
+        throw new ClosedError("Cursor is closed", this.#closed);
+      }
+      if (this.#encoding === "json") {
+        const jsonData = this.#parseItemJson();
+        if (jsonData !== undefined) {
+          const jsonText = new TextDecoder().decode(jsonData);
+          const jsonValue = JSON.parse(jsonText);
+          return readJsonObject(jsonValue, jsonFun);
+        }
+      } else if (this.#encoding === "protobuf") {
+        const protobufData = this.#parseItemProtobuf();
+        if (protobufData !== undefined) {
+          return readProtobufMessage(protobufData, protobufDef);
+        }
+      } else {
+        throw impossible(this.#encoding, "Impossible encoding");
+      }
+      if (this.#reader === undefined) {
+        throw new InternalError("Attempted to read from HTTP cursor before it was opened");
+      }
+      const { value, done } = await this.#reader.read();
+      if (done && this.#queue.length === 0) {
+        this.#done = true;
+      } else if (done) {
+        throw new ProtoError("Unexpected end of cursor stream");
+      } else {
+        this.#queue.push(value);
+      }
+    }
+  }
+  #parseItemJson() {
+    const data = this.#queue.data();
+    const newlineByte = 10;
+    const newlinePos = data.indexOf(newlineByte);
+    if (newlinePos < 0) {
+      return;
+    }
+    const jsonData = data.slice(0, newlinePos);
+    this.#queue.shift(newlinePos + 1);
+    return jsonData;
+  }
+  #parseItemProtobuf() {
+    const data = this.#queue.data();
+    let varintValue = 0;
+    let varintLength = 0;
+    for (;; ) {
+      if (varintLength >= data.byteLength) {
+        return;
+      }
+      const byte = data[varintLength];
+      varintValue |= (byte & 127) << 7 * varintLength;
+      varintLength += 1;
+      if (!(byte & 128)) {
+        break;
+      }
+    }
+    if (data.byteLength < varintLength + varintValue) {
+      return;
+    }
+    const protobufData = data.slice(varintLength, varintLength + varintValue);
+    this.#queue.shift(varintLength + varintValue);
+    return protobufData;
+  }
+}
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/http/json_encode.js
+function PipelineReqBody(w2, msg) {
+  if (msg.baton !== undefined) {
+    w2.string("baton", msg.baton);
+  }
+  w2.arrayObjects("requests", msg.requests, StreamRequest);
+}
+function StreamRequest(w2, msg) {
+  w2.stringRaw("type", msg.type);
+  if (msg.type === "close") {} else if (msg.type === "execute") {
+    w2.object("stmt", msg.stmt, Stmt2);
+  } else if (msg.type === "batch") {
+    w2.object("batch", msg.batch, Batch2);
+  } else if (msg.type === "sequence") {
+    if (msg.sql !== undefined) {
+      w2.string("sql", msg.sql);
+    }
+    if (msg.sqlId !== undefined) {
+      w2.number("sql_id", msg.sqlId);
+    }
+  } else if (msg.type === "describe") {
+    if (msg.sql !== undefined) {
+      w2.string("sql", msg.sql);
+    }
+    if (msg.sqlId !== undefined) {
+      w2.number("sql_id", msg.sqlId);
+    }
+  } else if (msg.type === "store_sql") {
+    w2.number("sql_id", msg.sqlId);
+    w2.string("sql", msg.sql);
+  } else if (msg.type === "close_sql") {
+    w2.number("sql_id", msg.sqlId);
+  } else if (msg.type === "get_autocommit") {} else {
+    throw impossible(msg, "Impossible type of StreamRequest");
+  }
+}
+function CursorReqBody(w2, msg) {
+  if (msg.baton !== undefined) {
+    w2.string("baton", msg.baton);
+  }
+  w2.object("batch", msg.batch, Batch2);
+}
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/http/protobuf_encode.js
+function PipelineReqBody2(w2, msg) {
+  if (msg.baton !== undefined) {
+    w2.string(1, msg.baton);
+  }
+  for (const req of msg.requests) {
+    w2.message(2, req, StreamRequest2);
+  }
+}
+function StreamRequest2(w2, msg) {
+  if (msg.type === "close") {
+    w2.message(1, msg, CloseStreamReq2);
+  } else if (msg.type === "execute") {
+    w2.message(2, msg, ExecuteStreamReq);
+  } else if (msg.type === "batch") {
+    w2.message(3, msg, BatchStreamReq);
+  } else if (msg.type === "sequence") {
+    w2.message(4, msg, SequenceStreamReq);
+  } else if (msg.type === "describe") {
+    w2.message(5, msg, DescribeStreamReq);
+  } else if (msg.type === "store_sql") {
+    w2.message(6, msg, StoreSqlStreamReq);
+  } else if (msg.type === "close_sql") {
+    w2.message(7, msg, CloseSqlStreamReq);
+  } else if (msg.type === "get_autocommit") {
+    w2.message(8, msg, GetAutocommitStreamReq);
+  } else {
+    throw impossible(msg, "Impossible type of StreamRequest");
+  }
+}
+function CloseStreamReq2(_w, _msg) {}
+function ExecuteStreamReq(w2, msg) {
+  w2.message(1, msg.stmt, Stmt3);
+}
+function BatchStreamReq(w2, msg) {
+  w2.message(1, msg.batch, Batch3);
+}
+function SequenceStreamReq(w2, msg) {
+  if (msg.sql !== undefined) {
+    w2.string(1, msg.sql);
+  }
+  if (msg.sqlId !== undefined) {
+    w2.int32(2, msg.sqlId);
+  }
+}
+function DescribeStreamReq(w2, msg) {
+  if (msg.sql !== undefined) {
+    w2.string(1, msg.sql);
+  }
+  if (msg.sqlId !== undefined) {
+    w2.int32(2, msg.sqlId);
+  }
+}
+function StoreSqlStreamReq(w2, msg) {
+  w2.int32(1, msg.sqlId);
+  w2.string(2, msg.sql);
+}
+function CloseSqlStreamReq(w2, msg) {
+  w2.int32(1, msg.sqlId);
+}
+function GetAutocommitStreamReq(_w, _msg) {}
+function CursorReqBody2(w2, msg) {
+  if (msg.baton !== undefined) {
+    w2.string(1, msg.baton);
+  }
+  w2.message(2, msg.batch, Batch3);
+}
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/http/stream.js
+class HttpStream extends Stream {
+  #client;
+  #baseUrl;
+  #jwt;
+  #fetch;
+  #baton;
+  #queue;
+  #flushing;
+  #cursor;
+  #closing;
+  #closeQueued;
+  #closed;
+  #sqlIdAlloc;
+  constructor(client, baseUrl, jwt, customFetch) {
+    super(client.intMode);
+    this.#client = client;
+    this.#baseUrl = baseUrl.toString();
+    this.#jwt = jwt;
+    this.#fetch = customFetch;
+    this.#baton = undefined;
+    this.#queue = new Queue;
+    this.#flushing = false;
+    this.#closing = false;
+    this.#closeQueued = false;
+    this.#closed = undefined;
+    this.#sqlIdAlloc = new IdAlloc;
+  }
+  client() {
+    return this.#client;
+  }
+  _sqlOwner() {
+    return this;
+  }
+  storeSql(sql) {
+    const sqlId = this.#sqlIdAlloc.alloc();
+    this.#sendStreamRequest({ type: "store_sql", sqlId, sql }).then(() => {
+      return;
+    }, (error) => this._setClosed(error));
+    return new Sql(this, sqlId);
+  }
+  _closeSql(sqlId) {
+    if (this.#closed !== undefined) {
+      return;
+    }
+    this.#sendStreamRequest({ type: "close_sql", sqlId }).then(() => this.#sqlIdAlloc.free(sqlId), (error) => this._setClosed(error));
+  }
+  _execute(stmt) {
+    return this.#sendStreamRequest({ type: "execute", stmt }).then((response) => {
+      return response.result;
+    });
+  }
+  _batch(batch) {
+    return this.#sendStreamRequest({ type: "batch", batch }).then((response) => {
+      return response.result;
+    });
+  }
+  _describe(protoSql) {
+    return this.#sendStreamRequest({
+      type: "describe",
+      sql: protoSql.sql,
+      sqlId: protoSql.sqlId
+    }).then((response) => {
+      return response.result;
+    });
+  }
+  _sequence(protoSql) {
+    return this.#sendStreamRequest({
+      type: "sequence",
+      sql: protoSql.sql,
+      sqlId: protoSql.sqlId
+    }).then((_response) => {
+      return;
+    });
+  }
+  getAutocommit() {
+    this.#client._ensureVersion(3, "getAutocommit()");
+    return this.#sendStreamRequest({
+      type: "get_autocommit"
+    }).then((response) => {
+      return response.isAutocommit;
+    });
+  }
+  #sendStreamRequest(request) {
+    return new Promise((responseCallback, errorCallback) => {
+      this.#pushToQueue({ type: "pipeline", request, responseCallback, errorCallback });
+    });
+  }
+  _openCursor(batch) {
+    return new Promise((cursorCallback, errorCallback) => {
+      this.#pushToQueue({ type: "cursor", batch, cursorCallback, errorCallback });
+    });
+  }
+  _cursorClosed(cursor) {
+    if (cursor !== this.#cursor) {
+      throw new InternalError("Cursor was closed, but it was not associated with the stream");
+    }
+    this.#cursor = undefined;
+    _queueMicrotask(() => this.#flushQueue());
+  }
+  close() {
+    this._setClosed(new ClientError("Stream was manually closed"));
+  }
+  closeGracefully() {
+    this.#closing = true;
+    _queueMicrotask(() => this.#flushQueue());
+  }
+  get closed() {
+    return this.#closed !== undefined || this.#closing;
+  }
+  _setClosed(error) {
+    if (this.#closed !== undefined) {
+      return;
+    }
+    this.#closed = error;
+    if (this.#cursor !== undefined) {
+      this.#cursor._setClosed(error);
+    }
+    this.#client._streamClosed(this);
+    for (;; ) {
+      const entry = this.#queue.shift();
+      if (entry !== undefined) {
+        entry.errorCallback(error);
+      } else {
+        break;
+      }
+    }
+    if ((this.#baton !== undefined || this.#flushing) && !this.#closeQueued) {
+      this.#queue.push({
+        type: "pipeline",
+        request: { type: "close" },
+        responseCallback: () => {
+          return;
+        },
+        errorCallback: () => {
+          return;
+        }
+      });
+      this.#closeQueued = true;
+      _queueMicrotask(() => this.#flushQueue());
+    }
+  }
+  #pushToQueue(entry) {
+    if (this.#closed !== undefined) {
+      throw new ClosedError("Stream is closed", this.#closed);
+    } else if (this.#closing) {
+      throw new ClosedError("Stream is closing", undefined);
+    } else {
+      this.#queue.push(entry);
+      _queueMicrotask(() => this.#flushQueue());
+    }
+  }
+  #flushQueue() {
+    if (this.#flushing || this.#cursor !== undefined) {
+      return;
+    }
+    if (this.#closing && this.#queue.length === 0) {
+      this._setClosed(new ClientError("Stream was gracefully closed"));
+      return;
+    }
+    const endpoint = this.#client._endpoint;
+    if (endpoint === undefined) {
+      this.#client._endpointPromise.then(() => this.#flushQueue(), (error) => this._setClosed(error));
+      return;
+    }
+    const firstEntry = this.#queue.shift();
+    if (firstEntry === undefined) {
+      return;
+    } else if (firstEntry.type === "pipeline") {
+      const pipeline = [firstEntry];
+      for (;; ) {
+        const entry = this.#queue.first();
+        if (entry !== undefined && entry.type === "pipeline") {
+          pipeline.push(entry);
+          this.#queue.shift();
+        } else if (entry === undefined && this.#closing && !this.#closeQueued) {
+          pipeline.push({
+            type: "pipeline",
+            request: { type: "close" },
+            responseCallback: () => {
+              return;
+            },
+            errorCallback: () => {
+              return;
+            }
+          });
+          this.#closeQueued = true;
+          break;
+        } else {
+          break;
+        }
+      }
+      this.#flushPipeline(endpoint, pipeline);
+    } else if (firstEntry.type === "cursor") {
+      this.#flushCursor(endpoint, firstEntry);
+    } else {
+      throw impossible(firstEntry, "Impossible type of QueueEntry");
+    }
+  }
+  #flushPipeline(endpoint, pipeline) {
+    this.#flush(() => this.#createPipelineRequest(pipeline, endpoint), (resp) => decodePipelineResponse(resp, endpoint.encoding), (respBody) => respBody.baton, (respBody) => respBody.baseUrl, (respBody) => handlePipelineResponse(pipeline, respBody), (error) => pipeline.forEach((entry) => entry.errorCallback(error)));
+  }
+  #flushCursor(endpoint, entry) {
+    const cursor = new HttpCursor(this, endpoint.encoding);
+    this.#cursor = cursor;
+    this.#flush(() => this.#createCursorRequest(entry, endpoint), (resp) => cursor.open(resp), (respBody) => respBody.baton, (respBody) => respBody.baseUrl, (_respBody) => entry.cursorCallback(cursor), (error) => entry.errorCallback(error));
+  }
+  #flush(createRequest, decodeResponse, getBaton, getBaseUrl, handleResponse, handleError) {
+    let promise;
+    try {
+      const request = createRequest();
+      const fetch2 = this.#fetch;
+      promise = fetch2(request);
+    } catch (error) {
+      promise = Promise.reject(error);
+    }
+    this.#flushing = true;
+    promise.then((resp) => {
+      if (!resp.ok) {
+        return errorFromResponse(resp).then((error) => {
+          throw error;
+        });
+      }
+      return decodeResponse(resp);
+    }).then((r3) => {
+      this.#baton = getBaton(r3);
+      this.#baseUrl = getBaseUrl(r3) ?? this.#baseUrl;
+      handleResponse(r3);
+    }).catch((error) => {
+      this._setClosed(error);
+      handleError(error);
+    }).finally(() => {
+      this.#flushing = false;
+      this.#flushQueue();
+    });
+  }
+  #createPipelineRequest(pipeline, endpoint) {
+    return this.#createRequest(new URL(endpoint.pipelinePath, this.#baseUrl), {
+      baton: this.#baton,
+      requests: pipeline.map((entry) => entry.request)
+    }, endpoint.encoding, PipelineReqBody, PipelineReqBody2);
+  }
+  #createCursorRequest(entry, endpoint) {
+    if (endpoint.cursorPath === undefined) {
+      throw new ProtocolVersionError("Cursors are supported only on protocol version 3 and higher, " + `but the HTTP server only supports version ${endpoint.version}.`);
+    }
+    return this.#createRequest(new URL(endpoint.cursorPath, this.#baseUrl), {
+      baton: this.#baton,
+      batch: entry.batch
+    }, endpoint.encoding, CursorReqBody, CursorReqBody2);
+  }
+  #createRequest(url, reqBody, encoding, jsonFun, protobufFun) {
+    let bodyData;
+    let contentType;
+    if (encoding === "json") {
+      bodyData = writeJsonObject(reqBody, jsonFun);
+      contentType = "application/json";
+    } else if (encoding === "protobuf") {
+      bodyData = writeProtobufMessage(reqBody, protobufFun);
+      contentType = "application/x-protobuf";
+    } else {
+      throw impossible(encoding, "Impossible encoding");
+    }
+    const headers = new _Headers;
+    headers.set("content-type", contentType);
+    if (this.#jwt !== undefined) {
+      headers.set("authorization", `Bearer ${this.#jwt}`);
+    }
+    return new _Request(url.toString(), { method: "POST", headers, body: bodyData });
+  }
+}
+function handlePipelineResponse(pipeline, respBody) {
+  if (respBody.results.length !== pipeline.length) {
+    throw new ProtoError("Server returned unexpected number of pipeline results");
+  }
+  for (let i2 = 0;i2 < pipeline.length; ++i2) {
+    const result = respBody.results[i2];
+    const entry = pipeline[i2];
+    if (result.type === "ok") {
+      if (result.response.type !== entry.request.type) {
+        throw new ProtoError("Received unexpected type of response");
+      }
+      entry.responseCallback(result.response);
+    } else if (result.type === "error") {
+      entry.errorCallback(errorFromProto(result.error));
+    } else if (result.type === "none") {
+      throw new ProtoError("Received unrecognized type of StreamResult");
+    } else {
+      throw impossible(result, "Received impossible type of StreamResult");
+    }
+  }
+}
+async function decodePipelineResponse(resp, encoding) {
+  if (encoding === "json") {
+    const respJson = await resp.json();
+    return readJsonObject(respJson, PipelineRespBody);
+  } else if (encoding === "protobuf") {
+    const respData = await resp.arrayBuffer();
+    return readProtobufMessage(new Uint8Array(respData), PipelineRespBody2);
+  } else {
+    throw impossible(encoding, "Impossible encoding");
+  }
+}
+async function errorFromResponse(resp) {
+  const respType = resp.headers.get("content-type") ?? "text/plain";
+  if (respType === "application/json") {
+    const respBody = await resp.json();
+    if ("message" in respBody) {
+      return errorFromProto(respBody);
+    }
+  }
+  let message = `Server returned HTTP status ${resp.status}`;
+  if (respType === "text/plain") {
+    const respBody = (await resp.text()).trim();
+    if (respBody !== "") {
+      message += `: ${respBody}`;
+    }
+  }
+  return new HttpServerError(message, resp.status);
+}
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/http/client.js
+var checkEndpoints = [
+  {
+    versionPath: "v3-protobuf",
+    pipelinePath: "v3-protobuf/pipeline",
+    cursorPath: "v3-protobuf/cursor",
+    version: 3,
+    encoding: "protobuf"
+  }
+];
+var fallbackEndpoint = {
+  versionPath: "v2",
+  pipelinePath: "v2/pipeline",
+  cursorPath: undefined,
+  version: 2,
+  encoding: "json"
+};
+
+class HttpClient extends Client {
+  #url;
+  #jwt;
+  #fetch;
+  #closed;
+  #streams;
+  _endpointPromise;
+  _endpoint;
+  constructor(url, jwt, customFetch, protocolVersion = 2) {
+    super();
+    this.#url = url;
+    this.#jwt = jwt;
+    this.#fetch = customFetch ?? fetchWithAgentSelection;
+    this.#closed = undefined;
+    this.#streams = new Set;
+    if (protocolVersion == 3) {
+      this._endpointPromise = findEndpoint(this.#fetch, this.#url);
+      this._endpointPromise.then((endpoint) => this._endpoint = endpoint, (error) => this.#setClosed(error));
+    } else {
+      this._endpointPromise = Promise.resolve(fallbackEndpoint);
+      this._endpointPromise.then((endpoint) => this._endpoint = endpoint, (error) => this.#setClosed(error));
+    }
+  }
+  async getVersion() {
+    if (this._endpoint !== undefined) {
+      return this._endpoint.version;
+    }
+    return (await this._endpointPromise).version;
+  }
+  _ensureVersion(minVersion, feature) {
+    if (minVersion <= fallbackEndpoint.version) {
+      return;
+    } else if (this._endpoint === undefined) {
+      throw new ProtocolVersionError(`${feature} is supported only on protocol version ${minVersion} and higher, ` + "but the version supported by the HTTP server is not yet known. " + "Use Client.getVersion() to wait until the version is available.");
+    } else if (this._endpoint.version < minVersion) {
+      throw new ProtocolVersionError(`${feature} is supported only on protocol version ${minVersion} and higher, ` + `but the HTTP server only supports version ${this._endpoint.version}.`);
+    }
+  }
+  openStream() {
+    if (this.#closed !== undefined) {
+      throw new ClosedError("Client is closed", this.#closed);
+    }
+    const stream = new HttpStream(this, this.#url, this.#jwt, this.#fetch);
+    this.#streams.add(stream);
+    return stream;
+  }
+  _streamClosed(stream) {
+    this.#streams.delete(stream);
+  }
+  close() {
+    this.#setClosed(new ClientError("Client was manually closed"));
+  }
+  get closed() {
+    return this.#closed !== undefined;
+  }
+  #setClosed(error) {
+    if (this.#closed !== undefined) {
+      return;
+    }
+    this.#closed = error;
+    for (const stream of Array.from(this.#streams)) {
+      stream._setClosed(new ClosedError("Client was closed", error));
+    }
+  }
+}
+async function findEndpoint(customFetch, clientUrl) {
+  const fetch2 = customFetch;
+  for (const endpoint of checkEndpoints) {
+    const url = new URL(endpoint.versionPath, clientUrl);
+    const request = new _Request(url.toString(), { method: "GET" });
+    const response = await fetch2(request);
+    await response.arrayBuffer();
+    if (response.ok) {
+      return endpoint;
+    }
+  }
+  return fallbackEndpoint;
+}
+
+// ../../node_modules/@libsql/hrana-client/lib-esm/index.js
+function openWs(url, jwt, protocolVersion = 2) {
+  if (typeof import_websocket.default === "undefined") {
+    throw new WebSocketUnsupportedError("WebSockets are not supported in this environment");
+  }
+  var subprotocols = undefined;
+  if (protocolVersion == 3) {
+    subprotocols = Array.from(subprotocolsV3.keys());
+  } else {
+    subprotocols = Array.from(subprotocolsV2.keys());
+  }
+  const socket = new import_websocket.default(url, subprotocols);
+  return new WsClient(socket, jwt);
+}
+function openHttp(url, jwt, customFetch, protocolVersion = 2) {
+  return new HttpClient(url instanceof URL ? url : new URL(url), jwt, customFetch, protocolVersion);
+}
+
+// ../../node_modules/@libsql/client/lib-esm/hrana.js
+class HranaTransaction {
+  #mode;
+  #version;
+  #started;
+  constructor(mode, version2) {
+    this.#mode = mode;
+    this.#version = version2;
+    this.#started = undefined;
+  }
+  execute(stmt) {
+    return this.batch([stmt]).then((results) => results[0]);
+  }
+  async batch(stmts) {
+    const stream = this._getStream();
+    if (stream.closed) {
+      throw new LibsqlError("Cannot execute statements because the transaction is closed", "TRANSACTION_CLOSED");
+    }
+    try {
+      const hranaStmts = stmts.map(stmtToHrana);
+      let rowsPromises;
+      if (this.#started === undefined) {
+        this._getSqlCache().apply(hranaStmts);
+        const batch = stream.batch(this.#version >= 3);
+        const beginStep = batch.step();
+        const beginPromise = beginStep.run(transactionModeToBegin(this.#mode));
+        let lastStep = beginStep;
+        rowsPromises = hranaStmts.map((hranaStmt) => {
+          const stmtStep = batch.step().condition(BatchCond.ok(lastStep));
+          if (this.#version >= 3) {
+            stmtStep.condition(BatchCond.not(BatchCond.isAutocommit(batch)));
+          }
+          const rowsPromise = stmtStep.query(hranaStmt);
+          rowsPromise.catch(() => {
+            return;
+          });
+          lastStep = stmtStep;
+          return rowsPromise;
+        });
+        this.#started = batch.execute().then(() => beginPromise).then(() => {
+          return;
+        });
+        try {
+          await this.#started;
+        } catch (e2) {
+          this.close();
+          throw e2;
+        }
+      } else {
+        if (this.#version < 3) {
+          await this.#started;
+        } else {}
+        this._getSqlCache().apply(hranaStmts);
+        const batch = stream.batch(this.#version >= 3);
+        let lastStep = undefined;
+        rowsPromises = hranaStmts.map((hranaStmt) => {
+          const stmtStep = batch.step();
+          if (lastStep !== undefined) {
+            stmtStep.condition(BatchCond.ok(lastStep));
+          }
+          if (this.#version >= 3) {
+            stmtStep.condition(BatchCond.not(BatchCond.isAutocommit(batch)));
+          }
+          const rowsPromise = stmtStep.query(hranaStmt);
+          rowsPromise.catch(() => {
+            return;
+          });
+          lastStep = stmtStep;
+          return rowsPromise;
+        });
+        await batch.execute();
+      }
+      const resultSets = [];
+      for (const rowsPromise of rowsPromises) {
+        const rows = await rowsPromise;
+        if (rows === undefined) {
+          throw new LibsqlError("Statement in a transaction was not executed, " + "probably because the transaction has been rolled back", "TRANSACTION_CLOSED");
+        }
+        resultSets.push(resultSetFromHrana(rows));
+      }
+      return resultSets;
+    } catch (e2) {
+      throw mapHranaError(e2);
+    }
+  }
+  async executeMultiple(sql) {
+    const stream = this._getStream();
+    if (stream.closed) {
+      throw new LibsqlError("Cannot execute statements because the transaction is closed", "TRANSACTION_CLOSED");
+    }
+    try {
+      if (this.#started === undefined) {
+        this.#started = stream.run(transactionModeToBegin(this.#mode)).then(() => {
+          return;
+        });
+        try {
+          await this.#started;
+        } catch (e2) {
+          this.close();
+          throw e2;
+        }
+      } else {
+        await this.#started;
+      }
+      await stream.sequence(sql);
+    } catch (e2) {
+      throw mapHranaError(e2);
+    }
+  }
+  async rollback() {
+    try {
+      const stream = this._getStream();
+      if (stream.closed) {
+        return;
+      }
+      if (this.#started !== undefined) {} else {
+        return;
+      }
+      const promise = stream.run("ROLLBACK").catch((e2) => {
+        throw mapHranaError(e2);
+      });
+      stream.closeGracefully();
+      await promise;
+    } catch (e2) {
+      throw mapHranaError(e2);
+    } finally {
+      this.close();
+    }
+  }
+  async commit() {
+    try {
+      const stream = this._getStream();
+      if (stream.closed) {
+        throw new LibsqlError("Cannot commit the transaction because it is already closed", "TRANSACTION_CLOSED");
+      }
+      if (this.#started !== undefined) {
+        await this.#started;
+      } else {
+        return;
+      }
+      const promise = stream.run("COMMIT").catch((e2) => {
+        throw mapHranaError(e2);
+      });
+      stream.closeGracefully();
+      await promise;
+    } catch (e2) {
+      throw mapHranaError(e2);
+    } finally {
+      this.close();
+    }
+  }
+}
+async function executeHranaBatch(mode, version2, batch, hranaStmts) {
+  const beginStep = batch.step();
+  const beginPromise = beginStep.run(transactionModeToBegin(mode));
+  let lastStep = beginStep;
+  const stmtPromises = hranaStmts.map((hranaStmt) => {
+    const stmtStep = batch.step().condition(BatchCond.ok(lastStep));
+    if (version2 >= 3) {
+      stmtStep.condition(BatchCond.not(BatchCond.isAutocommit(batch)));
+    }
+    const stmtPromise = stmtStep.query(hranaStmt);
+    lastStep = stmtStep;
+    return stmtPromise;
+  });
+  const commitStep = batch.step().condition(BatchCond.ok(lastStep));
+  if (version2 >= 3) {
+    commitStep.condition(BatchCond.not(BatchCond.isAutocommit(batch)));
+  }
+  const commitPromise = commitStep.run("COMMIT");
+  const rollbackStep = batch.step().condition(BatchCond.not(BatchCond.ok(commitStep)));
+  rollbackStep.run("ROLLBACK").catch((_3) => {
+    return;
+  });
+  await batch.execute();
+  const resultSets = [];
+  await beginPromise;
+  for (const stmtPromise of stmtPromises) {
+    const hranaRows = await stmtPromise;
+    if (hranaRows === undefined) {
+      throw new LibsqlError("Statement in a batch was not executed, probably because the transaction has been rolled back", "TRANSACTION_CLOSED");
+    }
+    resultSets.push(resultSetFromHrana(hranaRows));
+  }
+  await commitPromise;
+  return resultSets;
+}
+function stmtToHrana(stmt) {
+  if (typeof stmt === "string") {
+    return new Stmt(stmt);
+  }
+  const hranaStmt = new Stmt(stmt.sql);
+  if (Array.isArray(stmt.args)) {
+    hranaStmt.bindIndexes(stmt.args);
+  } else {
+    for (const [key, value] of Object.entries(stmt.args)) {
+      hranaStmt.bindName(key, value);
+    }
+  }
+  return hranaStmt;
+}
+function resultSetFromHrana(hranaRows) {
+  const columns = hranaRows.columnNames.map((c3) => c3 ?? "");
+  const columnTypes = hranaRows.columnDecltypes.map((c3) => c3 ?? "");
+  const rows = hranaRows.rows;
+  const rowsAffected = hranaRows.affectedRowCount;
+  const lastInsertRowid = hranaRows.lastInsertRowid !== undefined ? hranaRows.lastInsertRowid : undefined;
+  return new ResultSetImpl(columns, columnTypes, rows, rowsAffected, lastInsertRowid);
+}
+function mapHranaError(e2) {
+  if (e2 instanceof ClientError) {
+    const code = mapHranaErrorCode(e2);
+    return new LibsqlError(e2.message, code, undefined, e2);
+  }
+  return e2;
+}
+function mapHranaErrorCode(e2) {
+  if (e2 instanceof ResponseError && e2.code !== undefined) {
+    return e2.code;
+  } else if (e2 instanceof ProtoError) {
+    return "HRANA_PROTO_ERROR";
+  } else if (e2 instanceof ClosedError) {
+    return e2.cause instanceof ClientError ? mapHranaErrorCode(e2.cause) : "HRANA_CLOSED_ERROR";
+  } else if (e2 instanceof WebSocketError) {
+    return "HRANA_WEBSOCKET_ERROR";
+  } else if (e2 instanceof HttpServerError) {
+    return "SERVER_ERROR";
+  } else if (e2 instanceof ProtocolVersionError) {
+    return "PROTOCOL_VERSION_ERROR";
+  } else if (e2 instanceof InternalError) {
+    return "INTERNAL_ERROR";
+  } else {
+    return "UNKNOWN";
+  }
+}
+
+// ../../node_modules/@libsql/client/lib-esm/sql_cache.js
+class SqlCache {
+  #owner;
+  #sqls;
+  capacity;
+  constructor(owner, capacity) {
+    this.#owner = owner;
+    this.#sqls = new Lru;
+    this.capacity = capacity;
+  }
+  apply(hranaStmts) {
+    if (this.capacity <= 0) {
+      return;
+    }
+    const usedSqlObjs = new Set;
+    for (const hranaStmt of hranaStmts) {
+      if (typeof hranaStmt.sql !== "string") {
+        continue;
+      }
+      const sqlText = hranaStmt.sql;
+      let sqlObj = this.#sqls.get(sqlText);
+      if (sqlObj === undefined) {
+        while (this.#sqls.size + 1 > this.capacity) {
+          const [evictSqlText, evictSqlObj] = this.#sqls.peekLru();
+          if (usedSqlObjs.has(evictSqlObj)) {
+            break;
+          }
+          evictSqlObj.close();
+          this.#sqls.delete(evictSqlText);
+        }
+        if (this.#sqls.size + 1 <= this.capacity) {
+          sqlObj = this.#owner.storeSql(sqlText);
+          this.#sqls.set(sqlText, sqlObj);
+        }
+      }
+      if (sqlObj !== undefined) {
+        hranaStmt.sql = sqlObj;
+        usedSqlObjs.add(sqlObj);
+      }
+    }
+  }
+}
+
+class Lru {
+  #cache;
+  constructor() {
+    this.#cache = new Map;
+  }
+  get(key) {
+    const value = this.#cache.get(key);
+    if (value !== undefined) {
+      this.#cache.delete(key);
+      this.#cache.set(key, value);
+    }
+    return value;
+  }
+  set(key, value) {
+    this.#cache.set(key, value);
+  }
+  peekLru() {
+    for (const entry of this.#cache.entries()) {
+      return entry;
+    }
+    return;
+  }
+  delete(key) {
+    this.#cache.delete(key);
+  }
+  get size() {
+    return this.#cache.size;
+  }
+}
+
+// ../../node_modules/@libsql/client/lib-esm/migrations.js
+var SCHEMA_MIGRATION_SLEEP_TIME_IN_MS = 1000;
+var SCHEMA_MIGRATION_MAX_RETRIES = 30;
+async function sleep(ms) {
+  return new Promise((resolve10) => {
+    setTimeout(resolve10, ms);
+  });
+}
+async function isMigrationJobFinished({ authToken, baseUrl, jobId }) {
+  const url = normalizeURLScheme(baseUrl + `/v1/jobs/${jobId}`);
+  const result = await fetch(url, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${authToken}`
+    }
+  });
+  const json = await result.json();
+  const job = json;
+  if (result.status !== 200) {
+    throw new Error(`Unexpected status code while fetching job status for migration with id ${jobId}: ${result.status}`);
+  }
+  if (job.status == "RunFailure") {
+    throw new Error("Migration job failed");
+  }
+  return job.status == "RunSuccess";
+}
+function normalizeURLScheme(url) {
+  if (url.startsWith("ws://")) {
+    return url.replace("ws://", "http://");
+  }
+  if (url.startsWith("wss://")) {
+    return url.replace("wss://", "https://");
+  }
+  return url;
+}
+async function getIsSchemaDatabase({ authToken, baseUrl }) {
+  let responseStatusCode;
+  try {
+    if (baseUrl.startsWith("http://127.0.0.1")) {
+      return false;
+    }
+    const url = normalizeURLScheme(baseUrl + "/v1/jobs");
+    const result = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${authToken}`
+      }
+    });
+    if (result.status === 404 || result.status === 500) {
+      return false;
+    }
+    const json = await result.json();
+    const isChildDatabase = result.status === 400 && json.error === "Invalid namespace";
+    return !isChildDatabase;
+  } catch (e2) {
+    console.error([
+      `There has been an error while retrieving the database type.`,
+      `Debug information:`,
+      `- URL: ${baseUrl}`,
+      `- Response Status Code: ${responseStatusCode ? responseStatusCode : "N/A"}`
+    ].join(`
+`));
+    throw e2;
+  }
+}
+async function getLastMigrationJob({ authToken, baseUrl }) {
+  const url = normalizeURLScheme(baseUrl + "/v1/jobs");
+  const result = await fetch(url, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${authToken}`
+    }
+  });
+  if (result.status !== 200) {
+    throw new Error("Unexpected status code while fetching migration jobs: " + result.status);
+  }
+  const json = await result.json();
+  if (!json.migrations || json.migrations.length === 0) {
+    throw new Error("No migrations found");
+  }
+  const migrations = json.migrations || [];
+  let lastJob;
+  for (const migration of migrations) {
+    if (migration.job_id > (lastJob?.job_id || 0)) {
+      lastJob = migration;
+    }
+  }
+  if (!lastJob) {
+    throw new Error("No migration job found");
+  }
+  if (lastJob?.status === "RunFailure") {
+    throw new Error("Last migration job failed");
+  }
+  return lastJob;
+}
+async function waitForLastMigrationJobToFinish({ authToken, baseUrl }) {
+  const lastMigrationJob = await getLastMigrationJob({
+    authToken,
+    baseUrl
+  });
+  if (lastMigrationJob.status !== "RunSuccess") {
+    let i2 = 0;
+    while (i2 < SCHEMA_MIGRATION_MAX_RETRIES) {
+      i2++;
+      const isLastMigrationJobFinished = await isMigrationJobFinished({
+        authToken,
+        baseUrl,
+        jobId: lastMigrationJob.job_id
+      });
+      if (isLastMigrationJobFinished) {
+        break;
+      }
+      await sleep(SCHEMA_MIGRATION_SLEEP_TIME_IN_MS);
+    }
+  }
+}
+// ../../node_modules/@libsql/client/lib-esm/ws.js
+var maxConnAgeMillis = 60 * 1000;
+var sqlCacheCapacity = 100;
+
+class WsClient2 {
+  #url;
+  #authToken;
+  #intMode;
+  #connState;
+  #futureConnState;
+  closed;
+  protocol;
+  #isSchemaDatabase;
+  constructor(client, url, authToken, intMode) {
+    this.#url = url;
+    this.#authToken = authToken;
+    this.#intMode = intMode;
+    this.#connState = this.#openConn(client);
+    this.#futureConnState = undefined;
+    this.closed = false;
+    this.protocol = "ws";
+  }
+  async getIsSchemaDatabase() {
+    if (this.#isSchemaDatabase === undefined) {
+      this.#isSchemaDatabase = await getIsSchemaDatabase({
+        authToken: this.#authToken,
+        baseUrl: this.#url.origin
+      });
+    }
+    return this.#isSchemaDatabase;
+  }
+  async execute(stmt) {
+    const streamState = await this.#openStream();
+    try {
+      const isSchemaDatabasePromise = this.getIsSchemaDatabase();
+      const hranaStmt = stmtToHrana(stmt);
+      streamState.conn.sqlCache.apply([hranaStmt]);
+      const hranaRowsPromise = streamState.stream.query(hranaStmt);
+      streamState.stream.closeGracefully();
+      const hranaRowsResult = await hranaRowsPromise;
+      const isSchemaDatabase = await isSchemaDatabasePromise;
+      if (isSchemaDatabase) {
+        await waitForLastMigrationJobToFinish({
+          authToken: this.#authToken,
+          baseUrl: this.#url.origin
+        });
+      }
+      return resultSetFromHrana(hranaRowsResult);
+    } catch (e2) {
+      throw mapHranaError(e2);
+    } finally {
+      this._closeStream(streamState);
+    }
+  }
+  async batch(stmts, mode = "deferred") {
+    const streamState = await this.#openStream();
+    try {
+      const isSchemaDatabasePromise = this.getIsSchemaDatabase();
+      const hranaStmts = stmts.map(stmtToHrana);
+      const version2 = await streamState.conn.client.getVersion();
+      streamState.conn.sqlCache.apply(hranaStmts);
+      const batch = streamState.stream.batch(version2 >= 3);
+      const resultsPromise = executeHranaBatch(mode, version2, batch, hranaStmts);
+      const results = await resultsPromise;
+      const isSchemaDatabase = await isSchemaDatabasePromise;
+      if (isSchemaDatabase) {
+        await waitForLastMigrationJobToFinish({
+          authToken: this.#authToken,
+          baseUrl: this.#url.origin
+        });
+      }
+      return results;
+    } catch (e2) {
+      throw mapHranaError(e2);
+    } finally {
+      this._closeStream(streamState);
+    }
+  }
+  async transaction(mode = "write") {
+    const streamState = await this.#openStream();
+    try {
+      const version2 = await streamState.conn.client.getVersion();
+      return new WsTransaction(this, streamState, mode, version2);
+    } catch (e2) {
+      this._closeStream(streamState);
+      throw mapHranaError(e2);
+    }
+  }
+  async executeMultiple(sql) {
+    const streamState = await this.#openStream();
+    try {
+      const promise = streamState.stream.sequence(sql);
+      streamState.stream.closeGracefully();
+      await promise;
+    } catch (e2) {
+      throw mapHranaError(e2);
+    } finally {
+      this._closeStream(streamState);
+    }
+  }
+  sync() {
+    return Promise.resolve();
+  }
+  async#openStream() {
+    if (this.closed) {
+      throw new LibsqlError("The client is closed", "CLIENT_CLOSED");
+    }
+    const now = new Date;
+    const ageMillis = now.valueOf() - this.#connState.openTime.valueOf();
+    if (ageMillis > maxConnAgeMillis && this.#futureConnState === undefined) {
+      const futureConnState = this.#openConn();
+      this.#futureConnState = futureConnState;
+      futureConnState.client.getVersion().then((_version) => {
+        if (this.#connState !== futureConnState) {
+          if (this.#connState.streamStates.size === 0) {
+            this.#connState.client.close();
+          } else {}
+        }
+        this.#connState = futureConnState;
+        this.#futureConnState = undefined;
+      }, (_e) => {
+        this.#futureConnState = undefined;
+      });
+    }
+    if (this.#connState.client.closed) {
+      try {
+        if (this.#futureConnState !== undefined) {
+          this.#connState = this.#futureConnState;
+        } else {
+          this.#connState = this.#openConn();
+        }
+      } catch (e2) {
+        throw mapHranaError(e2);
+      }
+    }
+    const connState = this.#connState;
+    try {
+      if (connState.useSqlCache === undefined) {
+        connState.useSqlCache = await connState.client.getVersion() >= 2;
+        if (connState.useSqlCache) {
+          connState.sqlCache.capacity = sqlCacheCapacity;
+        }
+      }
+      const stream = connState.client.openStream();
+      stream.intMode = this.#intMode;
+      const streamState = { conn: connState, stream };
+      connState.streamStates.add(streamState);
+      return streamState;
+    } catch (e2) {
+      throw mapHranaError(e2);
+    }
+  }
+  #openConn(client) {
+    try {
+      client ??= openWs(this.#url, this.#authToken);
+      return {
+        client,
+        useSqlCache: undefined,
+        sqlCache: new SqlCache(client, 0),
+        openTime: new Date,
+        streamStates: new Set
+      };
+    } catch (e2) {
+      throw mapHranaError(e2);
+    }
+  }
+  _closeStream(streamState) {
+    streamState.stream.close();
+    const connState = streamState.conn;
+    connState.streamStates.delete(streamState);
+    if (connState.streamStates.size === 0 && connState !== this.#connState) {
+      connState.client.close();
+    }
+  }
+  close() {
+    this.#connState.client.close();
+    this.closed = true;
+  }
+}
+
+class WsTransaction extends HranaTransaction {
+  #client;
+  #streamState;
+  constructor(client, state, mode, version2) {
+    super(mode, version2);
+    this.#client = client;
+    this.#streamState = state;
+  }
+  _getStream() {
+    return this.#streamState.stream;
+  }
+  _getSqlCache() {
+    return this.#streamState.conn.sqlCache;
+  }
+  close() {
+    this.#client._closeStream(this.#streamState);
+  }
+  get closed() {
+    return this.#streamState.stream.closed;
+  }
+}
+// ../../node_modules/@libsql/client/lib-esm/http.js
+var sqlCacheCapacity2 = 30;
+
+class HttpClient2 {
+  #client;
+  protocol;
+  #url;
+  #authToken;
+  #isSchemaDatabase;
+  constructor(url, authToken, intMode, customFetch) {
+    this.#client = openHttp(url, authToken, customFetch);
+    this.#client.intMode = intMode;
+    this.protocol = "http";
+    this.#url = url;
+    this.#authToken = authToken;
+  }
+  async getIsSchemaDatabase() {
+    if (this.#isSchemaDatabase === undefined) {
+      this.#isSchemaDatabase = await getIsSchemaDatabase({
+        authToken: this.#authToken,
+        baseUrl: this.#url.origin
+      });
+    }
+    return this.#isSchemaDatabase;
+  }
+  async execute(stmt) {
+    try {
+      const isSchemaDatabasePromise = this.getIsSchemaDatabase();
+      const hranaStmt = stmtToHrana(stmt);
+      let rowsPromise;
+      const stream = this.#client.openStream();
+      try {
+        rowsPromise = stream.query(hranaStmt);
+      } finally {
+        stream.closeGracefully();
+      }
+      const rowsResult = await rowsPromise;
+      const isSchemaDatabase = await isSchemaDatabasePromise;
+      if (isSchemaDatabase) {
+        await waitForLastMigrationJobToFinish({
+          authToken: this.#authToken,
+          baseUrl: this.#url.origin
+        });
+      }
+      return resultSetFromHrana(rowsResult);
+    } catch (e2) {
+      throw mapHranaError(e2);
+    }
+  }
+  async batch(stmts, mode = "deferred") {
+    try {
+      const isSchemaDatabasePromise = this.getIsSchemaDatabase();
+      const hranaStmts = stmts.map(stmtToHrana);
+      const version2 = await this.#client.getVersion();
+      let resultsPromise;
+      const stream = this.#client.openStream();
+      try {
+        const sqlCache = new SqlCache(stream, sqlCacheCapacity2);
+        sqlCache.apply(hranaStmts);
+        const batch = stream.batch(false);
+        resultsPromise = executeHranaBatch(mode, version2, batch, hranaStmts);
+      } finally {
+        stream.closeGracefully();
+      }
+      const results = await resultsPromise;
+      const isSchemaDatabase = await isSchemaDatabasePromise;
+      if (isSchemaDatabase) {
+        await waitForLastMigrationJobToFinish({
+          authToken: this.#authToken,
+          baseUrl: this.#url.origin
+        });
+      }
+      return results;
+    } catch (e2) {
+      throw mapHranaError(e2);
+    }
+  }
+  async transaction(mode = "write") {
+    try {
+      const version2 = await this.#client.getVersion();
+      return new HttpTransaction(this.#client.openStream(), mode, version2);
+    } catch (e2) {
+      throw mapHranaError(e2);
+    }
+  }
+  async executeMultiple(sql) {
+    try {
+      let promise;
+      const stream = this.#client.openStream();
+      try {
+        promise = stream.sequence(sql);
+      } finally {
+        stream.closeGracefully();
+      }
+      await promise;
+    } catch (e2) {
+      throw mapHranaError(e2);
+    }
+  }
+  sync() {
+    throw new LibsqlError("sync not supported in http mode", "SYNC_NOT_SUPPORTED");
+  }
+  close() {
+    this.#client.close();
+  }
+  get closed() {
+    return this.#client.closed;
+  }
+}
+
+class HttpTransaction extends HranaTransaction {
+  #stream;
+  #sqlCache;
+  constructor(stream, mode, version2) {
+    super(mode, version2);
+    this.#stream = stream;
+    this.#sqlCache = new SqlCache(stream, sqlCacheCapacity2);
+  }
+  _getStream() {
+    return this.#stream;
+  }
+  _getSqlCache() {
+    return this.#sqlCache;
+  }
+  close() {
+    this.#stream.close();
+  }
+  get closed() {
+    return this.#stream.closed;
   }
 }
 // src/commands/execution.ts
