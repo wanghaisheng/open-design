@@ -27156,6 +27156,307 @@ class CommitManager2 {
     };
   }
 }
+// src/rams/version-manager/branch-manager-db.ts
+class BranchManager2 {
+  instanceId;
+  dbManager;
+  constructor(instanceId, dbManager) {
+    this.instanceId = instanceId;
+    this.dbManager = dbManager;
+  }
+  async initialize() {
+    await this.dbManager.initialize();
+  }
+  async createBranch(branchName, commitId) {
+    const client = this.dbManager.getClient();
+    const now = new Date().toISOString();
+    await client.execute({
+      sql: `
+        INSERT INTO branches (branch_name, instance_id, commit_id, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?)
+      `,
+      args: [branchName, this.instanceId, commitId, now, now]
+    });
+  }
+  async switchBranch(_branchName) {}
+  async listBranches() {
+    const client = this.dbManager.getClient();
+    const result = await client.execute({
+      sql: `
+        SELECT branch_name as name, commit_id, created_at, updated_at 
+        FROM branches 
+        WHERE instance_id = ?
+        ORDER BY created_at DESC
+      `,
+      args: [this.instanceId]
+    });
+    return result.rows;
+  }
+  async deleteBranch(branchName) {
+    const client = this.dbManager.getClient();
+    await client.execute({
+      sql: "DELETE FROM branches WHERE branch_name = ? AND instance_id = ?",
+      args: [branchName, this.instanceId]
+    });
+  }
+  async getRef(branchName) {
+    const client = this.dbManager.getClient();
+    const result = await client.execute({
+      sql: "SELECT commit_id FROM branches WHERE branch_name = ? AND instance_id = ?",
+      args: [branchName, this.instanceId]
+    });
+    if (result.rows.length === 0) {
+      return null;
+    }
+    return result.rows[0].commit_id;
+  }
+  async updateRef(branchName, commitId) {
+    const client = this.dbManager.getClient();
+    const now = new Date().toISOString();
+    await client.execute({
+      sql: `
+        UPDATE branches 
+        SET commit_id = ?, updated_at = ? 
+        WHERE branch_name = ? AND instance_id = ?
+      `,
+      args: [commitId, now, branchName, this.instanceId]
+    });
+  }
+}
+// src/rams/version-manager/tag-manager-db.ts
+class TagManager2 {
+  instanceId;
+  dbManager;
+  constructor(instanceId, dbManager) {
+    this.instanceId = instanceId;
+    this.dbManager = dbManager;
+  }
+  async initialize() {
+    await this.dbManager.initialize();
+  }
+  async createTag(name, commitId, message = "") {
+    const client = this.dbManager.getClient();
+    await client.execute({
+      sql: `
+        INSERT INTO tags (tag_name, instance_id, commit_id, message, created_at)
+        VALUES (?, ?, ?, ?, ?)
+      `,
+      args: [name, this.instanceId, commitId, message, new Date().toISOString()]
+    });
+  }
+  async getTag(name) {
+    const client = this.dbManager.getClient();
+    const result = await client.execute({
+      sql: `
+        SELECT tag_name as name, commit_id, message, created_at 
+        FROM tags 
+        WHERE tag_name = ? AND instance_id = ?
+      `,
+      args: [name, this.instanceId]
+    });
+    if (result.rows.length === 0) {
+      return null;
+    }
+    return result.rows[0];
+  }
+  async listTags() {
+    const client = this.dbManager.getClient();
+    const result = await client.execute({
+      sql: `
+        SELECT tag_name as name, commit_id, message, created_at 
+        FROM tags 
+        WHERE instance_id = ?
+        ORDER BY created_at DESC
+      `,
+      args: [this.instanceId]
+    });
+    return result.rows;
+  }
+  async deleteTag(name) {
+    const client = this.dbManager.getClient();
+    await client.execute({
+      sql: "DELETE FROM tags WHERE tag_name = ? AND instance_id = ?",
+      args: [name, this.instanceId]
+    });
+  }
+  async checkoutTag(name) {
+    const tag = await this.getTag(name);
+    if (!tag) {
+      throw new Error(`Tag not found: ${name}`);
+    }
+    return tag.commit_id;
+  }
+}
+// src/rams/version-manager/stash-manager-db.ts
+import { createHash as createHash3 } from "crypto";
+
+class StashManager2 {
+  instanceId;
+  dbManager;
+  constructor(instanceId, dbManager) {
+    this.instanceId = instanceId;
+    this.dbManager = dbManager;
+  }
+  async initialize() {
+    await this.dbManager.initialize();
+  }
+  async create(commitId, message = "WIP") {
+    const client = this.dbManager.getClient();
+    const stashId = this.generateStashId();
+    const worktreeState = await this.captureWorktreeState();
+    await client.execute({
+      sql: `
+        INSERT INTO stashes (stash_id, instance_id, commit_id, message, worktree_state, created_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `,
+      args: [
+        stashId,
+        this.instanceId,
+        commitId,
+        message,
+        JSON.stringify(worktreeState),
+        new Date().toISOString()
+      ]
+    });
+    return stashId;
+  }
+  async list() {
+    const client = this.dbManager.getClient();
+    const result = await client.execute({
+      sql: `
+        SELECT stash_id as id, commit_id, message, created_at, worktree_state 
+        FROM stashes 
+        WHERE instance_id = ?
+        ORDER BY created_at DESC
+      `,
+      args: [this.instanceId]
+    });
+    return result.rows;
+  }
+  async apply(stashId) {
+    const client = this.dbManager.getClient();
+    const result = await client.execute({
+      sql: `
+        SELECT worktree_state FROM stashes 
+        WHERE stash_id = ? AND instance_id = ?
+      `,
+      args: [stashId, this.instanceId]
+    });
+    if (result.rows.length === 0) {
+      throw new Error(`Stash not found: ${stashId}`);
+    }
+    const worktreeState = JSON.parse(result.rows[0].worktree_state);
+    await this.restoreWorktreeState(worktreeState);
+  }
+  async drop(stashId) {
+    const client = this.dbManager.getClient();
+    await client.execute({
+      sql: "DELETE FROM stashes WHERE stash_id = ? AND instance_id = ?",
+      args: [stashId, this.instanceId]
+    });
+  }
+  async pop(stashId) {
+    await this.apply(stashId);
+    await this.drop(stashId);
+  }
+  generateStashId() {
+    return createHash3("sha256").update(`${Date.now()}-${Math.random()}`).digest("hex").substring(0, 12);
+  }
+  async captureWorktreeState() {
+    return { files: [], timestamp: new Date().toISOString() };
+  }
+  async restoreWorktreeState(state) {
+    console.log("Restoring worktree state:", state);
+  }
+}
+// src/rams/version-manager/undo-redo-manager-db.ts
+class UndoRedoManager2 {
+  instanceId;
+  dbManager;
+  commitManager;
+  constructor(instanceId, dbManager, commitManager) {
+    this.instanceId = instanceId;
+    this.dbManager = dbManager;
+    this.commitManager = commitManager;
+  }
+  async initialize() {
+    await this.dbManager.initialize();
+  }
+  async undo(steps = 1) {
+    const client = this.dbManager.getClient();
+    const result = await client.execute({
+      sql: `
+        SELECT commit_id, previous_commit_id 
+        FROM reflog 
+        WHERE instance_id = ? 
+        ORDER BY timestamp DESC 
+        LIMIT ?
+      `,
+      args: [this.instanceId, steps + 1]
+    });
+    if (result.rows.length <= steps) {
+      throw new Error("Cannot undo: no more history");
+    }
+    const targetCommit = result.rows[steps].commit_id;
+    await this.logReflog("undo", targetCommit, result.rows[0].commit_id);
+    return targetCommit;
+  }
+  async redo(steps = 1) {
+    const client = this.dbManager.getClient();
+    const result = await client.execute({
+      sql: `
+        SELECT commit_id, previous_commit_id 
+        FROM reflog 
+        WHERE instance_id = ? AND action = 'undo'
+        ORDER BY timestamp DESC 
+        LIMIT ?
+      `,
+      args: [this.instanceId, steps]
+    });
+    if (result.rows.length === 0) {
+      return null;
+    }
+    const targetCommit = result.rows[0].previous_commit_id;
+    await this.logReflog("redo", targetCommit, result.rows[0].commit_id);
+    return targetCommit;
+  }
+  async checkout(commitId) {
+    const commit = await this.commitManager.getCommit(commitId);
+    if (!commit) {
+      throw new Error(`Commit not found: ${commitId}`);
+    }
+    await this.logReflog("checkout", commitId, await this.commitManager.getCurrentCommit());
+  }
+  async getReflog(limit = 10) {
+    const client = this.dbManager.getClient();
+    const result = await client.execute({
+      sql: `
+        SELECT * FROM reflog 
+        WHERE instance_id = ? 
+        ORDER BY timestamp DESC 
+        LIMIT ?
+      `,
+      args: [this.instanceId, limit]
+    });
+    return result.rows;
+  }
+  async logReflog(action, commitId, previousCommitId) {
+    const client = this.dbManager.getClient();
+    await client.execute({
+      sql: `
+        INSERT INTO reflog (instance_id, commit_id, action, previous_commit_id, timestamp)
+        VALUES (?, ?, ?, ?, ?)
+      `,
+      args: [
+        this.instanceId,
+        commitId,
+        action,
+        previousCommitId,
+        new Date().toISOString()
+      ]
+    });
+  }
+}
 // src/commands/execution.ts
 var execution_default = defineCommand({
   meta: {
@@ -27233,11 +27534,31 @@ var execution_default = defineCommand({
           type: "string",
           description: "Number of steps to undo",
           default: "1"
+        },
+        backend: {
+          type: "string",
+          description: "Storage backend (filesystem or libsql)",
+          default: "filesystem"
+        },
+        dbPath: {
+          type: "string",
+          description: "Database path for libsql backend",
+          default: ".rams/execution_history"
         }
       },
       async run({ args }) {
-        const commitManager = new CommitManager(args.instance);
-        const undoRedoManager = new UndoRedoManager(args.instance, commitManager);
+        const backend = args.backend;
+        const dbPath = args.dbPath;
+        let commitManager;
+        let undoRedoManager;
+        if (backend === "libsql") {
+          const dbManager = new DatabaseManager(dbPath);
+          commitManager = new CommitManager2(args.instance, dbManager);
+          undoRedoManager = new UndoRedoManager2(args.instance, dbManager, commitManager);
+        } else {
+          commitManager = new CommitManager(args.instance);
+          undoRedoManager = new UndoRedoManager(args.instance, commitManager);
+        }
         await commitManager.initialize();
         await undoRedoManager.initialize();
         const targetCommit = await undoRedoManager.undo(parseInt(args.steps));
@@ -27259,16 +27580,38 @@ var execution_default = defineCommand({
           type: "string",
           description: "Number of steps to redo",
           default: "1"
+        },
+        backend: {
+          type: "string",
+          description: "Storage backend (filesystem or libsql)",
+          default: "filesystem"
+        },
+        dbPath: {
+          type: "string",
+          description: "Database path for libsql backend",
+          default: ".rams/execution_history"
         }
       },
       async run({ args }) {
-        const commitManager = new CommitManager(args.instance);
-        const undoRedoManager = new UndoRedoManager(args.instance, commitManager);
+        const backend = args.backend;
+        const dbPath = args.dbPath;
+        let commitManager;
+        let undoRedoManager;
+        if (backend === "libsql") {
+          const dbManager = new DatabaseManager(dbPath);
+          commitManager = new CommitManager2(args.instance, dbManager);
+          undoRedoManager = new UndoRedoManager2(args.instance, dbManager, commitManager);
+        } else {
+          commitManager = new CommitManager(args.instance);
+          undoRedoManager = new UndoRedoManager(args.instance, commitManager);
+        }
         await commitManager.initialize();
         await undoRedoManager.initialize();
         const targetCommit = await undoRedoManager.redo(parseInt(args.steps));
         if (targetCommit) {
           console.log(`Redid to commit: ${targetCommit}`);
+        } else {
+          console.log("Nothing to redo");
         }
       }
     }),
@@ -27287,11 +27630,31 @@ var execution_default = defineCommand({
           type: "string",
           description: "Commit ID",
           required: true
+        },
+        backend: {
+          type: "string",
+          description: "Storage backend (filesystem or libsql)",
+          default: "filesystem"
+        },
+        dbPath: {
+          type: "string",
+          description: "Database path for libsql backend",
+          default: ".rams/execution_history"
         }
       },
       async run({ args }) {
-        const commitManager = new CommitManager(args.instance);
-        const undoRedoManager = new UndoRedoManager(args.instance, commitManager);
+        const backend = args.backend;
+        const dbPath = args.dbPath;
+        let commitManager;
+        let undoRedoManager;
+        if (backend === "libsql") {
+          const dbManager = new DatabaseManager(dbPath);
+          commitManager = new CommitManager2(args.instance, dbManager);
+          undoRedoManager = new UndoRedoManager2(args.instance, dbManager, commitManager);
+        } else {
+          commitManager = new CommitManager(args.instance);
+          undoRedoManager = new UndoRedoManager(args.instance, commitManager);
+        }
         await commitManager.initialize();
         await undoRedoManager.initialize();
         await undoRedoManager.checkout(args.commit);
@@ -27324,11 +27687,31 @@ var execution_default = defineCommand({
               type: "string",
               description: "Base commit ID",
               required: false
+            },
+            backend: {
+              type: "string",
+              description: "Storage backend (filesystem or libsql)",
+              default: "filesystem"
+            },
+            dbPath: {
+              type: "string",
+              description: "Database path for libsql backend",
+              default: ".rams/execution_history"
             }
           },
           async run({ args }) {
-            const commitManager = new CommitManager(args.instance);
-            const branchManager = new BranchManager(args.instance);
+            const backend = args.backend;
+            const dbPath = args.dbPath;
+            let commitManager;
+            let branchManager;
+            if (backend === "libsql") {
+              const dbManager = new DatabaseManager(dbPath);
+              commitManager = new CommitManager2(args.instance, dbManager);
+              branchManager = new BranchManager2(args.instance, dbManager);
+            } else {
+              commitManager = new CommitManager(args.instance);
+              branchManager = new BranchManager(args.instance);
+            }
             await commitManager.initialize();
             await branchManager.initialize();
             const fromCommit = args.from || await commitManager.getCurrentCommit();
@@ -27355,10 +27738,28 @@ var execution_default = defineCommand({
               type: "string",
               description: "Branch name",
               required: true
+            },
+            backend: {
+              type: "string",
+              description: "Storage backend (filesystem or libsql)",
+              default: "filesystem"
+            },
+            dbPath: {
+              type: "string",
+              description: "Database path for libsql backend",
+              default: ".rams/execution_history"
             }
           },
           async run({ args }) {
-            const branchManager = new BranchManager(args.instance);
+            const backend = args.backend;
+            const dbPath = args.dbPath;
+            let branchManager;
+            if (backend === "libsql") {
+              const dbManager = new DatabaseManager(dbPath);
+              branchManager = new BranchManager2(args.instance, dbManager);
+            } else {
+              branchManager = new BranchManager(args.instance);
+            }
             await branchManager.initialize();
             await branchManager.switchBranch(args.name);
             console.log(`Switched to branch: ${args.name}`);
@@ -27374,10 +27775,28 @@ var execution_default = defineCommand({
               type: "string",
               description: "Role instance ID",
               required: true
+            },
+            backend: {
+              type: "string",
+              description: "Storage backend (filesystem or libsql)",
+              default: "filesystem"
+            },
+            dbPath: {
+              type: "string",
+              description: "Database path for libsql backend",
+              default: ".rams/execution_history"
             }
           },
           async run({ args }) {
-            const branchManager = new BranchManager(args.instance);
+            const backend = args.backend;
+            const dbPath = args.dbPath;
+            let branchManager;
+            if (backend === "libsql") {
+              const dbManager = new DatabaseManager(dbPath);
+              branchManager = new BranchManager2(args.instance, dbManager);
+            } else {
+              branchManager = new BranchManager(args.instance);
+            }
             await branchManager.initialize();
             const branches = await branchManager.listBranches();
             console.log("Branches:");
@@ -27402,10 +27821,28 @@ var execution_default = defineCommand({
               type: "string",
               description: "Branch name",
               required: true
+            },
+            backend: {
+              type: "string",
+              description: "Storage backend (filesystem or libsql)",
+              default: "filesystem"
+            },
+            dbPath: {
+              type: "string",
+              description: "Database path for libsql backend",
+              default: ".rams/execution_history"
             }
           },
           async run({ args }) {
-            const branchManager = new BranchManager(args.instance);
+            const backend = args.backend;
+            const dbPath = args.dbPath;
+            let branchManager;
+            if (backend === "libsql") {
+              const dbManager = new DatabaseManager(dbPath);
+              branchManager = new BranchManager2(args.instance, dbManager);
+            } else {
+              branchManager = new BranchManager(args.instance);
+            }
             await branchManager.initialize();
             await branchManager.deleteBranch(args.name);
             console.log(`Deleted branch: ${args.name}`);
@@ -27491,10 +27928,28 @@ var execution_default = defineCommand({
               type: "string",
               description: "Tag message",
               required: false
+            },
+            backend: {
+              type: "string",
+              description: "Storage backend (filesystem or libsql)",
+              default: "filesystem"
+            },
+            dbPath: {
+              type: "string",
+              description: "Database path for libsql backend",
+              default: ".rams/execution_history"
             }
           },
           async run({ args }) {
-            const tagManager = new TagManager(args.instance);
+            const backend = args.backend;
+            const dbPath = args.dbPath;
+            let tagManager;
+            if (backend === "libsql") {
+              const dbManager = new DatabaseManager(dbPath);
+              tagManager = new TagManager2(args.instance, dbManager);
+            } else {
+              tagManager = new TagManager(args.instance);
+            }
             await tagManager.initialize();
             await tagManager.createTag(args.name, args.commit, args.message || "");
             console.log(`Created tag: ${args.name}`);
@@ -27510,10 +27965,28 @@ var execution_default = defineCommand({
               type: "string",
               description: "Role instance ID",
               required: true
+            },
+            backend: {
+              type: "string",
+              description: "Storage backend (filesystem or libsql)",
+              default: "filesystem"
+            },
+            dbPath: {
+              type: "string",
+              description: "Database path for libsql backend",
+              default: ".rams/execution_history"
             }
           },
           async run({ args }) {
-            const tagManager = new TagManager(args.instance);
+            const backend = args.backend;
+            const dbPath = args.dbPath;
+            let tagManager;
+            if (backend === "libsql") {
+              const dbManager = new DatabaseManager(dbPath);
+              tagManager = new TagManager2(args.instance, dbManager);
+            } else {
+              tagManager = new TagManager(args.instance);
+            }
             await tagManager.initialize();
             const tags = await tagManager.listTags();
             console.log("Tags:");
@@ -27537,10 +28010,28 @@ var execution_default = defineCommand({
               type: "string",
               description: "Tag name",
               required: true
+            },
+            backend: {
+              type: "string",
+              description: "Storage backend (filesystem or libsql)",
+              default: "filesystem"
+            },
+            dbPath: {
+              type: "string",
+              description: "Database path for libsql backend",
+              default: ".rams/execution_history"
             }
           },
           async run({ args }) {
-            const tagManager = new TagManager(args.instance);
+            const backend = args.backend;
+            const dbPath = args.dbPath;
+            let tagManager;
+            if (backend === "libsql") {
+              const dbManager = new DatabaseManager(dbPath);
+              tagManager = new TagManager2(args.instance, dbManager);
+            } else {
+              tagManager = new TagManager(args.instance);
+            }
             await tagManager.initialize();
             await tagManager.deleteTag(args.name);
             console.log(`Deleted tag: ${args.name}`);
@@ -27569,11 +28060,31 @@ var execution_default = defineCommand({
               type: "string",
               description: "Stash message",
               default: "WIP"
+            },
+            backend: {
+              type: "string",
+              description: "Storage backend (filesystem or libsql)",
+              default: "filesystem"
+            },
+            dbPath: {
+              type: "string",
+              description: "Database path for libsql backend",
+              default: ".rams/execution_history"
             }
           },
           async run({ args }) {
-            const commitManager = new CommitManager(args.instance);
-            const stashManager = new StashManager(args.instance);
+            const backend = args.backend;
+            const dbPath = args.dbPath;
+            let commitManager;
+            let stashManager;
+            if (backend === "libsql") {
+              const dbManager = new DatabaseManager(dbPath);
+              commitManager = new CommitManager2(args.instance, dbManager);
+              stashManager = new StashManager2(args.instance, dbManager);
+            } else {
+              commitManager = new CommitManager(args.instance);
+              stashManager = new StashManager(args.instance);
+            }
             await commitManager.initialize();
             await stashManager.initialize();
             const currentCommit = await commitManager.getCurrentCommit();
@@ -27595,10 +28106,28 @@ var execution_default = defineCommand({
               type: "string",
               description: "Role instance ID",
               required: true
+            },
+            backend: {
+              type: "string",
+              description: "Storage backend (filesystem or libsql)",
+              default: "filesystem"
+            },
+            dbPath: {
+              type: "string",
+              description: "Database path for libsql backend",
+              default: ".rams/execution_history"
             }
           },
           async run({ args }) {
-            const stashManager = new StashManager(args.instance);
+            const backend = args.backend;
+            const dbPath = args.dbPath;
+            let stashManager;
+            if (backend === "libsql") {
+              const dbManager = new DatabaseManager(dbPath);
+              stashManager = new StashManager2(args.instance, dbManager);
+            } else {
+              stashManager = new StashManager(args.instance);
+            }
             await stashManager.initialize();
             const stashes = await stashManager.list();
             console.log("Stashes:");
@@ -27622,10 +28151,28 @@ var execution_default = defineCommand({
               type: "string",
               description: "Stash ID",
               required: true
+            },
+            backend: {
+              type: "string",
+              description: "Storage backend (filesystem or libsql)",
+              default: "filesystem"
+            },
+            dbPath: {
+              type: "string",
+              description: "Database path for libsql backend",
+              default: ".rams/execution_history"
             }
           },
           async run({ args }) {
-            const stashManager = new StashManager(args.instance);
+            const backend = args.backend;
+            const dbPath = args.dbPath;
+            let stashManager;
+            if (backend === "libsql") {
+              const dbManager = new DatabaseManager(dbPath);
+              stashManager = new StashManager2(args.instance, dbManager);
+            } else {
+              stashManager = new StashManager(args.instance);
+            }
             await stashManager.initialize();
             await stashManager.apply(args.id);
             console.log(`Applied stash: ${args.id}`);
@@ -27646,10 +28193,28 @@ var execution_default = defineCommand({
               type: "string",
               description: "Stash ID",
               required: true
+            },
+            backend: {
+              type: "string",
+              description: "Storage backend (filesystem or libsql)",
+              default: "filesystem"
+            },
+            dbPath: {
+              type: "string",
+              description: "Database path for libsql backend",
+              default: ".rams/execution_history"
             }
           },
           async run({ args }) {
-            const stashManager = new StashManager(args.instance);
+            const backend = args.backend;
+            const dbPath = args.dbPath;
+            let stashManager;
+            if (backend === "libsql") {
+              const dbManager = new DatabaseManager(dbPath);
+              stashManager = new StashManager2(args.instance, dbManager);
+            } else {
+              stashManager = new StashManager(args.instance);
+            }
             await stashManager.initialize();
             await stashManager.drop(args.id);
             console.log(`Dropped stash: ${args.id}`);
