@@ -141,6 +141,216 @@ This document tracks the implementation status of Git-like version control featu
 
 ---
 
+## 资产生产案例：版本管理的实际作用
+
+本章节以游戏资产生产为例，说明不同skill、不同模型实现下版本管理的具体作用。
+
+### 案例：角色资产生产流程
+
+假设我们要生产一个游戏角色资产，涉及多个skill和不同的模型实现。
+
+#### Skill 1: 角色概念设计 (Character Concept Design)
+
+**模型实现 A**: 使用 DALL-E 3 生成概念图
+**模型实现 B**: 使用 Midjourney 生成概念图
+
+**版本管理作用：**
+
+| 场景 | 版本控制操作 | 价值 |
+|------|------------|------|
+| 对比不同AI模型生成的概念图 | 创建分支 `concept-dalle` 和 `concept-midjourney` | 并行对比不同模型的效果 |
+| 某个模型结果不满意 | `execution undo` 撤销该次生成 | 快速回退，节省成本 |
+| 想要重新评估之前的概念图 | `execution checkout` 切换到历史版本 | 回溯查看之前的设计 |
+| 找到满意的概念图版本 | `execution tag create` 标记为 `v1.0-concept-final` | 锁定重要版本 |
+
+**实际工作流：**
+```bash
+# 1. 创建DALL-E分支
+open-design execution branch create --instance character-artist --name concept-dalle
+# 执行DALL-E skill生成概念图
+# ... 生成多个版本 ...
+
+# 2. 创建Midjourney分支
+open-design execution branch create --instance character-artist --name concept-midjourney
+# 执行Midjourney skill生成概念图
+# ... 生成多个版本 ...
+
+# 3. 对比两个分支的结果
+open-design execution branch list --instance character-artist
+open-design execution log --instance character-artist --skill character-concept-dalle
+open-design execution log --instance character-artist --skill character-concept-midjourney
+
+# 4. 选择满意的版本，切换到该分支
+open-design execution branch switch --instance character-artist --name concept-dalle
+
+# 5. 标记最终概念图
+open-design execution tag create --instance character-artist --name v1.0-concept-final
+```
+
+#### Skill 2: 3D建模 (3D Modeling)
+
+**模型实现 A**: 使用 Blender 自动建模
+**模型实现 B**: 使用 Maya 自动建模
+
+**版本管理作用：**
+
+| 场景 | 版本控制操作 | 价值 |
+|------|------------|------|
+| 尝试不同的建模工具 | 创建分支 `model-blender` 和 `model-maya` | 对比不同工具的建模效果 |
+| 建模过程中出现错误 | `execution undo` 撤销错误的建模步骤 | 避免浪费时间和资源 |
+| 需要基于概念图调整模型 | `execution checkout` 回到概念图版本 | 确保模型符合设计 |
+| 建模完成需要保存进度 | `execution stash save` 暂存当前建模状态 | 临时保存，可以切换其他任务 |
+
+**实际工作流：**
+```bash
+# 1. 基于概念图创建建模分支
+open-design execution branch create --instance character-artist --name model-blender
+# 执行Blender建模skill
+# ... 建模过程 ...
+
+# 2. 如果建模不满意，撤销
+open-design execution undo --instance character-artist --steps 1
+
+# 3. 尝试Maya建模
+open-design execution branch create --instance character-artist --name model-maya
+# 执行Maya建模skill
+# ... 建模过程 ...
+
+# 4. 建模完成，打标签
+open-design execution tag create --instance character-artist --name v1.0-model-final
+```
+
+#### Skill 3: 纹理生成 (Texture Generation)
+
+**模型实现 A**: 使用 Stable Diffusion 生成纹理
+**模型实现 B**: 使用专业纹理软件生成纹理
+
+**版本管理作用：**
+
+| 场景 | 版本控制操作 | 价值 |
+|------|------------|------|
+| 尝试不同的纹理风格 | 创建分支 `texture-sd` 和 `texture-pro` | 探索多种纹理风格 |
+| 纹理生成失败 | `execution undo` 撤销失败的生成 | 快速回退，重新尝试 |
+| 需要对比不同纹理版本 | `execution checkout` 切换到不同纹理版本 | 直观对比效果 |
+| 纹理满意但需要调整模型 | `execution stash save` 暂存纹理 | 保存纹理，调整模型后再恢复 |
+
+**实际工作流：**
+```bash
+# 1. 基于模型创建纹理分支
+open-design execution branch create --instance character-artist --name texture-sd
+# 执行Stable Diffusion纹理生成skill
+# ... 纹理生成过程 ...
+
+# 2. 如果纹理不满意，撤销
+open-design execution undo --instance character-artist --steps 1
+
+# 3. 尝试专业纹理软件
+open-design execution branch create --instance character-artist --name texture-pro
+# 执行专业纹理软件skill
+# ... 纹理生成过程 ...
+
+# 4. 纹理完成，打标签
+open-design execution tag create --instance character-artist --name v1.0-texture-final
+```
+
+#### Skill 4: 动画制作 (Animation)
+
+**模型实现 A**: 使用 AI 动画生成
+**模型实现 B**: 使用传统动画工具
+
+**版本管理作用：**
+
+| 场景 | 版本控制操作 | 价值 |
+|------|------------|------|
+| 尝试不同的动画风格 | 创建分支 `anim-ai` 和 `anim-traditional` | 探索不同动画风格 |
+| 动画效果不理想 | `execution undo` 撤销动画生成 | 快速调整参数重新生成 |
+| 需要基于不同模型制作动画 | `execution checkout` 切换到不同模型版本 | 确保动画匹配模型 |
+| 动画满意但需要调整纹理 | `execution stash save` 暂存动画 | 保存动画，调整纹理后再恢复 |
+
+**实际工作流：**
+```bash
+# 1. 基于纹理创建动画分支
+open-design execution branch create --instance character-artist --name anim-ai
+# 执行AI动画生成skill
+# ... 动画生成过程 ...
+
+# 2. 如果动画不满意，撤销
+open-design execution undo --instance character-artist --steps 1
+
+# 3. 尝试传统动画工具
+open-design execution branch create --instance character-artist --name anim-traditional
+# 执行传统动画工具skill
+# ... 动画制作过程 ...
+
+# 4. 动画完成，打标签
+open-design execution tag create --instance character-artist --name v1.0-anim-final
+```
+
+### 完整资产生产流程的版本管理
+
+#### 场景：多skill协作，需要整合不同skill的输出
+
+**问题**：概念图、模型、纹理、动画分别在不同分支上，需要整合到最终版本。
+
+**解决方案**：使用分支合并
+
+```bash
+# 1. 创建主分支
+open-design execution branch create --instance character-artist --name main
+
+# 2. 合并概念图分支
+open-design execution merge --instance character-artist --source concept-dalle --target main
+
+# 3. 合并建模分支
+open-design execution merge --instance character-artist --source model-blender --target main
+
+# 4. 合并纹理分支
+open-design execution merge --instance character-artist --source texture-sd --target main
+
+# 5. 合并动画分支
+open-design execution merge --instance character-artist --source anim-ai --target main
+
+# 6. 标记最终资产版本
+open-design execution tag create --instance character-artist --name v1.0-character-final
+```
+
+#### 场景：某个skill的模型实现升级
+
+**问题**：Stable Diffusion升级到新版本，需要重新生成纹理，但保留历史版本。
+
+**解决方案**：使用分支和标签
+
+```bash
+# 1. 创建新分支使用新模型
+open-design execution branch create --instance character-artist --name texture-sd-v2
+
+# 2. 执行新模型纹理生成
+# ... 使用新模型生成纹理 ...
+
+# 3. 对比新旧版本
+open-design execution log --instance character-artist --skill texture-generation-sd
+open-design execution log --instance character-artist --skill texture-generation-sd-v2
+
+# 4. 如果新版本更好，合并到主分支
+open-design execution merge --instance character-artist --source texture-sd-v2 --target main
+
+# 5. 为旧版本打标签保留
+open-design execution tag create --instance character-artist --name v1.0-texture-sd-v1 --commit <old-commit-id>
+```
+
+### 版本管理在资产生产中的核心价值
+
+1. **并行探索**：不同模型实现可以在不同分支上并行测试，互不干扰
+2. **快速回退**：AI生成结果不满意时，可以快速撤销，节省成本
+3. **版本对比**：可以随时切换到历史版本进行对比，选择最佳方案
+4. **里程碑标记**：为重要版本打标签，方便快速定位
+5. **协作整合**：多个skill的输出可以通过分支合并整合到最终版本
+6. **模型升级**：模型升级时可以保留历史版本，便于回滚和对比
+7. **进度管理**：使用暂存功能管理多个并行任务
+8. **历史追溯**：完整的执行历史记录，便于问题排查和经验总结
+
+---
+
 ## User Features (Complete List)
 
 | User Action | Description | Filesystem | libsql | CLI Command |
