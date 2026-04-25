@@ -159,6 +159,9 @@ open-design audit --role game-designer --skills creative-discovery,topic-validat
 
 #### Execution Versioning (Git-like)
 
+The execution versioning system supports two storage backends:
+
+**Filesystem Backend (Default)**
 ```bash
 # View execution history
 open-design execution log --instance <instance-id>
@@ -177,7 +180,49 @@ open-design execution branch create --instance <instance-id> --name feature-x
 open-design execution branch switch --instance <instance-id> --name feature-x
 open-design execution branch list --instance <instance-id>
 open-design execution branch delete --instance <instance-id> --name feature-x
+
+# Tag management
+open-design execution tag create --instance <instance-id> --name v1.0 --commit <commit-id>
+open-design execution tag list --instance <instance-id>
+open-design execution tag delete --instance <instance-id> --name v1.0
+
+# Stash management
+open-design execution stash save --instance <instance-id> --message "WIP"
+open-design execution stash list --instance <instance-id>
+open-design execution stash apply --instance <instance-id> --id <stash-id>
+open-design execution stash drop --instance <instance-id> --id <stash-id>
 ```
+
+**libsql Backend (SQLite)**
+```bash
+# Use libsql backend for better performance and remote support
+open-design execution log --instance <instance-id> --backend libsql --dbPath .rams/execution_history
+
+open-design execution undo --instance <instance-id> --steps 1 --backend libsql --dbPath .rams/execution_history
+open-design execution redo --instance <instance-id> --steps 1 --backend libsql --dbPath .rams/execution_history
+open-design execution checkout --instance <instance-id> --commit <commit-id> --backend libsql --dbPath .rams/execution_history
+
+# Branch management with libsql
+open-design execution branch create --instance <instance-id> --name feature-x --backend libsql --dbPath .rams/execution_history
+open-design execution branch switch --instance <instance-id> --name feature-x --backend libsql --dbPath .rams/execution_history
+open-design execution branch list --instance <instance-id> --backend libsql --dbPath .rams/execution_history
+open-design execution branch delete --instance <instance-id> --name feature-x --backend libsql --dbPath .rams/execution_history
+
+# Tag management with libsql
+open-design execution tag create --instance <instance-id> --name v1.0 --commit <commit-id> --backend libsql --dbPath .rams/execution_history
+open-design execution tag list --instance <instance-id> --backend libsql --dbPath .rams/execution_history
+open-design execution tag delete --instance <instance-id> --name v1.0 --backend libsql --dbPath .rams/execution_history
+
+# Stash management with libsql
+open-design execution stash save --instance <instance-id> --message "WIP" --backend libsql --dbPath .rams/execution_history
+open-design execution stash list --instance <instance-id> --backend libsql --dbPath .rams/execution_history
+open-design execution stash apply --instance <instance-id> --id <stash-id> --backend libsql --dbPath .rams/execution_history
+open-design execution stash drop --instance <instance-id> --id <stash-id> --backend libsql --dbPath .rams/execution_history
+```
+
+**Backend Comparison:**
+- **Filesystem**: Simple YAML files, no dependencies, easy to inspect
+- **libsql**: Better query performance, ACID transactions, supports remote databases, requires `@libsql/client`
 
 ### Configuration
 
@@ -300,8 +345,19 @@ src/
 │   ├── workflow-parser.ts
 │   ├── version-manager/        # Git-like execution versioning
 │   │   ├── commit-manager.ts
+│   │   ├── commit-manager-db.ts
 │   │   ├── branch-manager.ts
+│   │   ├── branch-manager-db.ts
+│   │   ├── tag-manager.ts
+│   │   ├── tag-manager-db.ts
+│   │   ├── stash-manager.ts
+│   │   ├── stash-manager-db.ts
 │   │   ├── undo-redo-manager.ts
+│   │   ├── undo-redo-manager-db.ts
+│   │   ├── merge-manager.ts
+│   │   ├── rebase-manager.ts
+│   │   ├── remote-manager.ts
+│   │   ├── database-manager.ts
 │   │   └── index.ts
 │   └── tool-channels/
 ├── validators/                 # Specification validators
