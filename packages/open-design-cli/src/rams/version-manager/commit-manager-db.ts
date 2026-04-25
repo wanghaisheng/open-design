@@ -7,7 +7,7 @@ export interface Commit {
   input_hash: string;
   output_data_id: string;
   timestamp: string;
-  parent_commit: string | null;
+  parent_commit_id: string | null;
   metadata: string;
 }
 
@@ -57,7 +57,7 @@ export class CommitManager {
       sql: `
         INSERT INTO commits (
           commit_id, instance_id, skill_name, input_hash,
-          output_data_id, parent_commit, timestamp, metadata
+          output_data_id, parent_commit_id, timestamp, metadata
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `,
       args: [

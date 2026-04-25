@@ -5,7 +5,7 @@ export interface Commit {
     input_hash: string;
     output_data_id: string;
     timestamp: string;
-    parent_commit: string | null;
+    parent_commit_id: string | null;
     metadata: string;
 }
 export interface OutputData {

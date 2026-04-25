@@ -39,7 +39,7 @@ export class RebaseManager {
       if (!commit) break;
 
       commits.unshift(commit);
-      currentId = commit.parent_commit || undefined;
+      currentId = commit.parent_commit_id || undefined;
     }
 
     return commits;
@@ -52,7 +52,7 @@ export class RebaseManager {
     const newCommit = {
       ...commit,
       commit_id: newCommitId,
-      parent_commit: newParent,
+      parent_commit_id: newParent,
       timestamp: new Date().toISOString(),
     };
 

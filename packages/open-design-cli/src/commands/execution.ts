@@ -69,7 +69,7 @@ export default defineCommand({
           console.log(`Commit: ${commit.commit_id}`);
           console.log(`Skill: ${commit.skill_name}`);
           console.log(`Time: ${commit.timestamp}`);
-          console.log(`Parent: ${commit.parent_commit || 'none'}`);
+          console.log(`Parent: ${commit.parent_commit_id || 'none'}`);
           console.log('---');
         }
       },

@@ -21449,7 +21449,7 @@ class CommitManager {
       input_hash: inputHash,
       output_data: storedOutput,
       timestamp: new Date().toISOString(),
-      parent_commit: parentId,
+      parent_commit_id: parentId,
       metadata
     };
     await this.storeCommit(commit);
@@ -21632,10 +21632,13 @@ class UndoRedoManager {
     let targetCommit = currentCommit;
     for (let i2 = 0;i2 < steps; i2++) {
       const commit = await this.commitManager.getCommit(targetCommit);
-      if (!commit || !commit.parent_commit) {
-        throw new Error("Cannot undo further: reached initial commit");
+      if (!commit || !commit.parent_commit_id) {
+        return null;
       }
-      targetCommit = commit.parent_commit;
+      targetCommit = commit.parent_commit_id;
+    }
+    if (!targetCommit) {
+      return null;
     }
     await this.commitManager.setCurrentCommit(targetCommit);
     await this.logReflog("undo", currentCommit, targetCommit);
@@ -21775,7 +21778,7 @@ class MergeManager {
         }))
       },
       timestamp: new Date().toISOString(),
-      parent_commit: targetCommit.commit_id,
+      parent_commit_id: targetCommit.commit_id,
       metadata: {
         implementation: "merge",
         model: undefined,
@@ -22105,7 +22108,7 @@ class RebaseManager {
       if (!commit)
         break;
       commits.unshift(commit);
-      currentId = commit.parent_commit || undefined;
+      currentId = commit.parent_commit_id || undefined;
     }
     return commits;
   }
@@ -22114,7 +22117,7 @@ class RebaseManager {
     const newCommit = {
       ...commit,
       commit_id: newCommitId,
-      parent_commit: newParent,
+      parent_commit_id: newParent,
       timestamp: new Date().toISOString()
     };
     await this.commitManager.storeCommit(newCommit);
@@ -27038,7 +27041,7 @@ class CommitManager2 {
       sql: `
         INSERT INTO commits (
           commit_id, instance_id, skill_name, input_hash,
-          output_data_id, parent_commit, timestamp, metadata
+          output_data_id, parent_commit_id, timestamp, metadata
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `,
       args: [
@@ -27514,7 +27517,7 @@ var execution_default = defineCommand({
           console.log(`Commit: ${commit.commit_id}`);
           console.log(`Skill: ${commit.skill_name}`);
           console.log(`Time: ${commit.timestamp}`);
-          console.log(`Parent: ${commit.parent_commit || "none"}`);
+          console.log(`Parent: ${commit.parent_commit_id || "none"}`);
           console.log("---");
         }
       }

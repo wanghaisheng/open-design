@@ -15,19 +15,23 @@ export class UndoRedoManager {
     await fs.mkdir(join(this.reflogPath, '..'), { recursive: true });
   }
 
-  async undo(steps: number = 1): Promise<string> {
+  async undo(steps: number = 1): Promise<string | null> {
     const currentCommit = await this.commitManager.getCurrentCommit();
     if (!currentCommit) {
       throw new Error('No current commit to undo from');
     }
 
-    let targetCommit = currentCommit;
+    let targetCommit: string | null = currentCommit;
     for (let i = 0; i < steps; i++) {
       const commit = await this.commitManager.getCommit(targetCommit);
-      if (!commit || !commit.parent_commit) {
-        throw new Error('Cannot undo further: reached initial commit');
+      if (!commit || !commit.parent_commit_id) {
+        return null;
       }
-      targetCommit = commit.parent_commit;
+      targetCommit = commit.parent_commit_id;
+    }
+
+    if (!targetCommit) {
+      return null;
     }
 
     await this.commitManager.setCurrentCommit(targetCommit);

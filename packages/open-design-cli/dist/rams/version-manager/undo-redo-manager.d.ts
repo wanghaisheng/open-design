@@ -4,7 +4,7 @@ export declare class UndoRedoManager {
     private reflogPath;
     constructor(_instanceId: string, commitManager: CommitManager, basePath?: string);
     initialize(): Promise<void>;
-    undo(steps?: number): Promise<string>;
+    undo(steps?: number): Promise<string | null>;
     redo(steps?: number): Promise<string | null>;
     checkout(commitId: string): Promise<void>;
     private logReflog;

@@ -9,7 +9,7 @@ export interface Commit {
   input_hash: string;
   output_data: OutputData;
   timestamp: string;
-  parent_commit: string | null;
+  parent_commit_id: string | null;
   metadata: CommitMetadata;
 }
 
@@ -72,7 +72,7 @@ export class CommitManager {
       input_hash: inputHash,
       output_data: storedOutput,
       timestamp: new Date().toISOString(),
-      parent_commit: parentId,
+      parent_commit_id: parentId,
       metadata,
     };
 

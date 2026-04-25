@@ -118,7 +118,7 @@ export class MergeManager {
         })),
       },
       timestamp: new Date().toISOString(),
-      parent_commit: targetCommit.commit_id,
+      parent_commit_id: targetCommit.commit_id,
       metadata: {
         implementation: 'merge',
         model: undefined,
