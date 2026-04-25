@@ -148,6 +148,23 @@ domain: [game-development|software-development|...]
 - 核心技能相同（core-loop-design, economy-design）
 - 扩展技能不同（平台特定技能）
 
+详细的变体配置格式请参阅 [role_VARIANT_CONFIGURATION.md](role_VARIANT_CONFIGURATION.md)。
+
+## 技能实现覆盖
+
+角色实例可以覆盖技能的默认实现方式：
+
+```yaml
+role_instance:
+  skill_implementations:
+    creative-discovery:
+      implementation: fast
+      config:
+        temperature: 0.3
+```
+
+详细的技能实现配置请参阅 [SKILL_IMPLEMENTATION.md](SKILL_IMPLEMENTATION.md)。
+
 ---
 
 ## 质量检查清单

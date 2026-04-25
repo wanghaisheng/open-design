@@ -1,0 +1,68 @@
+# Creative Discovery Skill Dependencies Configuration
+
+dependencies:
+  skills:
+    - name: market-insight
+      optional: true
+      version: ">=1.0.0"
+      reason: "需要市场洞察信息来验证创意的市场潜力"
+      parameters:
+        - region: "global"
+        - time_range: "30d"
+    
+    - name: viral-content-analysis
+      optional: true
+      version: ">=1.0.0"
+      reason: "需要病毒内容分析来发现流行趋势"
+  
+  tools:
+    - name: web-scraper
+      version: ">=1.0.0"
+      optional: false
+      reason: "需要网页抓取工具来收集市场数据"
+      config:
+        timeout: 30
+        max_retries: 3
+        user_agent: "RAMS-Skill-Executor/1.0"
+    
+    - name: text-analyzer
+      version: ">=2.0.0"
+      optional: true
+      reason: "需要文本分析工具来分析创意描述"
+  
+  data:
+    - name: market-trends
+      source: external-api
+      optional: true
+      reason: "需要市场趋势数据来分析"
+      location: https://api.market.com/trends
+      format: json
+      cache_ttl: 3600
+    
+    - name: successful-games
+      source: database
+      optional: true
+      reason: "需要成功游戏数据作为参考"
+      location: postgresql://localhost/games
+      format: json
+  
+  runtime:
+    - name: python
+      version: ">=3.8"
+      optional: false
+      reason: "需要Python 3.8或更高版本"
+    
+    - name: nodejs
+      version: ">=14.0.0"
+      optional: true
+      reason: "可选，用于某些脚本"
+  
+  conflict_resolution:
+    strategy: highest
+    overrides:
+      web-scraper: "2.0.0"
+  
+  cache:
+    enabled: true
+    ttl: 3600
+    location: .cache/dependencies/

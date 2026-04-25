@@ -1,0 +1,113 @@
+# Creative Discovery Skill Schema Configuration
+
+schema:
+  version: "1.0.0"
+  validation_mode: lenient
+  
+  input:
+    type: object
+    properties:
+      game_concept:
+        type: string
+        minLength: 1
+        maxLength: 500
+        description: 游戏概念描述
+      
+      target_audience:
+        type: string
+        enum: [children, teens, adults, all_ages]
+        description: 目标受众
+      
+      platform:
+        type: string
+        enum: [mobile, pc, console, web]
+        description: 目标平台
+      
+      genre:
+        type: string
+        enum: [rpg, action, strategy, casual, puzzle, simulation]
+        description: 游戏类型
+      
+      constraints:
+        type: object
+        properties:
+          max_budget:
+            type: number
+            minimum: 0
+            description: 最大预算
+          team_size:
+            type: integer
+            minimum: 1
+            maximum: 100
+            description: 团队大小
+    
+    required: [game_concept]
+    additionalProperties: true
+  
+  output:
+    type: object
+    properties:
+      creative_ideas:
+        type: array
+        items:
+          type: object
+          properties:
+            name:
+              type: string
+              minLength: 1
+              description: 创意名称
+            
+            description:
+              type: string
+              minLength: 1
+              maxLength: 1000
+              description: 创意描述
+            
+            feasibility:
+              type: number
+              minimum: 0
+              maximum: 1
+              description: 可行性评分
+            
+            market_potential:
+              type: number
+              minimum: 0
+              maximum: 1
+              description: 市场潜力评分
+            
+            tags:
+              type: array
+              items:
+                type: string
+              description: 创意标签
+          
+          required: [name, description, feasibility]
+        
+        minItems: 1
+        maxItems: 10
+        description: 创意列表
+      
+      analysis:
+        type: object
+        properties:
+          total_ideas:
+            type: integer
+            minimum: 0
+            description: 创意总数
+          
+          average_feasibility:
+            type: number
+            minimum: 0
+            maximum: 1
+            description: 平均可行性
+          
+          recommendations:
+            type: array
+            items:
+              type: string
+            description: 推荐建议
+        
+        description: 创意分析
+    
+    required: [creative_ideas]
+    additionalProperties: true

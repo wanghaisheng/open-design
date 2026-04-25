@@ -1,0 +1,120 @@
+# Creative Discovery Skill Monitoring Configuration
+
+monitoring:
+  enabled: true
+  
+  metrics:
+    - name: execution_time
+      type: histogram
+      buckets: [0.1, 0.5, 1.0, 2.0, 5.0, 10.0]
+      description: 执行时间分布（秒）
+      labels:
+        - variant
+        - implementation
+    
+    - name: execution_count
+      type: counter
+      description: 执行次数
+      labels:
+        - variant
+        - implementation
+    
+    - name: success_count
+      type: counter
+      description: 成功次数
+      labels:
+        - variant
+        - implementation
+    
+    - name: error_count
+      type: counter
+      description: 错误次数
+      labels:
+        - variant
+        - implementation
+        - error_type
+    
+    - name: success_rate
+      type: gauge
+      description: 成功率
+      min: 0
+      max: 1
+      labels:
+        - variant
+        - implementation
+    
+    - name: cache_hit_rate
+      type: gauge
+      description: 缓存命中率
+      min: 0
+      max: 1
+    
+    - name: token_usage
+      type: histogram
+      buckets: [100, 500, 1000, 2000, 5000, 10000]
+      description: Token使用量
+      labels:
+        - model
+    
+    - name: cost
+      type: gauge
+      description: 成本（美元）
+      unit: usd
+      labels:
+        - model
+  
+  logging:
+    level: INFO
+    format: json
+    timestamp_format: iso8601
+    include_context: true
+    
+    log_execution: true
+    log_input: true
+    log_output: false
+    log_errors: true
+    log_metrics: true
+    
+    outputs:
+      - type: console
+        level: INFO
+      
+      - type: file
+        path: logs/skills/creative-discovery.log
+        level: DEBUG
+        rotation:
+          max_size: 100MB
+          max_files: 10
+  
+  alerts:
+    - name: high_error_rate
+      condition: "error_rate > 0.1"
+      duration: 5m
+      severity: warning
+      action: notify
+      recipients:
+        - slack: "#alerts"
+    
+    - name: slow_execution
+      condition: "execution_time_p95 > 5s"
+      duration: 10m
+      severity: warning
+      action: notify
+      recipients:
+        - slack: "#performance"
+    
+    - name: critical_error
+      condition: "error_count > 100"
+      duration: 1m
+      severity: critical
+      action: notify_and_escalate
+      recipients:
+        - slack: "#critical"
+    
+    - name: low_cache_hit_rate
+      condition: "cache_hit_rate < 0.5"
+      duration: 30m
+      severity: info
+      action: notify
+      recipients:
+        - slack: "#performance"

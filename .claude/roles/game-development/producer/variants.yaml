@@ -1,0 +1,40 @@
+variants:
+  hybrid-casual-producer:
+    name: Hybrid Casual Producer
+    description: 专精于混合休闲游戏项目管理的制作人，擅长快速迭代和创意验证
+    priority: 10
+    skills:
+      - creative-discovery
+      - topic-validation
+      - prototype-validation
+      - data-driven-decision
+      - sprint-plan
+      - estimate
+      - retrospective
+      - resource-allocation
+      - risk-management
+      - team-coordination
+    metadata:
+      methodology: hybrid-casual
+      focus: rapid-iteration
+      expertise: prototype-validation, data-driven-decision
+
+  data-driven-producer:
+    name: Data Driven Producer
+    description: 专精于数据驱动决策和精准资源分配的制作人
+    priority: 10
+    skills:
+      - market-insight
+      - prototype-validation
+      - data-driven-decision
+      - user-segmentation
+      - sprint-plan
+      - estimate
+      - retrospective
+      - resource-allocation
+      - risk-management
+      - team-coordination
+    metadata:
+      methodology: data-driven
+      focus: data-decision
+      expertise: data-driven-decision, user-segmentation

@@ -1,3 +1,12 @@
+---
+name: gameplay-programmer
+description: 游戏逻辑程序员，负责实现游戏玩法机制和系统
+variants:
+  - unity-gameplay-programmer
+  - unreal-gameplay-programmer
+  - godot-gameplay-programmer
+---
+
 # Gameplay Programmer Role
 
 ## 角色概述

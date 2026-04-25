@@ -1,3 +1,14 @@
+---
+name: backend-programmer
+description: 后端程序员，负责后端系统开发、数据库管理和网络安全
+variants:
+  - nodejs-backend-programmer
+  - python-backend-programmer
+  - go-backend-programmer
+  - rust-backend-programmer
+  - csharp-backend-programmer
+---
+
 # Backend Programmer Role
 
 ## 角色概述

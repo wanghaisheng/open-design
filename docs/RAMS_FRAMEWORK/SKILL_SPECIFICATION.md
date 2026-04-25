@@ -16,6 +16,23 @@ SKILL.md 是 RAMS 框架中定义"如何做"的文件，提供具体可执行的
 
 ## 文件结构规范
 
+### 技能目录结构
+
+```
+skill-name/
+  ├── SKILL.md              # 技能描述（必须）
+  ├── implementation.yaml   # 实现配置（可选）
+  ├── schema.yaml           # 输入输出Schema（可选）
+  ├── dependencies.yaml     # 依赖关系（可选）
+  ├── version.yaml          # 版本管理（可选）
+  ├── cache.yaml            # 缓存配置（可选）
+  ├── monitoring.yaml       # 监控配置（可选）
+  └── scripts/              # 脚本文件（可选）
+      └── skill-script.py
+```
+
+### SKILL.md 格式
+
 ```markdown
 ---
 name: skill-name
@@ -190,12 +207,42 @@ soul.md (性格/价值观)
 role.md (职责/技能列表) ←→ SKILL.md (如何做) ←→ 其他SKILL.md
     ↓
 角色实例 (Role Instance)
+    ↓
+角色变体 (Role Variant) = 不同技能组合
 ```
 
 - **soul.md** 决定角色"是什么样的人"
 - **role.md** 决定角色"要做什么事"（使用哪些 skills）
 - **SKILL.md** 决定"如何做这件事"
 - **角色实例** = soul + 选定的 skills
+
+---
+
+## 技能配置文件
+
+### implementation.yaml
+
+定义技能的实现方式，支持多种实现类型（AI模型、API、脚本等）。详见 [SKILL_IMPLEMENTATION.md](SKILL_IMPLEMENTATION.md)。
+
+### schema.yaml
+
+定义技能的输入输出Schema，用于数据验证和类型提示。详见 [SKILL_SCHEMA.md](SKILL_SCHEMA.md)。
+
+### dependencies.yaml
+
+定义技能的依赖关系，包括技能依赖、工具依赖、数据依赖等。详见 [SKILL_DEPENDENCIES.md](SKILL_DEPENDENCIES.md)。
+
+### version.yaml
+
+定义技能的版本信息，包括版本号、变更日志、兼容性等。详见 [SKILL_VERSION.md](SKILL_VERSION.md)。
+
+### cache.yaml
+
+定义技能的缓存配置，包括缓存策略、失效条件等。详见 [SKILL_CACHE.md](SKILL_CACHE.md)。
+
+### monitoring.yaml
+
+定义技能的监控配置，包括指标收集、日志记录、告警通知等。详见 [SKILL_MONITORING.md](SKILL_MONITORING.md)。
 
 ---
 

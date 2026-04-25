@@ -1,0 +1,87 @@
+# Backend Programmer Variants
+
+variants:
+  - name: nodejs-backend-programmer
+    base_role: backend-programmer
+    additional_skills:
+      - nodejs-backend
+    skill_overrides:
+      setup-engine:
+        engine: nodejs
+        tools:
+          - node
+          - npm
+          - typescript
+    description: Node.js后端程序员，使用Node.js和TypeScript构建游戏服务器
+    tags:
+      - nodejs
+      - backend
+      - programmer
+
+  - name: python-backend-programmer
+    base_role: backend-programmer
+    additional_skills:
+      - python-backend
+    skill_overrides:
+      setup-engine:
+        engine: python
+        tools:
+          - python
+          - pip
+          - fastapi
+    description: Python后端程序员，使用Python和FastAPI构建游戏服务器
+    tags:
+      - python
+      - backend
+      - programmer
+
+  - name: go-backend-programmer
+    base_role: backend-programmer
+    additional_skills:
+      - go-backend
+    skill_overrides:
+      setup-engine:
+        engine: go
+        tools:
+          - go
+          - gin
+          - gorm
+    description: Go后端程序员，使用Go和Gin构建高性能游戏服务器
+    tags:
+      - go
+      - backend
+      - programmer
+
+  - name: rust-backend-programmer
+    base_role: backend-programmer
+    additional_skills:
+      - rust-backend
+    skill_overrides:
+      setup-engine:
+        engine: rust
+        tools:
+          - rust
+          - cargo
+          - actix
+    description: Rust后端程序员，使用Rust和Actix构建高性能、安全的游戏服务器
+    tags:
+      - rust
+      - backend
+      - programmer
+
+  - name: csharp-backend-programmer
+    base_role: backend-programmer
+    additional_skills:
+      - csharp-backend
+    skill_overrides:
+      setup-engine:
+        engine: csharp
+        tools:
+          - dotnet
+          - aspnet
+          - entity-framework
+    description: C#后端程序员，使用C#和ASP.NET Core构建游戏服务器
+    tags:
+      - csharp
+      - backend
+      - programmer

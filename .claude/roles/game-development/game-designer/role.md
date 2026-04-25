@@ -4,6 +4,7 @@ version: 1.0.0
 description: 游戏策划，负责游戏机制设计、关卡进度设计和用户体验设计
 tags: [game-development, game-design, game-mechanics]
 soul_ref: soul.md
+variants_ref: variants.yaml
 
 ## Skills（技能堆栈）
 

@@ -1,0 +1,34 @@
+# Creative Discovery Skill Cache Configuration
+
+cache:
+  enabled: true
+  ttl: 3600  # 1小时
+  key_template: "{skill_name}:{input_hash}:{variant}"
+  strategy: lru
+  max_size: 1000
+  hash_algorithm: sha256
+  
+  invalidation:
+    - on_input_change
+    - on_config_change
+    - on_version_change
+    - on_time
+  
+  storage:
+    type: file
+    location: .cache/skills/creative-discovery/
+    max_size: 100000000  # 100MB
+    compression: true
+  
+  warmup:
+    enabled: false
+    strategy: on_demand
+  
+  monitoring:
+    enabled: true
+    metrics:
+      - hit_rate
+      - miss_rate
+      - size
+      - eviction_count
+      - avg_latency

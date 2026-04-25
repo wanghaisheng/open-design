@@ -1,0 +1,72 @@
+# Creative Discovery Skill Implementation Configuration
+
+implementation:
+  # 默认实现方式
+  default:
+    type: ai-model
+    provider: anthropic
+    model: claude-3-opus
+    temperature: 0.7
+    max_tokens: 4000
+    top_p: 0.9
+  
+  # 可选实现方式
+  alternatives:
+    - name: fast
+      type: ai-model
+      provider: anthropic
+      model: claude-3-sonnet
+      temperature: 0.5
+      max_tokens: 2000
+      description: 快速实现，适合原型开发
+    
+    - name: api
+      type: api
+      endpoint: https://api.creative-ai.com/discover
+      method: POST
+      headers:
+        Authorization: Bearer ${CREATIVE_AI_KEY}
+        Content-Type: application/json
+      body_template: '{"input": "{{input}}", "context": "{{context}}"}'
+      response_parser: json
+      timeout: 30
+      retry_count: 3
+      retry_delay: 5
+      description: 通过API调用第三方服务
+    
+    - name: script
+      type: script
+      script: scripts/creative-discovery.py
+      runtime: python
+      args:
+        - --input
+        - "{{input}}"
+        - --output
+        - "{{output}}"
+      env_vars:
+        PYTHONPATH: ./scripts
+      timeout: 60
+      working_dir: ./
+      description: 使用Python脚本实现
+  
+  # 环境要求
+  runtime_requirements:
+    required:
+      - ai_model_support
+    compatible_environments:
+      - windsurf
+      - cursor
+      - claude_desktop
+      - claude_web
+      - openclaw
+      - hermes
+      - web_application
+      - cli_tool
+    incompatible_environments: []
+  
+  # 降级策略
+  fallback:
+    - implementation: fast
+      condition: "latency > 5s"
+    - implementation: script
+      condition: "api_unavailable"

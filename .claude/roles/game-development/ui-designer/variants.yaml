@@ -1,0 +1,22 @@
+# UI Designer Variants
+
+variants:
+  - name: mobile-ui-designer
+    base_role: ui-designer
+    additional_skills:
+      - mobile-ui-design
+    description: 移动端UI设计师，专注于移动平台的界面设计
+    tags:
+      - mobile
+      - ui
+      - designer
+
+  - name: web-ui-designer
+    base_role: ui-designer
+    additional_skills:
+      - web-ui-design
+    description: Web端UI设计师，专注于浏览器平台的界面设计
+    tags:
+      - web
+      - ui
+      - designer

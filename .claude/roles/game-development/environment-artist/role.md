@@ -1,3 +1,11 @@
+---
+name: environment-artist
+description: 环境艺术家，负责创建游戏环境和场景
+variants:
+  - outdoor-environment-artist
+  - indoor-environment-artist
+---
+
 # Environment Artist Role
 
 ## 角色概述

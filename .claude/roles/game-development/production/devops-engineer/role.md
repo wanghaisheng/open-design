@@ -111,7 +111,7 @@ DevOps工程师，维护构建管道、CI/CD配置、版本控制工作流程和
 
 ### [2] 质量保证
 - **code-review**：代码审查
-- **bug-report**：错误报告管理
+- **bug-management**：错误报告管理
 
 ### [3] 流程管理
 - **estimate**：DevOps工作量估算

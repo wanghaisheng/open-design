@@ -1,0 +1,52 @@
+# Gameplay Programmer Variants
+
+variants:
+  - name: unity-gameplay-programmer
+    base_role: gameplay-programmer
+    additional_skills:
+      - unity-development
+    skill_overrides:
+      setup-engine:
+        engine: unity
+        tools:
+          - unity-editor
+          - visual-studio
+          - rider
+    description: Unity游戏逻辑程序员，专注于Unity引擎的游戏玩法开发
+    tags:
+      - unity
+      - gameplay
+      - programmer
+
+  - name: unreal-gameplay-programmer
+    base_role: gameplay-programmer
+    additional_skills:
+      - unreal-development
+    skill_overrides:
+      setup-engine:
+        engine: unreal
+        tools:
+          - unreal-editor
+          - visual-studio
+          - rider
+    description: Unreal游戏逻辑程序员，专注于Unreal引擎的游戏玩法开发
+    tags:
+      - unreal
+      - gameplay
+      - programmer
+
+  - name: godot-gameplay-programmer
+    base_role: gameplay-programmer
+    additional_skills:
+      - godot-development
+    skill_overrides:
+      setup-engine:
+        engine: godot
+        tools:
+          - godot-editor
+          - vscode
+    description: Godot游戏逻辑程序员，专注于Godot引擎的游戏玩法开发
+    tags:
+      - godot
+      - gameplay
+      - programmer

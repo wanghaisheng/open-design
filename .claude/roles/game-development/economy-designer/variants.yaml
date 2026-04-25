@@ -1,0 +1,36 @@
+variants:
+  hybrid-monetization-designer:
+    name: Hybrid Monetization Designer
+    description: 专精于混合变现设计，协同IAA和IAP以提升ARPU和LTV的经济设计师
+    priority: 10
+    skills:
+      - hybrid-monetization
+      - user-segmentation
+      - economy-systems
+      - loot-table-design
+      - balance-check
+      - economy-analysis
+      - progression-curve
+      - reward-optimization
+    metadata:
+      methodology: hybrid-monetization
+      focus: IAA-IAP-synergy
+      expertise: hybrid-monetization, user-segmentation
+
+  economic-system-designer:
+    name: Economic System Designer
+    description: 专精于系统性经济设计，设计货币、产出、消耗和供需平衡的经济设计师
+    priority: 10
+    skills:
+      - economic-system-design
+      - game-system-design
+      - economy-systems
+      - loot-table-design
+      - balance-check
+      - economy-analysis
+      - progression-curve
+      - reward-optimization
+    metadata:
+      methodology: systematic-design
+      focus: economic-architecture
+      expertise: economic-system-design, game-system-design

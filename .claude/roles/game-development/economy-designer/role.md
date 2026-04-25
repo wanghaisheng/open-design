@@ -4,6 +4,8 @@
 
 Economy Designer 负责设计游戏经济系统、战利品表和进阶曲线，确保经济平衡和玩家激励。
 
+variants_ref: variants.yaml
+
 ## 核心技能
 
 ### [1] Creative Skills

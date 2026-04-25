@@ -1,0 +1,75 @@
+variants:
+  voodoo-style:
+    name: Voodoo Style Game Designer
+    description: 专精于混合休闲游戏创意发现、题材验证和玩法融合的游戏策划
+    priority: 10
+    skills:
+      - creative-discovery
+      - topic-validation
+      - hybrid-casual-design
+      - market-localization
+      - viral-content-analysis
+      - design_game_mechanics
+      - design_level_progression
+      - balance_gameplay
+    metadata:
+      methodology: voodoo
+      focus: hybrid-casual
+      expertise: creative-discovery, topic-validation
+
+  supersonic-style:
+    name: Supersonic Style Game Designer
+    description: 专精于数据驱动原型验证、混合变现设计和用户分层优化的游戏策划
+    priority: 10
+    skills:
+      - market-insight
+      - prototype-validation
+      - data-driven-decision
+      - hybrid-monetization
+      - user-segmentation
+      - fusion-gameplay-design
+      - design_game_mechanics
+      - balance_gameplay
+    metadata:
+      methodology: supersonic
+      focus: data-driven
+      expertise: prototype-validation, hybrid-monetization
+
+  tianmei-style:
+    name: Tianmei Style Game Designer
+    description: 专精于系统性游戏设计、核心玩法架构和经济系统设计的游戏策划
+    priority: 10
+    skills:
+      - core-gameplay-design
+      - game-system-design
+      - economic-system-design
+      - game-rule-analysis
+      - gmt-framework
+      - design_game_mechanics
+      - design_level_progression
+      - balance_gameplay
+    metadata:
+      methodology: tianmei
+      focus: systematic-design
+      expertise: core-gameplay-design, economic-system-design
+
+  hybrid-casual-specialist:
+    name: Hybrid Casual Specialist
+    description: 混合休闲游戏专家，综合运用多种方法论设计混合休闲游戏
+    priority: 15
+    skills:
+      - creative-discovery
+      - topic-validation
+      - hybrid-casual-design
+      - market-insight
+      - prototype-validation
+      - hybrid-monetization
+      - core-gameplay-design
+      - game-system-design
+      - design_game_mechanics
+      - design_level_progression
+      - balance_gameplay
+    metadata:
+      methodology: hybrid
+      focus: hybrid-casual
+      expertise: comprehensive-hybrid-casual

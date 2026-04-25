@@ -1,3 +1,11 @@
+---
+name: ui-designer
+description: UI设计师，负责设计用户界面和交互体验
+variants:
+  - mobile-ui-designer
+  - web-ui-designer
+---
+
 # UI Designer Role
 
 ## 角色概述

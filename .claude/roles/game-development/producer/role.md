@@ -4,6 +4,8 @@
 
 Producer 负责项目管理和交付，协调各团队工作，管理资源和风险，确保项目按计划推进。
 
+variants_ref: variants.yaml
+
 ## 核心技能
 
 ### [3] Project Management Skills

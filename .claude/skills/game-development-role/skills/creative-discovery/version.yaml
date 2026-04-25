@@ -1,0 +1,60 @@
+# Creative Discovery Skill Version Configuration
+
+version: 1.0.0
+changelog:
+  - version: 1.0.0
+    date: 2026-04-25
+    author: "RAMS Team"
+    changes:
+      - "初始版本发布"
+      - "支持三大支柱创意发现（成功模式转译、现实世界观察、玩法融合）"
+      - "添加AI模型实现方式"
+      - "添加Schema验证"
+      - "添加依赖管理"
+      - "添加版本管理"
+      - "添加缓存配置"
+      - "添加监控配置"
+    breaking_changes: []
+    deprecations: []
+
+compatibility:
+  min_framework_version: 1.0.0
+  max_framework_version: 2.0.0
+  required_features:
+    - skill_implementation
+    - schema_validation
+    - dependency_management
+  optional_features:
+    - advanced_caching
+    - monitoring
+  
+  dependencies_compatibility:
+    python: ">=3.8,<4.0"
+    nodejs: ">=14.0.0"
+    tools:
+      web-scraper: ">=1.0.0,<2.0.0"
+
+deprecated_versions: []
+
+migration_guide: ""
+
+release:
+  version: "1.0.0"
+  pre_release: false
+  build_metadata: ""
+  release_notes: |
+    creative-discovery技能1.0.0版本发布
+    
+    新功能：
+    - 支持三大支柱创意发现
+    - 支持多种实现方式（AI模型、API、脚本）
+    - 支持Schema验证
+    - 支持依赖管理
+    - 支持版本管理
+    - 支持缓存配置
+    - 支持监控配置
+    
+    改进：
+    - 完整的文档和示例
+    - 详细的错误处理
+    - 性能优化

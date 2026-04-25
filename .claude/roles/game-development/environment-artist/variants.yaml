@@ -1,0 +1,22 @@
+# Environment Artist Variants
+
+variants:
+  - name: outdoor-environment-artist
+    base_role: environment-artist
+    additional_skills:
+      - outdoor-environment
+    description: 户外环境艺术家，专注于户外场景、地形和植被设计
+    tags:
+      - outdoor
+      - environment
+      - artist
+
+  - name: indoor-environment-artist
+    base_role: environment-artist
+    additional_skills:
+      - indoor-environment
+    description: 室内环境艺术家，专注于室内场景、建筑和家具设计
+    tags:
+      - indoor
+      - environment
+      - artist
