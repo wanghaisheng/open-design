@@ -351,6 +351,260 @@ open-design execution tag create --instance character-artist --name v1.0-texture
 
 ---
 
+## 同一资产的多Skill多模型版本管理优势
+
+本章节以"角色配图"这一具体资产为例，详细说明不同skill搭配不同模型实现时，版本管理的优势。
+
+### 场景：角色配图资产生产
+
+**目标**：生产一个高质量的角色配图，涉及多个skill，每个skill有多个模型实现可选。
+
+#### Skill与模型实现矩阵
+
+| Skill | 模型实现 A | 模型实现 B | 模型实现 C |
+|-------|-----------|-----------|-----------|
+| **角色概念设计** | DALL-E 3 | Midjourney | Stable Diffusion XL |
+| **角色建模** | Blender Auto | Maya Auto | 3ds Max Auto |
+| **纹理生成** | Stable Diffusion | 专业纹理软件 | AI纹理生成器 |
+| **光照渲染** | Unreal Engine | Unity | Blender Cycles |
+| **后期处理** | AI增强 | 传统后期处理 | 混合方案 |
+
+#### 版本管理优势详解
+
+##### 优势1：系统化探索所有组合
+
+**问题**：5个skill × 3个模型实现 = 243种可能的组合，如何系统化探索？
+
+**版本管理解决方案：**
+
+```bash
+# 创建三维分支结构：skill分支 × 模型分支
+# 第一层：skill分支
+open-design execution branch create --instance character-artist --name concept
+open-design execution branch create --instance character-artist --name modeling
+open-design execution branch create --instance character-artist --name texture
+open-design execution branch create --instance character-artist --name lighting
+open-design execution branch create --instance character-artist --name post-process
+
+# 第二层：在concept分支下创建模型分支
+open-design execution branch switch --instance character-artist --name concept
+open-design execution branch create --instance character-artist --name dalle3
+open-design execution branch create --instance character-artist --name midjourney
+open-design execution branch create --instance character-artist --name sdxl
+
+# 执行skill并记录结果
+# ... 在每个分支执行对应的skill ...
+```
+
+**优势**：
+- 有组织的分支结构，清晰记录每种组合
+- 可以快速定位到任意skill的任意模型实现
+- 避免混乱的文件命名和手动管理
+
+##### 优势2：快速对比同一skill的不同模型
+
+**问题**：DALL-E 3、Midjourney、SDXL哪个更适合这个角色？
+
+**版本管理解决方案：**
+
+```bash
+# 切换到concept分支
+open-design execution branch switch --instance character-artist --name concept
+
+# 切换到DALL-E 3分支查看结果
+open-design execution branch switch --instance character-artist --name dalle3
+open-design execution log --instance character-artist --skill concept-dalle3
+
+# 切换到Midjourney分支查看结果
+open-design execution branch switch --instance character-artist --name midjourney
+open-design execution log --instance character-artist --skill concept-midjourney
+
+# 切换到SDXL分支查看结果
+open-design execution branch switch --instance character-artist --name sdxl
+open-design execution log --instance character-artist --skill concept-sdxl
+
+# 对比三个分支的输出质量，选择最佳方案
+```
+
+**优势**：
+- 一键切换，无需手动查找文件
+- 执行历史自动记录，包含参数和结果
+- 可以快速回溯到任意版本进行重新评估
+
+##### 优势3：保存最优组合路径
+
+**问题**：找到最优组合（DALL-E 3 + Blender + SDXL + Unreal + AI增强），如何保存这个完整路径？
+
+**版本管理解决方案：**
+
+```bash
+# 为最优组合的每个skill打标签
+open-design execution tag create --instance character-artist --name optimal-concept --commit <dalle3-commit-id>
+open-design execution tag create --instance character-artist --name optimal-modeling --commit <blender-commit-id>
+open-design execution tag create --instance character-artist --name optimal-texture --commit <sdxl-commit-id>
+open-design execution tag create --instance character-artist --name optimal-lighting --commit <unreal-commit-id>
+open-design execution tag create --instance character-artist --name optimal-post --commit <ai-enhance-commit-id>
+
+# 为整个最优流程打标签
+open-design execution tag create --instance character-artist --name v1.0-optimal-workflow
+```
+
+**优势**：
+- 标签系统可以记录最优组合的完整路径
+- 未来可以快速重现最优流程
+- 便于团队共享最佳实践
+
+##### 优势4：A/B测试不同组合
+
+**问题**：想对比两种组合的效果：
+- 组合A：DALL-E 3 + Blender + SDXL + Unreal + AI增强
+- 组合B：Midjourney + Maya + 专业纹理 + Unity + 传统后期
+
+**版本管理解决方案：**
+
+```bash
+# 创建组合A分支
+open-design execution branch create --instance character-artist --name combo-a
+# 执行组合A的skill序列
+# ...
+
+# 创建组合B分支
+open-design execution branch create --instance character-artist --name combo-b
+# 执行组合B的skill序列
+# ...
+
+# 对比两个分支的最终结果
+open-design execution checkout --instance character-artist --commit <combo-a-final-commit>
+open-design execution checkout --instance character-artist --commit <combo-b-final-commit>
+```
+
+**优势**：
+- 分支隔离，两种组合互不干扰
+- 可以快速切换对比最终效果
+- 保留完整的执行历史，便于分析差异原因
+
+##### 优势5：增量优化单个skill
+
+**问题**：组合A效果不错，但想优化纹理生成部分，尝试SDXL的不同参数。
+
+**版本管理解决方案：**
+
+```bash
+# 基于组合A创建纹理优化分支
+open-design execution branch create --instance character-artist --name texture-optimization --from combo-a
+
+# 在新分支上只执行纹理skill，尝试不同参数
+# ... 执行多次纹理生成，调整参数 ...
+
+# 如果优化成功，合并回组合A
+open-design execution merge --instance character-artist --source texture-optimization --target combo-a
+
+# 如果优化失败，直接切回组合A
+open-design execution branch switch --instance character-artist --name combo-a
+```
+
+**优势**：
+- 可以单独优化某个skill而不影响其他skill
+- 优化失败可以快速回退
+- 优化成功可以合并到主流程
+
+##### 优势6：模型升级时的平滑过渡
+
+**问题**：Stable Diffusion升级到新版本，想测试新版本但保留旧版本作为备选。
+
+**版本管理解决方案：**
+
+```bash
+# 创建新版本分支
+open-design execution branch create --instance character-artist --name texture-sd-v2
+
+# 在新分支上使用新模型
+# ... 执行纹理生成 ...
+
+# 对比新旧版本
+open-design execution log --instance character-artist --skill texture-sd-v1
+open-design execution log --instance character-artist --skill texture-sd-v2
+
+# 如果新版本更好，合并到主分支
+open-design execution merge --instance character-artist --source texture-sd-v2 --target main
+
+# 保留旧版本作为备选
+open-design execution tag create --instance character-artist --name backup-sd-v1 --commit <old-commit-id>
+```
+
+**优势**：
+- 平滑过渡，新旧版本并存
+- 可以随时回退到旧版本
+- 保留完整的对比历史
+
+##### 优势7：成本控制和资源管理
+
+**问题**：AI生成成本高，如何避免重复生成相同组合？
+
+**版本管理解决方案：**
+
+```bash
+# 查看执行历史，避免重复
+open-design execution log --instance character-artist --skill concept-dalle3
+
+# 如果发现已有满意的版本，直接checkout
+open-design execution checkout --instance character-artist --commit <existing-commit-id>
+
+# 如果需要重新生成，先撤销之前的不满意版本
+open-design execution undo --instance character-artist --steps 1
+```
+
+**优势**：
+- 执行历史记录避免重复工作
+- 撤销功能快速回退，节省成本
+- 可以复用已有的满意版本
+
+##### 优势8：团队协作和知识共享
+
+**问题**：团队成员如何共享最优组合和经验？
+
+**版本管理解决方案：**
+
+```bash
+# 团队成员A找到最优组合
+open-design execution tag create --instance character-artist --name team-best-practice
+
+# 团队成员B查看最优组合
+open-design execution tag list --instance character-artist
+open-design execution log --instance character-artist --skill concept-dalle3 --limit 10
+
+# 团队成员B基于最优组合进行改进
+open-design execution branch create --instance character-artist --name improvement --from team-best-practice
+```
+
+**优势**：
+- 标签系统便于团队共享最佳实践
+- 执行历史记录便于知识传递
+- 分支系统支持协作改进
+
+### 多Skill多模型版本管理的核心优势总结
+
+| 优势维度 | 具体价值 | 版本管理功能 |
+|---------|---------|------------|
+| **系统化探索** | 有组织地探索所有可能的skill+模型组合 | 分支管理 |
+| **快速对比** | 一键切换对比同一skill的不同模型 | checkout + log |
+| **路径保存** | 记录最优组合的完整skill路径 | 标签系统 |
+| **A/B测试** | 隔离测试不同组合的效果 | 分支隔离 |
+| **增量优化** | 单独优化某个skill而不影响整体 | 分支 + merge |
+| **平滑升级** | 模型升级时保留旧版本作为备选 | 分支 + 标签 |
+| **成本控制** | 避免重复生成，快速回退 | log + undo |
+| **团队协作** | 共享最优组合和执行历史 | 标签 + 分支 |
+
+### 实际应用建议
+
+1. **建立分支命名规范**：`<skill>-<model>-<version>` 或 `<combo-name>-<purpose>`
+2. **使用标签标记里程碑**：`v<major>.<minor>-<skill>-<model>`
+3. **定期清理废弃分支**：使用 `branch delete` 保持分支库整洁
+4. **记录重要决策**：在commit message中说明选择某个模型的原因
+5. **建立最佳实践库**：为常用组合打标签，便于快速复用
+
+---
+
 ## User Features (Complete List)
 
 | User Action | Description | Filesystem | libsql | CLI Command |
