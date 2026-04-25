@@ -1,5 +1,6 @@
 import { defineCommand } from 'citty';
-import { CommitManager, BranchManager, UndoRedoManager, MergeManager, RemoteManager, TagManager, StashManager, RebaseManager } from '../rams/version-manager/index.js';
+import { CommitManager, BranchManager, UndoRedoManager, MergeManager, RemoteManager, TagManager, StashManager, RebaseManager, DatabaseManager } from '../rams/version-manager/index.js';
+import { CommitManager as CommitManagerDB } from '../rams/version-manager/commit-manager-db.js';
 
 export default defineCommand({
   meta: {
@@ -28,9 +29,29 @@ export default defineCommand({
           description: 'Number of commits to show',
           default: '10',
         },
+        backend: {
+          type: 'string',
+          description: 'Storage backend (filesystem or libsql)',
+          default: 'filesystem',
+        },
+        dbPath: {
+          type: 'string',
+          description: 'Database path for libsql backend',
+          default: '.rams/execution_history',
+        },
       },
       async run({ args }) {
-        const commitManager = new CommitManager(args.instance as string);
+        const backend = args.backend as string;
+        const dbPath = args.dbPath as string;
+        
+        let commitManager: CommitManager | CommitManagerDB;
+        if (backend === 'libsql') {
+          const dbManager = new DatabaseManager(dbPath);
+          commitManager = new CommitManagerDB(args.instance as string, dbManager);
+        } else {
+          commitManager = new CommitManager(args.instance as string);
+        }
+        
         await commitManager.initialize();
         
         const commits = await commitManager.getCommits(

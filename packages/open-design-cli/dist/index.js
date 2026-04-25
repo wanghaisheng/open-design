@@ -22147,6 +22147,19 @@ class LibsqlError extends Error {
 }
 
 // ../../node_modules/@libsql/core/lib-esm/uri.js
+function parseUri(text) {
+  const match = URI_RE.exec(text);
+  if (match === null) {
+    throw new LibsqlError("The URL is not in a valid format", "URL_INVALID");
+  }
+  const groups = match.groups;
+  const scheme = groups["scheme"];
+  const authority = groups["authority"] !== undefined ? parseAuthority(groups["authority"]) : undefined;
+  const path = percentDecode(groups["path"]);
+  const query = groups["query"] !== undefined ? parseQuery(groups["query"]) : undefined;
+  const fragment = groups["fragment"] !== undefined ? percentDecode(groups["fragment"]) : undefined;
+  return { scheme, authority, path, query, fragment };
+}
 var URI_RE = (() => {
   const SCHEME = "(?<scheme>[A-Za-z][A-Za-z.+-]*)";
   const AUTHORITY = "(?<authority>[^/?#]*)";
@@ -22155,9 +22168,86 @@ var URI_RE = (() => {
   const FRAGMENT = "(?<fragment>.*)";
   return new RegExp(`^${SCHEME}:(//${AUTHORITY})?${PATH}(\\?${QUERY})?(#${FRAGMENT})?$`, "su");
 })();
+function parseAuthority(text) {
+  const match = AUTHORITY_RE.exec(text);
+  if (match === null) {
+    throw new LibsqlError("The authority part of the URL is not in a valid format", "URL_INVALID");
+  }
+  const groups = match.groups;
+  const host = percentDecode(groups["host_br"] ?? groups["host"]);
+  const port = groups["port"] ? parseInt(groups["port"], 10) : undefined;
+  const userinfo = groups["username"] !== undefined ? {
+    username: percentDecode(groups["username"]),
+    password: groups["password"] !== undefined ? percentDecode(groups["password"]) : undefined
+  } : undefined;
+  return { host, port, userinfo };
+}
 var AUTHORITY_RE = (() => {
   return new RegExp(`^((?<username>[^:]*)(:(?<password>.*))?@)?((?<host>[^:\\[\\]]*)|(\\[(?<host_br>[^\\[\\]]*)\\]))(:(?<port>[0-9]*))?$`, "su");
 })();
+function parseQuery(text) {
+  const sequences = text.split("&");
+  const pairs = [];
+  for (const sequence of sequences) {
+    if (sequence === "") {
+      continue;
+    }
+    let key;
+    let value;
+    const splitIdx = sequence.indexOf("=");
+    if (splitIdx < 0) {
+      key = sequence;
+      value = "";
+    } else {
+      key = sequence.substring(0, splitIdx);
+      value = sequence.substring(splitIdx + 1);
+    }
+    pairs.push({
+      key: percentDecode(key.replaceAll("+", " ")),
+      value: percentDecode(value.replaceAll("+", " "))
+    });
+  }
+  return { pairs };
+}
+function percentDecode(text) {
+  try {
+    return decodeURIComponent(text);
+  } catch (e2) {
+    if (e2 instanceof URIError) {
+      throw new LibsqlError(`URL component has invalid percent encoding: ${e2}`, "URL_INVALID", undefined, e2);
+    }
+    throw e2;
+  }
+}
+function encodeBaseUrl(scheme, authority, path) {
+  if (authority === undefined) {
+    throw new LibsqlError(`URL with scheme ${JSON.stringify(scheme + ":")} requires authority (the "//" part)`, "URL_INVALID");
+  }
+  const schemeText = `${scheme}:`;
+  const hostText = encodeHost(authority.host);
+  const portText = encodePort(authority.port);
+  const userinfoText = encodeUserinfo(authority.userinfo);
+  const authorityText = `//${userinfoText}${hostText}${portText}`;
+  let pathText = path.split("/").map(encodeURIComponent).join("/");
+  if (pathText !== "" && !pathText.startsWith("/")) {
+    pathText = "/" + pathText;
+  }
+  return new URL(`${schemeText}${authorityText}${pathText}`);
+}
+function encodeHost(host) {
+  return host.includes(":") ? `[${encodeURI(host)}]` : encodeURI(host);
+}
+function encodePort(port) {
+  return port !== undefined ? `:${port}` : "";
+}
+function encodeUserinfo(userinfo) {
+  if (userinfo === undefined) {
+    return "";
+  }
+  const usernameText = encodeURIComponent(userinfo.username);
+  const passwordText = userinfo.password !== undefined ? `:${encodeURIComponent(userinfo.password)}` : "";
+  return `${usernameText}${passwordText}@`;
+}
 
 // ../../node_modules/js-base64/base64.mjs
 var version = "3.7.8";
@@ -22322,6 +22412,7 @@ var gBase64 = {
 };
 
 // ../../node_modules/@libsql/core/lib-esm/util.js
+var supportedUrlLink = "https://github.com/libsql/libsql-client-ts#supported-urls";
 function transactionModeToBegin(mode) {
   if (mode === "write") {
     return "BEGIN IMMEDIATE";
@@ -22370,9 +22461,118 @@ function valueToJson(value) {
   }
 }
 
+// ../../node_modules/@libsql/core/lib-esm/config.js
+function expandConfig(config, preferHttp) {
+  if (typeof config !== "object") {
+    throw new TypeError(`Expected client configuration as object, got ${typeof config}`);
+  }
+  let tls = config.tls;
+  let authToken = config.authToken;
+  let encryptionKey = config.encryptionKey;
+  let syncUrl = config.syncUrl;
+  let syncInterval = config.syncInterval;
+  const intMode = "" + (config.intMode ?? "number");
+  if (intMode !== "number" && intMode !== "bigint" && intMode !== "string") {
+    throw new TypeError(`Invalid value for intMode, expected "number", "bigint" or "string",             got ${JSON.stringify(intMode)}`);
+  }
+  if (config.url === ":memory:") {
+    return {
+      path: ":memory:",
+      scheme: "file",
+      syncUrl,
+      syncInterval,
+      intMode,
+      fetch: config.fetch,
+      tls: false,
+      authToken: undefined,
+      encryptionKey: undefined,
+      authority: undefined
+    };
+  }
+  const uri = parseUri(config.url);
+  for (const { key, value } of uri.query?.pairs ?? []) {
+    if (key === "authToken") {
+      authToken = value ? value : undefined;
+    } else if (key === "tls") {
+      if (value === "0") {
+        tls = false;
+      } else if (value === "1") {
+        tls = true;
+      } else {
+        throw new LibsqlError(`Unknown value for the "tls" query argument: ${JSON.stringify(value)}. ` + 'Supported values are "0" and "1"', "URL_INVALID");
+      }
+    } else {
+      throw new LibsqlError(`Unknown URL query parameter ${JSON.stringify(key)}`, "URL_PARAM_NOT_SUPPORTED");
+    }
+  }
+  const uriScheme = uri.scheme.toLowerCase();
+  let scheme;
+  if (uriScheme === "libsql") {
+    if (tls === false) {
+      if (uri.authority?.port === undefined) {
+        throw new LibsqlError('A "libsql:" URL with ?tls=0 must specify an explicit port', "URL_INVALID");
+      }
+      scheme = preferHttp ? "http" : "ws";
+    } else {
+      scheme = preferHttp ? "https" : "wss";
+    }
+  } else if (uriScheme === "http" || uriScheme === "ws") {
+    scheme = uriScheme;
+    tls ??= false;
+  } else if (uriScheme === "https" || uriScheme === "wss" || uriScheme === "file") {
+    scheme = uriScheme;
+  } else {
+    throw new LibsqlError('The client supports only "libsql:", "wss:", "ws:", "https:", "http:" and "file:" URLs, ' + `got ${JSON.stringify(uri.scheme + ":")}. ` + `For more information, please read ${supportedUrlLink}`, "URL_SCHEME_NOT_SUPPORTED");
+  }
+  if (uri.fragment !== undefined) {
+    throw new LibsqlError(`URL fragments are not supported: ${JSON.stringify("#" + uri.fragment)}`, "URL_INVALID");
+  }
+  return {
+    scheme,
+    tls: tls ?? true,
+    authority: uri.authority,
+    path: uri.path,
+    authToken,
+    encryptionKey,
+    syncUrl,
+    syncInterval,
+    intMode,
+    fetch: config.fetch
+  };
+}
+
 // ../../node_modules/@libsql/client/lib-esm/sqlite3.js
 var import_libsql = __toESM(require_libsql(), 1);
 import { Buffer as Buffer2 } from "node:buffer";
+function _createClient(config) {
+  if (config.scheme !== "file") {
+    throw new LibsqlError(`URL scheme ${JSON.stringify(config.scheme + ":")} is not supported by the local sqlite3 client. ` + `For more information, please read ${supportedUrlLink}`, "URL_SCHEME_NOT_SUPPORTED");
+  }
+  const authority = config.authority;
+  if (authority !== undefined) {
+    const host = authority.host.toLowerCase();
+    if (host !== "" && host !== "localhost") {
+      throw new LibsqlError(`Invalid host in file URL: ${JSON.stringify(authority.host)}. ` + 'A "file:" URL with an absolute path should start with one slash ("file:/absolute/path.db") ' + 'or with three slashes ("file:///absolute/path.db"). ' + `For more information, please read ${supportedUrlLink}`, "URL_INVALID");
+    }
+    if (authority.port !== undefined) {
+      throw new LibsqlError("File URL cannot have a port", "URL_INVALID");
+    }
+    if (authority.userinfo !== undefined) {
+      throw new LibsqlError("File URL cannot have username and password", "URL_INVALID");
+    }
+  }
+  const path = config.path;
+  const options = {
+    authToken: config.authToken,
+    encryptionKey: config.encryptionKey,
+    syncUrl: config.syncUrl,
+    syncPeriod: config.syncInterval
+  };
+  const db = new import_libsql.default(path, options);
+  executeStmt(db, "SELECT 1 AS checkThatTheDatabaseCanBeOpened", config.intMode);
+  return new Sqlite3Client(path, options, db, config.intMode);
+}
+
 class Sqlite3Client {
   #path;
   #options;
@@ -26263,6 +26463,32 @@ async function waitForLastMigrationJobToFinish({ authToken, baseUrl }) {
   }
 }
 // ../../node_modules/@libsql/client/lib-esm/ws.js
+function _createClient2(config) {
+  if (config.scheme !== "wss" && config.scheme !== "ws") {
+    throw new LibsqlError('The WebSocket client supports only "libsql:", "wss:" and "ws:" URLs, ' + `got ${JSON.stringify(config.scheme + ":")}. For more information, please read ${supportedUrlLink}`, "URL_SCHEME_NOT_SUPPORTED");
+  }
+  if (config.encryptionKey !== undefined) {
+    throw new LibsqlError("Encryption key is not supported by the remote client.", "ENCRYPTION_KEY_NOT_SUPPORTED");
+  }
+  if (config.scheme === "ws" && config.tls) {
+    throw new LibsqlError(`A "ws:" URL cannot opt into TLS by using ?tls=1`, "URL_INVALID");
+  } else if (config.scheme === "wss" && !config.tls) {
+    throw new LibsqlError(`A "wss:" URL cannot opt out of TLS by using ?tls=0`, "URL_INVALID");
+  }
+  const url = encodeBaseUrl(config.scheme, config.authority, config.path);
+  let client;
+  try {
+    client = openWs(url, config.authToken);
+  } catch (e2) {
+    if (e2 instanceof WebSocketUnsupportedError) {
+      const suggestedScheme = config.scheme === "wss" ? "https" : "http";
+      const suggestedUrl = encodeBaseUrl(suggestedScheme, config.authority, config.path);
+      throw new LibsqlError("This environment does not support WebSockets, please switch to the HTTP client by using " + `a "${suggestedScheme}:" URL (${JSON.stringify(suggestedUrl)}). ` + `For more information, please read ${supportedUrlLink}`, "WEBSOCKETS_NOT_SUPPORTED");
+    }
+    throw mapHranaError(e2);
+  }
+  return new WsClient2(client, url, config.authToken, config.intMode);
+}
 var maxConnAgeMillis = 60 * 1000;
 var sqlCacheCapacity = 100;
 
@@ -26464,6 +26690,21 @@ class WsTransaction extends HranaTransaction {
   }
 }
 // ../../node_modules/@libsql/client/lib-esm/http.js
+function _createClient3(config) {
+  if (config.scheme !== "https" && config.scheme !== "http") {
+    throw new LibsqlError('The HTTP client supports only "libsql:", "https:" and "http:" URLs, ' + `got ${JSON.stringify(config.scheme + ":")}. For more information, please read ${supportedUrlLink}`, "URL_SCHEME_NOT_SUPPORTED");
+  }
+  if (config.encryptionKey !== undefined) {
+    throw new LibsqlError("Encryption key is not supported by the remote client.", "ENCRYPTION_KEY_NOT_SUPPORTED");
+  }
+  if (config.scheme === "http" && config.tls) {
+    throw new LibsqlError(`A "http:" URL cannot opt into TLS by using ?tls=1`, "URL_INVALID");
+  } else if (config.scheme === "https" && !config.tls) {
+    throw new LibsqlError(`A "https:" URL cannot opt out of TLS by using ?tls=0`, "URL_INVALID");
+  }
+  const url = encodeBaseUrl(config.scheme, config.authority, config.path);
+  return new HttpClient2(url, config.authToken, config.intMode, config.fetch);
+}
 var sqlCacheCapacity2 = 30;
 
 class HttpClient2 {
@@ -26594,6 +26835,327 @@ class HttpTransaction extends HranaTransaction {
     return this.#stream.closed;
   }
 }
+
+// ../../node_modules/@libsql/client/lib-esm/node.js
+function createClient(config) {
+  return _createClient4(expandConfig(config, true));
+}
+function _createClient4(config) {
+  if (config.scheme === "wss" || config.scheme === "ws") {
+    return _createClient2(config);
+  } else if (config.scheme === "https" || config.scheme === "http") {
+    return _createClient3(config);
+  } else {
+    return _createClient(config);
+  }
+}
+
+// src/rams/version-manager/database-manager.ts
+class DatabaseManager {
+  client;
+  dbPath;
+  remoteUrl;
+  constructor(dbPath, remoteUrl, authToken) {
+    this.dbPath = dbPath;
+    this.remoteUrl = remoteUrl;
+    if (remoteUrl) {
+      this.client = createClient({
+        url: remoteUrl,
+        authToken
+      });
+    } else {
+      this.client = createClient({
+        url: `file:${dbPath}`
+      });
+    }
+  }
+  async initialize() {
+    await this.initializeSchema();
+  }
+  async initializeSchema() {
+    await this.client.execute(`
+      CREATE TABLE IF NOT EXISTS commits (
+        commit_id TEXT PRIMARY KEY,
+        instance_id TEXT NOT NULL,
+        skill_name TEXT,
+        input_hash TEXT,
+        output_data_id TEXT,
+        parent_commit_id TEXT,
+        timestamp TEXT NOT NULL,
+        metadata TEXT,
+        FOREIGN KEY (output_data_id) REFERENCES output_data(data_id),
+        FOREIGN KEY (parent_commit_id) REFERENCES commits(commit_id)
+      )
+    `);
+    await this.client.execute(`
+      CREATE INDEX IF NOT EXISTS idx_commits_instance ON commits(instance_id)
+    `);
+    await this.client.execute(`
+      CREATE INDEX IF NOT EXISTS idx_commits_parent ON commits(parent_commit_id)
+    `);
+    await this.client.execute(`
+      CREATE INDEX IF NOT EXISTS idx_commits_timestamp ON commits(timestamp DESC)
+    `);
+    await this.client.execute(`
+      CREATE INDEX IF NOT EXISTS idx_commits_skill ON commits(skill_name)
+    `);
+    await this.client.execute(`
+      CREATE TABLE IF NOT EXISTS output_data (
+        data_id TEXT PRIMARY KEY,
+        type TEXT NOT NULL,
+        path TEXT,
+        content_hash TEXT,
+        content BLOB,
+        storage_config TEXT,
+        created_at TEXT NOT NULL
+      )
+    `);
+    await this.client.execute(`
+      CREATE INDEX IF NOT EXISTS idx_output_data_hash ON output_data(content_hash)
+    `);
+    await this.client.execute(`
+      CREATE INDEX IF NOT EXISTS idx_output_data_type ON output_data(type)
+    `);
+    await this.client.execute(`
+      CREATE TABLE IF NOT EXISTS branches (
+        branch_name TEXT PRIMARY KEY,
+        instance_id TEXT NOT NULL,
+        commit_id TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (commit_id) REFERENCES commits(commit_id)
+      )
+    `);
+    await this.client.execute(`
+      CREATE INDEX IF NOT EXISTS idx_branches_instance ON branches(instance_id)
+    `);
+    await this.client.execute(`
+      CREATE TABLE IF NOT EXISTS tags (
+        tag_name TEXT PRIMARY KEY,
+        instance_id TEXT NOT NULL,
+        commit_id TEXT NOT NULL,
+        message TEXT,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (commit_id) REFERENCES commits(commit_id)
+      )
+    `);
+    await this.client.execute(`
+      CREATE INDEX IF NOT EXISTS idx_tags_instance ON tags(instance_id)
+    `);
+    await this.client.execute(`
+      CREATE TABLE IF NOT EXISTS stashes (
+        stash_id TEXT PRIMARY KEY,
+        instance_id TEXT NOT NULL,
+        commit_id TEXT,
+        message TEXT,
+        worktree_state TEXT,
+        created_at TEXT NOT NULL
+      )
+    `);
+    await this.client.execute(`
+      CREATE INDEX IF NOT EXISTS idx_stashes_instance ON stashes(instance_id)
+    `);
+    await this.client.execute(`
+      CREATE INDEX IF NOT EXISTS idx_stashes_created ON stashes(created_at DESC)
+    `);
+    await this.client.execute(`
+      CREATE TABLE IF NOT EXISTS reflog (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        instance_id TEXT NOT NULL,
+        commit_id TEXT NOT NULL,
+        action TEXT NOT NULL,
+        previous_commit_id TEXT,
+        timestamp TEXT NOT NULL,
+        FOREIGN KEY (commit_id) REFERENCES commits(commit_id)
+      )
+    `);
+    await this.client.execute(`
+      CREATE INDEX IF NOT EXISTS idx_reflog_instance ON reflog(instance_id)
+    `);
+    await this.client.execute(`
+      CREATE INDEX IF NOT EXISTS idx_reflog_timestamp ON reflog(timestamp DESC)
+    `);
+    await this.client.execute(`
+      CREATE TABLE IF NOT EXISTS remotes (
+        remote_name TEXT PRIMARY KEY,
+        instance_id TEXT NOT NULL,
+        type TEXT NOT NULL,
+        url TEXT NOT NULL,
+        credentials TEXT,
+        created_at TEXT NOT NULL
+      )
+    `);
+    await this.client.execute(`
+      CREATE INDEX IF NOT EXISTS idx_remotes_instance ON remotes(instance_id)
+    `);
+    await this.client.execute(`
+      CREATE TABLE IF NOT EXISTS merge_state (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        instance_id TEXT NOT NULL,
+        source_branch TEXT NOT NULL,
+        target_branch TEXT NOT NULL,
+        conflicts TEXT,
+        created_at TEXT NOT NULL
+      )
+    `);
+    await this.client.execute(`
+      CREATE INDEX IF NOT EXISTS idx_merge_state_instance ON merge_state(instance_id)
+    `);
+  }
+  getClient() {
+    return this.client;
+  }
+  close() {
+    this.client.close();
+  }
+  getDbPath() {
+    return this.dbPath;
+  }
+  isRemote() {
+    return !!this.remoteUrl;
+  }
+}
+// src/rams/version-manager/commit-manager-db.ts
+import { createHash as createHash2 } from "crypto";
+
+class CommitManager2 {
+  instanceId;
+  dbManager;
+  constructor(instanceId, dbManager) {
+    this.instanceId = instanceId;
+    this.dbManager = dbManager;
+  }
+  async initialize() {
+    await this.dbManager.initialize();
+  }
+  async createCommit(skillName, inputData, outputData, parentId = null) {
+    const client = this.dbManager.getClient();
+    const commitId = this.generateCommitId();
+    const inputHash = this.hashInput(inputData);
+    const storedOutput = await this.storeOutput(outputData);
+    const metadata = this.collectMetadata();
+    await client.execute({
+      sql: `
+        INSERT INTO commits (
+          commit_id, instance_id, skill_name, input_hash,
+          output_data_id, parent_commit, timestamp, metadata
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `,
+      args: [
+        commitId,
+        this.instanceId,
+        skillName,
+        inputHash,
+        storedOutput,
+        parentId,
+        new Date().toISOString(),
+        JSON.stringify(metadata)
+      ]
+    });
+    return commitId;
+  }
+  async getCommit(commitId) {
+    const client = this.dbManager.getClient();
+    const result = await client.execute({
+      sql: "SELECT * FROM commits WHERE commit_id = ?",
+      args: [commitId]
+    });
+    if (result.rows.length === 0) {
+      return null;
+    }
+    return result.rows[0];
+  }
+  async getCurrentCommit() {
+    const client = this.dbManager.getClient();
+    const result = await client.execute({
+      sql: `
+        SELECT commit_id FROM commits 
+        WHERE instance_id = ? 
+        ORDER BY timestamp DESC 
+        LIMIT 1
+      `,
+      args: [this.instanceId]
+    });
+    if (result.rows.length === 0) {
+      return null;
+    }
+    return result.rows[0].commit_id;
+  }
+  async setCurrentCommit(_commitId) {}
+  async getCommits(skillName, limit = 10) {
+    const client = this.dbManager.getClient();
+    let sql = `
+      SELECT * FROM commits 
+      WHERE instance_id = ?
+    `;
+    const args = [this.instanceId];
+    if (skillName) {
+      sql += " AND skill_name = ?";
+      args.push(skillName);
+    }
+    sql += " ORDER BY timestamp DESC LIMIT ?";
+    args.push(limit);
+    const result = await client.execute({
+      sql,
+      args
+    });
+    return result.rows;
+  }
+  async getOutputData(dataId) {
+    const client = this.dbManager.getClient();
+    const result = await client.execute({
+      sql: "SELECT * FROM output_data WHERE data_id = ?",
+      args: [dataId]
+    });
+    if (result.rows.length === 0) {
+      return null;
+    }
+    return result.rows[0];
+  }
+  generateCommitId() {
+    return createHash2("sha256").update(`${Date.now()}-${Math.random()}`).digest("hex").substring(0, 12);
+  }
+  hashInput(inputData) {
+    return createHash2("sha256").update(JSON.stringify(inputData)).digest("hex");
+  }
+  async storeOutput(outputData) {
+    const client = this.dbManager.getClient();
+    const contentHash = this.hashInput(outputData);
+    const dataId = contentHash;
+    const existing = await client.execute({
+      sql: "SELECT data_id FROM output_data WHERE content_hash = ?",
+      args: [contentHash]
+    });
+    if (existing.rows.length > 0) {
+      return existing.rows[0].data_id;
+    }
+    const outputStr = JSON.stringify(outputData);
+    const content = Buffer.from(outputStr);
+    await client.execute({
+      sql: `
+        INSERT INTO output_data (
+          data_id, type, path, content_hash, content, storage_config, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+      `,
+      args: [
+        dataId,
+        "json",
+        "",
+        contentHash,
+        content,
+        JSON.stringify({}),
+        new Date().toISOString()
+      ]
+    });
+    return dataId;
+  }
+  collectMetadata() {
+    return {
+      implementation: "ai-model",
+      execution_time: 0
+    };
+  }
+}
 // src/commands/execution.ts
 var execution_default = defineCommand({
   meta: {
@@ -26621,10 +27183,28 @@ var execution_default = defineCommand({
           type: "string",
           description: "Number of commits to show",
           default: "10"
+        },
+        backend: {
+          type: "string",
+          description: "Storage backend (filesystem or libsql)",
+          default: "filesystem"
+        },
+        dbPath: {
+          type: "string",
+          description: "Database path for libsql backend",
+          default: ".rams/execution_history"
         }
       },
       async run({ args }) {
-        const commitManager = new CommitManager(args.instance);
+        const backend = args.backend;
+        const dbPath = args.dbPath;
+        let commitManager;
+        if (backend === "libsql") {
+          const dbManager = new DatabaseManager(dbPath);
+          commitManager = new CommitManager2(args.instance, dbManager);
+        } else {
+          commitManager = new CommitManager(args.instance);
+        }
         await commitManager.initialize();
         const commits = await commitManager.getCommits(args.skill, parseInt(args.limit));
         console.log("Execution History:");
