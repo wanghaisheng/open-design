@@ -7788,6 +7788,202 @@ function formatError(error) {
   }, null, 2);
 }
 
+// src/utils/variant-loader.ts
+import { join } from "path";
+
+class VariantLoader {
+  rolesDir;
+  skillsDir;
+  roleCache;
+  variantCache;
+  constructor(rolesDir, skillsDir) {
+    this.rolesDir = rolesDir;
+    this.skillsDir = skillsDir;
+    this.roleCache = new Map;
+    this.variantCache = new Map;
+  }
+  async loadRole(roleName) {
+    if (this.roleCache.has(roleName)) {
+      return this.roleCache.get(roleName);
+    }
+    const rolePath = join(this.rolesDir, roleName, "role.md");
+    if (!await fileExists(rolePath)) {
+      throw new Error(`Role not found: ${roleName}`);
+    }
+    const roleConfig = {
+      name: roleName,
+      skills: {},
+      description: "",
+      variants: []
+    };
+    const variantsPath = join(this.rolesDir, roleName, "variants.yaml");
+    if (await fileExists(variantsPath)) {
+      const variants = await this.loadVariantsYaml(variantsPath);
+      roleConfig.variants = variants.map((v2) => v2.name);
+      for (const variant of variants) {
+        this.variantCache.set(variant.name, variant);
+      }
+    }
+    this.roleCache.set(roleName, roleConfig);
+    return roleConfig;
+  }
+  async loadVariantsYaml(variantsPath) {
+    const content = await readFile(variantsPath);
+    const data = import_yaml2.default.parse(content);
+    const variants = [];
+    for (const variantData of data.variants || []) {
+      const variant = {
+        name: variantData.name,
+        base_role: variantData.base_role,
+        additional_skills: variantData.additional_skills || [],
+        skill_overrides: variantData.skill_overrides || {},
+        skill_priority: variantData.skill_priority || {},
+        description: variantData.description || "",
+        tags: variantData.tags || []
+      };
+      variants.push(variant);
+    }
+    return variants;
+  }
+  async loadVariant(variantName) {
+    let variant = this.variantCache.get(variantName);
+    if (!variant) {
+      variant = await this.findVariant(variantName);
+      if (!variant) {
+        throw new Error(`Variant not found: ${variantName}`);
+      }
+    }
+    const baseRole = await this.loadRole(variant.base_role);
+    const mergedSkills = this.mergeSkills(baseRole.skills, variant.additional_skills);
+    for (const [skillName, overrideConfig] of Object.entries(variant.skill_overrides)) {
+      if (skillName in mergedSkills) {
+        const skill = mergedSkills[skillName];
+        for (const [key, value] of Object.entries(overrideConfig)) {
+          skill[key] = value;
+        }
+      }
+    }
+    const resolvedSkills = this.resolveConflicts(mergedSkills, variant.skill_priority);
+    const variantRole = {
+      name: variant.name,
+      skills: resolvedSkills,
+      description: variant.description,
+      variants: []
+    };
+    return variantRole;
+  }
+  async findVariant(variantName) {
+    const fs = await import("fs/promises");
+    const { readdir } = fs;
+    try {
+      const roleDirs = await readdir(this.rolesDir, { withFileTypes: true });
+      for (const roleDir of roleDirs) {
+        if (roleDir.isDirectory()) {
+          const variantsPath = join(this.rolesDir, roleDir.name, "variants.yaml");
+          if (await fileExists(variantsPath)) {
+            const variants = await this.loadVariantsYaml(variantsPath);
+            for (const variant of variants) {
+              if (variant.name === variantName) {
+                this.variantCache.set(variant.name, variant);
+                return variant;
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {}
+    return;
+  }
+  mergeSkills(baseSkills, additionalSkillNames) {
+    const merged = { ...baseSkills };
+    for (const skillName of additionalSkillNames) {
+      const skillConfig = {
+        name: skillName,
+        tools: [],
+        config: {}
+      };
+      merged[skillName] = skillConfig;
+    }
+    return merged;
+  }
+  resolveConflicts(skills, priorities) {
+    if (Object.keys(priorities).length === 0) {
+      return skills;
+    }
+    const sortedSkills = Object.entries(skills).sort(([nameA], [nameB]) => {
+      const priorityA = priorities[nameA] || 0;
+      const priorityB = priorities[nameB] || 0;
+      return priorityB - priorityA;
+    });
+    const resolved = {};
+    for (const [name, skill] of sortedSkills) {
+      resolved[name] = skill;
+    }
+    return resolved;
+  }
+  async listVariants(roleName) {
+    if (roleName) {
+      const role = await this.loadRole(roleName);
+      return role.variants;
+    }
+    const allVariants = [];
+    const fs = await import("fs/promises");
+    const { readdir } = fs;
+    try {
+      const roleDirs = await readdir(this.rolesDir, { withFileTypes: true });
+      for (const roleDir of roleDirs) {
+        if (roleDir.isDirectory()) {
+          const variantsPath = join(this.rolesDir, roleDir.name, "variants.yaml");
+          if (await fileExists(variantsPath)) {
+            const variants = await this.loadVariantsYaml(variantsPath);
+            allVariants.push(...variants.map((v2) => v2.name));
+          }
+        }
+      }
+    } catch (error) {}
+    return allVariants;
+  }
+  async validateVariant(variantName) {
+    const errors2 = [];
+    try {
+      let variant = this.variantCache.get(variantName);
+      if (!variant) {
+        variant = await this.findVariant(variantName);
+        if (!variant) {
+          errors2.push(`Variant not found: ${variantName}`);
+          return errors2;
+        }
+      }
+      const baseRolePath = join(this.rolesDir, variant.base_role, "role.md");
+      if (!await fileExists(baseRolePath)) {
+        errors2.push(`Base role not found: ${variant.base_role}`);
+      }
+      for (const skillName of variant.additional_skills) {
+        const skillPath = join(this.skillsDir, skillName, "SKILL.md");
+        if (!await fileExists(skillPath)) {
+          errors2.push(`Skill not found: ${skillName}`);
+        }
+      }
+      for (const skillName of Object.keys(variant.skill_overrides)) {
+        if (!variant.additional_skills.includes(skillName)) {
+          const baseRole = await this.loadRole(variant.base_role);
+          if (!(skillName in baseRole.skills)) {
+            errors2.push(`Skill override references non-existent skill: ${skillName}`);
+          }
+        }
+      }
+    } catch (error) {
+      errors2.push(`Validation error: ${String(error)}`);
+    }
+    return errors2;
+  }
+}
+var import_yaml2;
+var init_variant_loader = __esm(() => {
+  init_file_utils();
+  import_yaml2 = __toESM(require_dist(), 1);
+});
+
 // src/utils/config-manager.ts
 import { existsSync as existsSync2, readFileSync as readFileSync2, writeFileSync, mkdirSync } from "fs";
 import { resolve as resolve2 } from "path";
@@ -7808,7 +8004,7 @@ class ConfigManager {
     }
     try {
       const content = readFileSync2(this.configPath, "utf-8");
-      this.config = import_yaml2.parse(content);
+      this.config = import_yaml3.parse(content);
       return this.config;
     } catch (error) {
       throw new Error(`Failed to load config: ${error.message}`);
@@ -7820,7 +8016,7 @@ class ConfigManager {
       if (!existsSync2(configDir)) {
         mkdirSync(configDir, { recursive: true });
       }
-      const content = import_yaml2.stringify(config);
+      const content = import_yaml3.stringify(config);
       writeFileSync(this.configPath, content, "utf-8");
       this.config = config;
     } catch (error) {
@@ -7913,9 +8109,9 @@ class ConfigManager {
 function createConfigManager(projectRoot) {
   return new ConfigManager(projectRoot);
 }
-var import_yaml2, DEFAULT_CONFIG, CONFIG_DIR = ".open-design", CONFIG_FILE = "config.yaml";
+var import_yaml3, DEFAULT_CONFIG, CONFIG_DIR = ".open-design", CONFIG_FILE = "config.yaml";
 var init_config_manager = __esm(() => {
-  import_yaml2 = __toESM(require_dist(), 1);
+  import_yaml3 = __toESM(require_dist(), 1);
   DEFAULT_CONFIG = {
     runtime: {
       environment: "windsurf",
@@ -7952,10 +8148,12 @@ __export(exports_utils, {
   formatError: () => formatError,
   fileExists: () => fileExists,
   createConfigManager: () => createConfigManager,
+  VariantLoader: () => VariantLoader,
   ConfigManager: () => ConfigManager
 });
 var init_utils = __esm(() => {
   init_file_utils();
+  init_variant_loader();
   init_config_manager();
 });
 
@@ -13891,7 +14089,7 @@ var validate_default = defineCommand({
 
 // src/commands/export.ts
 init_utils();
-var import_yaml3 = __toESM(require_dist(), 1);
+var import_yaml4 = __toESM(require_dist(), 1);
 import { writeFileSync as writeFileSync3 } from "fs";
 import { resolve as resolve4 } from "path";
 var exportFormatsCommand = defineCommand({
@@ -13961,7 +14159,7 @@ var exportYamlCommand = defineCommand({
       const content = await readFile(args.file);
       const frontMatter = parseFrontMatter(content);
       const body = content.split("---").slice(2).join("---").trim();
-      const output = import_yaml3.stringify({
+      const output = import_yaml4.stringify({
         frontMatter,
         body
       });
@@ -14414,7 +14612,7 @@ var config_default = defineCommand({
 });
 
 // src/rams/role-instance.ts
-var import_yaml4 = __toESM(require_dist(), 1);
+var import_yaml5 = __toESM(require_dist(), 1);
 import { existsSync as existsSync4, readFileSync as readFileSync3, readdirSync } from "fs";
 import { resolve as resolve5 } from "path";
 
@@ -14436,7 +14634,7 @@ class RoleInstance {
     try {
       const content = readFileSync3(roleFile, "utf-8");
       const frontmatter = this.extractFrontmatter(content);
-      const parsed = import_yaml4.parse(frontmatter);
+      const parsed = import_yaml5.parse(frontmatter);
       const skills = parsed.skills || this.extractSkillsFromContent(content);
       this.roleDefinition = {
         name: parsed.name,
@@ -14479,7 +14677,7 @@ class RoleInstance {
     try {
       const content = readFileSync3(soulFile, "utf-8");
       const frontmatter = this.extractFrontmatter(content);
-      this.soulDefinition = import_yaml4.parse(frontmatter);
+      this.soulDefinition = import_yaml5.parse(frontmatter);
       return this.soulDefinition;
     } catch (error) {
       throw new Error(`Failed to load soul definition: ${error.message}`);
@@ -14979,7 +15177,7 @@ var skill_default = defineCommand({
 });
 
 // src/rams/workflow-parser.ts
-var import_yaml5 = __toESM(require_dist(), 1);
+var import_yaml6 = __toESM(require_dist(), 1);
 import { existsSync as existsSync5, readFileSync as readFileSync4 } from "fs";
 import { resolve as resolve6 } from "path";
 
@@ -15001,7 +15199,7 @@ class WorkflowParser {
     if (!frontmatterMatch) {
       throw new Error("No YAML frontmatter found in workflow");
     }
-    const frontmatter = import_yaml5.parse(frontmatterMatch[1]);
+    const frontmatter = import_yaml6.parse(frontmatterMatch[1]);
     const steps = this.parseSteps(content);
     return {
       name: frontmatter.name || "Unnamed Workflow",
@@ -15848,7 +16046,7 @@ var memory_default = defineCommand({
 });
 
 // src/rams/variant-manager.ts
-var import_yaml6 = __toESM(require_dist(), 1);
+var import_yaml7 = __toESM(require_dist(), 1);
 import { existsSync as existsSync7, readFileSync as readFileSync6, writeFileSync as writeFileSync5, mkdirSync as mkdirSync4, readdirSync as readdirSync3 } from "fs";
 import { resolve as resolve8 } from "path";
 
@@ -15873,7 +16071,7 @@ class VariantManager {
     if (existsSync7(variantPath)) {
       throw new Error(`Variant ${variant.name} already exists`);
     }
-    const content = import_yaml6.stringify(variant);
+    const content = import_yaml7.stringify(variant);
     writeFileSync5(variantPath, content, "utf-8");
   }
   async loadVariant(variantName) {
@@ -15883,7 +16081,7 @@ class VariantManager {
       throw new Error(`Variant ${variantName} not found`);
     }
     const content = readFileSync6(variantPath, "utf-8");
-    return import_yaml6.parse(content);
+    return import_yaml7.parse(content);
   }
   async listVariants() {
     const variantsPath = this.getVariantsPath();
@@ -15898,7 +16096,7 @@ class VariantManager {
       }
       const variantPath = resolve8(variantsPath, entry);
       const content = readFileSync6(variantPath, "utf-8");
-      const variant = import_yaml6.parse(content);
+      const variant = import_yaml7.parse(content);
       variants.push(variant);
     }
     return variants;
@@ -16642,7 +16840,7 @@ var learning_default = defineCommand({
 });
 
 // src/rams/plugin-manager.ts
-var import_yaml7 = __toESM(require_dist(), 1);
+var import_yaml8 = __toESM(require_dist(), 1);
 import { existsSync as existsSync8, readFileSync as readFileSync7, writeFileSync as writeFileSync6, mkdirSync as mkdirSync5, readdirSync as readdirSync4 } from "fs";
 import { resolve as resolve9 } from "path";
 
@@ -16674,7 +16872,7 @@ class PluginManager {
       }
       const pluginPath = resolve9(pluginsPath, entry);
       const content = readFileSync7(pluginPath, "utf-8");
-      const plugin = import_yaml7.parse(content);
+      const plugin = import_yaml8.parse(content);
       this.plugins.set(plugin.name, plugin);
     }
   }
@@ -16685,7 +16883,7 @@ class PluginManager {
     if (existsSync8(pluginPath)) {
       throw new Error(`Plugin ${plugin.name} already exists`);
     }
-    const content = import_yaml7.stringify(plugin);
+    const content = import_yaml8.stringify(plugin);
     writeFileSync6(pluginPath, content, "utf-8");
     this.plugins.set(plugin.name, plugin);
   }
@@ -16730,7 +16928,7 @@ class PluginManager {
   savePlugin(plugin) {
     const pluginsPath = this.getPluginsPath();
     const pluginPath = resolve9(pluginsPath, `${plugin.name}.yaml`);
-    const content = import_yaml7.stringify(plugin);
+    const content = import_yaml8.stringify(plugin);
     writeFileSync6(pluginPath, content, "utf-8");
   }
   getStats() {
@@ -17726,9 +17924,9 @@ var audit_default = defineCommand({
 });
 
 // src/rams/version-manager/commit-manager.ts
-var import_yaml8 = __toESM(require_dist(), 1);
+var import_yaml9 = __toESM(require_dist(), 1);
 import { promises as fs } from "fs";
-import { join } from "path";
+import { join as join2 } from "path";
 import { createHash } from "crypto";
 
 class CommitManager {
@@ -17739,13 +17937,13 @@ class CommitManager {
   constructor(instanceId, basePath = ".rams/execution_history") {
     this.instanceId = instanceId;
     this.basePath = basePath;
-    this.commitsPath = join(basePath, instanceId, ".git", "objects", "commits");
-    this.objectsPath = join(basePath, instanceId, ".git", "objects");
+    this.commitsPath = join2(basePath, instanceId, ".git", "objects", "commits");
+    this.objectsPath = join2(basePath, instanceId, ".git", "objects");
   }
   async initialize() {
     await fs.mkdir(this.commitsPath, { recursive: true });
-    await fs.mkdir(join(this.objectsPath, "trees"), { recursive: true });
-    await fs.mkdir(join(this.objectsPath, "blobs"), { recursive: true });
+    await fs.mkdir(join2(this.objectsPath, "trees"), { recursive: true });
+    await fs.mkdir(join2(this.objectsPath, "blobs"), { recursive: true });
   }
   async createCommit(skillName, inputData, outputData, parentId = null) {
     const commitId = this.generateCommitId();
@@ -17765,16 +17963,16 @@ class CommitManager {
     return commitId;
   }
   async getCommit(commitId) {
-    const commitPath = join(this.commitsPath, `${commitId}.yaml`);
+    const commitPath = join2(this.commitsPath, `${commitId}.yaml`);
     try {
       const content = await fs.readFile(commitPath, "utf-8");
-      return import_yaml8.default.parse(content);
+      return import_yaml9.default.parse(content);
     } catch {
       return null;
     }
   }
   async getCurrentCommit() {
-    const headPath = join(this.basePath, this.instanceId, ".git", "HEAD");
+    const headPath = join2(this.basePath, this.instanceId, ".git", "HEAD");
     try {
       const content = await fs.readFile(headPath, "utf-8");
       return content.trim();
@@ -17783,8 +17981,8 @@ class CommitManager {
     }
   }
   async setCurrentCommit(commitId) {
-    const headPath = join(this.basePath, this.instanceId, ".git", "HEAD");
-    await fs.mkdir(join(headPath, ".."), { recursive: true });
+    const headPath = join2(this.basePath, this.instanceId, ".git", "HEAD");
+    await fs.mkdir(join2(headPath, ".."), { recursive: true });
     await fs.writeFile(headPath, commitId, "utf-8");
   }
   async getCommits(skillName, limit = 10) {
@@ -17812,8 +18010,8 @@ class CommitManager {
   }
   async storeOutput(outputData) {
     const contentHash = this.hashInput(outputData);
-    const outputPath = join(this.objectsPath, "blobs", contentHash);
-    await fs.mkdir(join(outputPath, ".."), { recursive: true });
+    const outputPath = join2(this.objectsPath, "blobs", contentHash);
+    await fs.mkdir(join2(outputPath, ".."), { recursive: true });
     await fs.writeFile(outputPath, JSON.stringify(outputData), "utf-8");
     return {
       type: "json",
@@ -17822,8 +18020,8 @@ class CommitManager {
     };
   }
   async storeCommit(commit) {
-    const commitPath = join(this.commitsPath, `${commit.commit_id}.yaml`);
-    await fs.writeFile(commitPath, import_yaml8.default.stringify(commit), "utf-8");
+    const commitPath = join2(this.commitsPath, `${commit.commit_id}.yaml`);
+    await fs.writeFile(commitPath, import_yaml9.default.stringify(commit), "utf-8");
   }
   collectMetadata() {
     return {
@@ -17834,7 +18032,7 @@ class CommitManager {
 }
 // src/rams/version-manager/branch-manager.ts
 import { promises as fs2 } from "fs";
-import { join as join2 } from "path";
+import { join as join3 } from "path";
 
 class BranchManager {
   instanceId;
@@ -17844,15 +18042,15 @@ class BranchManager {
   constructor(instanceId, basePath = ".rams/execution_history") {
     this.instanceId = instanceId;
     this.basePath = basePath;
-    this.refsPath = join2(basePath, instanceId, ".git", "refs", "heads");
-    this.worktreesPath = join2(basePath, instanceId, "worktrees");
+    this.refsPath = join3(basePath, instanceId, ".git", "refs", "heads");
+    this.worktreesPath = join3(basePath, instanceId, "worktrees");
   }
   async initialize() {
     await fs2.mkdir(this.refsPath, { recursive: true });
     await fs2.mkdir(this.worktreesPath, { recursive: true });
   }
   async createBranch(branchName, fromCommit) {
-    const branchPath = join2(this.refsPath, branchName);
+    const branchPath = join3(this.refsPath, branchName);
     await fs2.writeFile(branchPath, fromCommit, "utf-8");
     await this.createWorktree(branchName, fromCommit);
   }
@@ -17880,13 +18078,13 @@ class BranchManager {
     return branches;
   }
   async deleteBranch(branchName) {
-    const branchPath = join2(this.refsPath, branchName);
+    const branchPath = join3(this.refsPath, branchName);
     await fs2.unlink(branchPath);
-    const worktreePath = join2(this.worktreesPath, branchName);
+    const worktreePath = join3(this.worktreesPath, branchName);
     await fs2.rm(worktreePath, { recursive: true, force: true });
   }
   async getRef(branchName) {
-    const branchPath = join2(this.refsPath, branchName);
+    const branchPath = join3(this.refsPath, branchName);
     try {
       return await fs2.readFile(branchPath, "utf-8");
     } catch {
@@ -17894,40 +18092,40 @@ class BranchManager {
     }
   }
   async updateHead(commitId) {
-    const headPath = join2(this.basePath, this.instanceId, ".git", "HEAD");
-    await fs2.mkdir(join2(headPath, ".."), { recursive: true });
+    const headPath = join3(this.basePath, this.instanceId, ".git", "HEAD");
+    await fs2.mkdir(join3(headPath, ".."), { recursive: true });
     await fs2.writeFile(headPath, commitId, "utf-8");
   }
   async createWorktree(branchName, commitId) {
-    const worktreePath = join2(this.worktreesPath, branchName);
+    const worktreePath = join3(this.worktreesPath, branchName);
     await fs2.mkdir(worktreePath, { recursive: true });
-    const currentStatePath = join2(worktreePath, "current_state");
+    const currentStatePath = join3(worktreePath, "current_state");
     await fs2.mkdir(currentStatePath, { recursive: true });
-    const skillOutputsPath = join2(currentStatePath, "skill_outputs");
+    const skillOutputsPath = join3(currentStatePath, "skill_outputs");
     await fs2.mkdir(skillOutputsPath, { recursive: true });
-    const metadataPath = join2(worktreePath, ".metadata");
+    const metadataPath = join3(worktreePath, ".metadata");
     await fs2.writeFile(metadataPath, JSON.stringify({ commit_id: commitId }), "utf-8");
   }
   async restoreWorktree(_branchName, _commitId) {}
   async getBranchCreatedTime(branchName) {
-    const branchPath = join2(this.refsPath, branchName);
+    const branchPath = join3(this.refsPath, branchName);
     const stats = await fs2.stat(branchPath);
     return stats.mtime.toISOString();
   }
 }
 // src/rams/version-manager/undo-redo-manager.ts
 import { promises as fs3 } from "fs";
-import { join as join3 } from "path";
+import { join as join4 } from "path";
 
 class UndoRedoManager {
   commitManager;
   reflogPath;
   constructor(_instanceId, commitManager, basePath = ".rams/execution_history") {
     this.commitManager = commitManager;
-    this.reflogPath = join3(basePath, _instanceId, ".git", "logs", "reflog");
+    this.reflogPath = join4(basePath, _instanceId, ".git", "logs", "reflog");
   }
   async initialize() {
-    await fs3.mkdir(join3(this.reflogPath, ".."), { recursive: true });
+    await fs3.mkdir(join4(this.reflogPath, ".."), { recursive: true });
   }
   async undo(steps = 1) {
     const currentCommit = await this.commitManager.getCurrentCommit();

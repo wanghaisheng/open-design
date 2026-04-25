@@ -1,3 +1,4 @@
-export { readFile, fileExists } from './file-utils.js';
-export { formatOutput, formatError } from './format-utils.js';
+export * from './file-utils.js';
+export * from './format-utils.js';
+export * from './variant-loader.js';
 export { ConfigManager, createConfigManager } from './config-manager.js';
