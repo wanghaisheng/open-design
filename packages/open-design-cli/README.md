@@ -1,4 +1,4 @@
-# @open-design/cli
+# RAMS CLI
 
 CLI tool for implementing the RAMS (Role-AI-Memory-Skill) framework - a comprehensive system for AI-powered design and game development workflows.
 
