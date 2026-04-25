@@ -2,7 +2,146 @@
 
 This document tracks the implementation status of Git-like version control features for RAMS skill execution history, organized by user-facing functionality.
 
-## User Features
+## Version Control Usage Scenarios by Skill Stage
+
+本章节说明版本控制在RAMS框架不同skill阶段的作用和使用场景。
+
+### 游戏策划阶段 (Game Design Stage)
+
+游戏策划阶段涉及游戏机制、玩法、关卡等设计工作。
+
+| 版本控制功能 | 使用场景 | 典型操作 | 价值 |
+|------------|---------|---------|------|
+| **查看执行历史** | 回顾设计方案的演变过程 | `execution log` | 了解设计思路的发展轨迹 |
+| **撤销操作** | 设计方向错误时快速回退 | `execution undo` | 避免错误设计影响后续工作 |
+| **重做操作** | 恢复被撤销的设计尝试 | `execution redo` | 重新评估之前的设计方案 |
+| **切换到指定版本** | 对比不同设计方案 | `execution checkout` | 快速切换到历史设计版本进行对比 |
+| **创建分支** | 尝试不同的设计方向而不影响主设计 | `execution branch create` | 并行探索多个设计可能性 |
+| **切换分支** | 在不同设计方向间切换 | `execution branch switch` | 灵活管理多个设计线 |
+| **查看分支** | 查看所有正在进行的设计方向 | `execution branch list` | 了解整体设计探索进度 |
+| **删除分支** | 清理废弃的设计方向 | `execution branch delete` | 保持设计库整洁 |
+| **创建标签** | 为重要的设计里程碑打标签 | `execution tag create` | 标记关键设计版本（如v1.0设计方案） |
+| **查看标签** | 查看所有设计里程碑 | `execution tag list` | 快速定位重要设计版本 |
+| **删除标签** | 清理不需要的标签 | `execution tag delete` | 维护标签库 |
+| **暂存工作** | 保存当前未完成的设计状态 | `execution stash save` | 临时保存设计进度 |
+| **查看暂存** | 查看所有暂存的设计状态 | `execution stash list` | 管理多个设计草稿 |
+| **恢复暂存** | 恢复暂存的设计状态 | `execution stash apply` | 继续之前的设计工作 |
+| **删除暂存** | 删除不需要的暂存 | `execution stash drop` | 清理设计草稿 |
+| **合并分支** | 将一个设计方向合并到主设计 | `execution merge` | 将实验性设计合并到主设计 |
+| **变基操作** | 将提交重新应用到另一个分支 | `execution rebase` | 保持设计历史线性整洁 |
+
+**典型工作流：**
+```
+1. 创建主设计方案分支
+2. 创建实验性分支尝试新玩法
+3. 在实验分支上执行设计skill
+4. 如果满意，合并到主分支
+5. 如果不满意，撤销或切换分支
+6. 为重要版本打标签（如"v1.0-战斗系统设计"）
+```
+
+### 技术设计阶段 (Technical Design Stage)
+
+技术设计阶段涉及架构、技术方案、API设计等工作。
+
+| 版本控制功能 | 使用场景 | 典型操作 | 价值 |
+|------------|---------|---------|------|
+| **查看执行历史** | 追踪技术方案的迭代 | `execution log` | 理解技术决策的演进 |
+| **撤销操作** | 技术方案有问题时回退 | `execution undo` | 快速回退有问题的技术方案 |
+| **重做操作** | 重新评估技术方案 | `execution redo` | 对比不同技术方案 |
+| **切换到指定版本** | 回到之前的技术方案 | `execution checkout` | 测试历史技术方案 |
+| **创建分支** | 尝试不同的技术架构 | `execution branch create` | 并行测试多种技术方案 |
+| **切换分支** | 在不同技术方案间切换 | `execution branch switch` | 灵活比较技术方案 |
+| **查看分支** | 查看所有技术方案分支 | `execution branch list` | 了解技术探索范围 |
+| **删除分支** | 清理废弃的技术方案 | `execution branch delete` | 保持技术库整洁 |
+| **创建标签** | 标记技术里程碑版本 | `execution tag create` | 标记关键技术版本（如"v2.0-架构重构"） |
+| **查看标签** | 查看所有技术里程碑 | `execution tag list` | 快速定位关键技术版本 |
+| **删除标签** | 清理不需要的标签 | `execution tag delete` | 维护标签库 |
+| **暂存工作** | 保存未完成的技术设计 | `execution stash save` | 临时保存技术草稿 |
+| **查看暂存** | 查看所有技术草稿 | `execution stash list` | 管理多个技术草稿 |
+| **恢复暂存** | 恢复技术草稿 | `execution stash apply` | 继续之前的技术工作 |
+| **删除暂存** | 删除不需要的技术草稿 | `execution stash drop` | 清理技术草稿 |
+| **合并分支** | 将技术方案整合到主架构 | `execution merge` | 整合技术方案 |
+| **变基操作** | 让技术方案基于最新架构 | `execution rebase` | 保持技术历史线性 |
+
+**典型工作流：**
+```
+1. 创建技术方案分支
+2. 设计并测试技术架构
+3. 如果架构可行，合并到主分支
+4. 如果不可行，撤销或切换到其他方案
+5. 为重要技术版本打标签
+```
+
+### 美术设计阶段 (Art Design Stage)
+
+美术设计阶段涉及角色、场景、UI等视觉设计工作。
+
+| 版本控制功能 | 使用场景 | 典型操作 | 价值 |
+|------------|---------|---------|------|
+| **查看执行历史** | 回顾美术风格的演变 | `execution log` | 了解美术风格的发展 |
+| **撤销操作** | 美术方向错误时回退 | `execution undo` | 快速回退不满意的美术设计 |
+| **重做操作** | 恢复被撤销的美术尝试 | `execution redo` | 重新评估美术方案 |
+| **切换到指定版本** | 对比不同美术风格 | `execution checkout` | 快速切换到历史美术版本 |
+| **创建分支** | 尝试不同的美术风格 | `execution branch create` | 并行探索多种美术风格 |
+| **切换分支** | 在不同美术风格间切换 | `execution branch switch` | 灵活比较美术方案 |
+| **查看分支** | 查看所有美术风格分支 | `execution branch list` | 了解美术探索范围 |
+| **删除分支** | 清理废弃的美术风格 | `execution branch delete` | 保持美术库整洁 |
+| **创建标签** | 标记美术里程碑版本 | `execution tag create` | 标记关键美术版本（如"v1.0-角色设计"） |
+| **查看标签** | 查看所有美术里程碑 | `execution tag list` | 快速定位关键美术版本 |
+| **删除标签** | 清理不需要的标签 | `execution tag delete` | 维护标签库 |
+| **暂存工作** | 保存未完成的美术设计 | `execution stash save` | 临时保存美术草稿 |
+| **查看暂存** | 查看所有美术草稿 | `execution stash list` | 管理多个美术草稿 |
+| **恢复暂存** | 恢复美术草稿 | `execution stash apply` | 继续之前的美术工作 |
+| **删除暂存** | 删除不需要的美术草稿 | `execution stash drop` | 清理美术草稿 |
+| **合并分支** | 将美术方案整合到主设计 | `execution merge` | 整合美术方案 |
+| **变基操作** | 让美术方案基于最新设计 | `execution rebase` | 保持美术历史线性 |
+
+**典型工作流：**
+```
+1. 创建美术风格分支
+2. 设计角色/场景/UI
+3. 如果风格合适，合并到主分支
+4. 如果不合适，撤销或切换到其他风格
+5. 为重要美术版本打标签
+```
+
+### 生产管理阶段 (Production Stage)
+
+生产管理阶段涉及项目规划、进度跟踪、资源分配等工作。
+
+| 版本控制功能 | 使用场景 | 典型操作 | 价值 |
+|------------|---------|---------|------|
+| **查看执行历史** | 追踪项目进展 | `execution log` | 了解项目执行历史 |
+| **撤销操作** | 项目决策错误时回退 | `execution undo` | 回退错误的项目决策 |
+| **重做操作** | 恢复被撤销的项目操作 | `execution redo` | 重新评估项目决策 |
+| **切换到指定版本** | 回到之前的项目状态 | `execution checkout` | 查看历史项目状态 |
+| **创建分支** | 尝试不同的项目方案 | `execution branch create` | 并行测试多种项目方案 |
+| **切换分支** | 在不同项目方案间切换 | `execution branch switch` | 灵活管理项目方案 |
+| **查看分支** | 查看所有项目方案分支 | `execution branch list` | 了解项目方案范围 |
+| **删除分支** | 清理废弃的项目方案 | `execution branch delete` | 保持项目库整洁 |
+| **创建标签** | 标记项目里程碑 | `execution tag create` | 标记关键项目版本（如"v1.0-Alpha版本"） |
+| **查看标签** | 查看所有项目里程碑 | `execution tag list` | 快速定位关键项目版本 |
+| **删除标签** | 清理不需要的标签 | `execution tag delete` | 维护标签库 |
+| **暂存工作** | 保存未完成的项目状态 | `execution stash save` | 临时保存项目进度 |
+| **查看暂存** | 查看所有项目暂存 | `execution stash list` | 管理多个项目草稿 |
+| **恢复暂存** | 恢复项目暂存 | `execution stash apply` | 继续之前的项目工作 |
+| **删除暂存** | 删除不需要的项目暂存 | `execution stash drop` | 清理项目草稿 |
+| **合并分支** | 整合项目方案 | `execution merge` | 合并项目方案 |
+| **变基操作** | 让项目基于最新状态 | `execution rebase` | 保持项目历史线性 |
+
+**典型工作流：**
+```
+1. 创建项目方案分支
+2. 执行项目规划和管理
+3. 如果方案可行，合并到主分支
+4. 如果不可行，撤销或切换到其他方案
+5. 为重要项目版本打标签
+```
+
+---
+
+## User Features (Complete List)
 
 | User Action | Description | Filesystem | libsql | CLI Command |
 |------------|-------------|-----------|--------|-------------|
