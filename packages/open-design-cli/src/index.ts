@@ -17,12 +17,13 @@ import pluginCommand from './commands/plugin.js';
 import interactiveCommand from './commands/interactive.js';
 import orchestratorCommand from './commands/orchestrator.js';
 import auditCommand from './commands/audit.js';
+import executionCommand from './commands/execution.js';
 
 const main = defineCommand({
   meta: {
     name: 'open-design',
     version: '1.0.0',
-    description: 'CLI tool for Open Design specification documents - lint, validate, template, export, config, role, skill, workflow, runtime, memory, variant, tool, learning, plugin, interactive, orchestrator, and audit',
+    description: 'CLI tool for Open Design specification documents - lint, validate, template, export, config, role, skill, workflow, runtime, memory, variant, tool, learning, plugin, interactive, orchestrator, audit, and execution',
   },
   subCommands: {
     lint: lintCommand,
@@ -42,6 +43,7 @@ const main = defineCommand({
     interactive: interactiveCommand,
     orchestrator: orchestratorCommand,
     audit: auditCommand,
+    execution: executionCommand,
   },
 });
 

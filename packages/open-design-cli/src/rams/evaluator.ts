@@ -208,7 +208,7 @@ export class Evaluator {
   /**
    * Generate recommendations
    */
-  private generateRecommendations(criteria: EvaluationCriteria, details: any): string[] {
+  private generateRecommendations(criteria: EvaluationCriteria, _details: any): string[] {
     const recommendations: string[] = [];
 
     if (!criteria.role_coverage) {

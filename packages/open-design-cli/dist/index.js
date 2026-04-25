@@ -1,6 +1,21 @@
 #!/usr/bin/env node
 import { createRequire } from "node:module";
+var __create = Object.create;
+var __getProtoOf = Object.getPrototypeOf;
 var __defProp = Object.defineProperty;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __toESM = (mod, isNodeMode, target) => {
+  target = mod != null ? __create(__getProtoOf(mod)) : {};
+  const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
+  for (let key of __getOwnPropNames(mod))
+    if (!__hasOwnProp.call(to, key))
+      __defProp(to, key, {
+        get: () => mod[key],
+        enumerable: true
+      });
+  return to;
+};
 var __commonJS = (cb, mod) => () => (mod || cb((mod = { exports: {} }).exports, mod), mod.exports);
 var __export = (target, all) => {
   for (var name in all)
@@ -6929,6 +6944,55 @@ var require_public_api = __commonJS((exports) => {
   exports.stringify = stringify;
 });
 
+// node_modules/yaml/dist/index.js
+var require_dist = __commonJS((exports) => {
+  var composer = require_composer();
+  var Document = require_Document();
+  var Schema = require_Schema();
+  var errors = require_errors();
+  var Alias = require_Alias();
+  var identity = require_identity();
+  var Pair = require_Pair();
+  var Scalar = require_Scalar();
+  var YAMLMap = require_YAMLMap();
+  var YAMLSeq = require_YAMLSeq();
+  var cst = require_cst();
+  var lexer = require_lexer();
+  var lineCounter = require_line_counter();
+  var parser = require_parser();
+  var publicApi = require_public_api();
+  var visit = require_visit();
+  exports.Composer = composer.Composer;
+  exports.Document = Document.Document;
+  exports.Schema = Schema.Schema;
+  exports.YAMLError = errors.YAMLError;
+  exports.YAMLParseError = errors.YAMLParseError;
+  exports.YAMLWarning = errors.YAMLWarning;
+  exports.Alias = Alias.Alias;
+  exports.isAlias = identity.isAlias;
+  exports.isCollection = identity.isCollection;
+  exports.isDocument = identity.isDocument;
+  exports.isMap = identity.isMap;
+  exports.isNode = identity.isNode;
+  exports.isPair = identity.isPair;
+  exports.isScalar = identity.isScalar;
+  exports.isSeq = identity.isSeq;
+  exports.Pair = Pair.Pair;
+  exports.Scalar = Scalar.Scalar;
+  exports.YAMLMap = YAMLMap.YAMLMap;
+  exports.YAMLSeq = YAMLSeq.YAMLSeq;
+  exports.CST = cst;
+  exports.Lexer = lexer.Lexer;
+  exports.LineCounter = lineCounter.LineCounter;
+  exports.Parser = parser.Parser;
+  exports.parse = publicApi.parse;
+  exports.parseAllDocuments = publicApi.parseAllDocuments;
+  exports.parseDocument = publicApi.parseDocument;
+  exports.stringify = publicApi.stringify;
+  exports.visit = visit.visit;
+  exports.visitAsync = visit.visitAsync;
+});
+
 // node_modules/consola/dist/chunks/prompt.mjs
 var exports_prompt = {};
 __export(exports_prompt, {
@@ -7685,53 +7749,218 @@ var init_prompt = __esm(() => {
   kCancel = Symbol.for("cancel");
 });
 
-// node_modules/yaml/dist/index.js
-var composer = require_composer();
-var Document = require_Document();
-var Schema = require_Schema();
-var errors = require_errors();
-var Alias = require_Alias();
-var identity = require_identity();
-var Pair = require_Pair();
-var Scalar = require_Scalar();
-var YAMLMap = require_YAMLMap();
-var YAMLSeq = require_YAMLSeq();
-var cst = require_cst();
-var lexer = require_lexer();
-var lineCounter = require_line_counter();
-var parser = require_parser();
-var publicApi = require_public_api();
-var visit = require_visit();
-var $Composer = composer.Composer;
-var $Document = Document.Document;
-var $Schema = Schema.Schema;
-var $YAMLError = errors.YAMLError;
-var $YAMLParseError = errors.YAMLParseError;
-var $YAMLWarning = errors.YAMLWarning;
-var $Alias = Alias.Alias;
-var $isAlias = identity.isAlias;
-var $isCollection = identity.isCollection;
-var $isDocument = identity.isDocument;
-var $isMap = identity.isMap;
-var $isNode = identity.isNode;
-var $isPair = identity.isPair;
-var $isScalar = identity.isScalar;
-var $isSeq = identity.isSeq;
-var $Pair = Pair.Pair;
-var $Scalar = Scalar.Scalar;
-var $YAMLMap = YAMLMap.YAMLMap;
-var $YAMLSeq = YAMLSeq.YAMLSeq;
-var $Lexer = lexer.Lexer;
-var $LineCounter = lineCounter.LineCounter;
-var $Parser = parser.Parser;
-var $parse = publicApi.parse;
-var $parseAllDocuments = publicApi.parseAllDocuments;
-var $parseDocument = publicApi.parseDocument;
-var $stringify = publicApi.stringify;
-var $visit = visit.visit;
-var $visitAsync = visit.visitAsync;
+// src/utils/file-utils.ts
+import { readFileSync, existsSync } from "fs";
+import { resolve } from "path";
+async function readFile(path) {
+  if (path === "-") {
+    return new Promise((resolve2, reject) => {
+      let data = "";
+      process.stdin.setEncoding("utf8");
+      process.stdin.on("data", (chunk) => data += chunk);
+      process.stdin.on("end", () => resolve2(data));
+      process.stdin.on("error", reject);
+    });
+  }
+  const resolvedPath = resolve(path);
+  if (!existsSync(resolvedPath)) {
+    throw new Error(`File not found: ${resolvedPath}`);
+  }
+  return readFileSync(resolvedPath, "utf-8");
+}
+function fileExists(path) {
+  return existsSync(resolve(path));
+}
+var init_file_utils = () => {};
+
+// src/utils/format-utils.ts
+function formatOutput(data, args) {
+  const format = args.format || "json";
+  if (format === "json") {
+    return JSON.stringify(data, null, 2);
+  }
+  return JSON.stringify(data, null, 2);
+}
+function formatError(error) {
+  return JSON.stringify({
+    error: error.message,
+    stack: error.stack
+  }, null, 2);
+}
+
+// src/utils/config-manager.ts
+import { existsSync as existsSync2, readFileSync as readFileSync2, writeFileSync, mkdirSync } from "fs";
+import { resolve as resolve2 } from "path";
+
+class ConfigManager {
+  configPath;
+  config = null;
+  constructor(projectRoot = process.cwd()) {
+    this.configPath = resolve2(projectRoot, CONFIG_DIR, CONFIG_FILE);
+  }
+  async load() {
+    if (this.config) {
+      return this.config;
+    }
+    if (!existsSync2(this.configPath)) {
+      this.config = DEFAULT_CONFIG;
+      return this.config;
+    }
+    try {
+      const content = readFileSync2(this.configPath, "utf-8");
+      this.config = import_yaml2.parse(content);
+      return this.config;
+    } catch (error) {
+      throw new Error(`Failed to load config: ${error.message}`);
+    }
+  }
+  async save(config) {
+    try {
+      const configDir = resolve2(this.configPath, "..");
+      if (!existsSync2(configDir)) {
+        mkdirSync(configDir, { recursive: true });
+      }
+      const content = import_yaml2.stringify(config);
+      writeFileSync(this.configPath, content, "utf-8");
+      this.config = config;
+    } catch (error) {
+      throw new Error(`Failed to save config: ${error.message}`);
+    }
+  }
+  async get(path) {
+    const config = await this.load();
+    const keys = path.split(".");
+    let value = config;
+    for (const key of keys) {
+      if (value && typeof value === "object" && key in value) {
+        value = value[key];
+      } else {
+        return;
+      }
+    }
+    return value;
+  }
+  async set(path, value) {
+    const config = await this.load();
+    const keys = path.split(".");
+    let current = config;
+    for (let i2 = 0;i2 < keys.length - 1; i2++) {
+      const key = keys[i2];
+      if (!(key in current) || typeof current[key] !== "object") {
+        current[key] = {};
+      }
+      current = current[key];
+    }
+    current[keys[keys.length - 1]] = value;
+    await this.save(config);
+  }
+  validate(config) {
+    const errors2 = [];
+    if (!config.runtime) {
+      errors2.push("Missing runtime configuration");
+    } else {
+      if (!config.runtime.environment) {
+        errors2.push("Missing runtime.environment");
+      }
+      if (!config.runtime.model) {
+        errors2.push("Missing runtime.model");
+      }
+    }
+    if (!config.role) {
+      errors2.push("Missing role configuration");
+    } else {
+      if (!config.role.default) {
+        errors2.push("Missing role.default");
+      }
+      if (!config.role.path) {
+        errors2.push("Missing role.path");
+      }
+    }
+    if (!config.memory) {
+      errors2.push("Missing memory configuration");
+    } else {
+      if (!config.memory.path) {
+        errors2.push("Missing memory.path");
+      }
+      if (config.memory.compression && typeof config.memory.compression.retention_days !== "number") {
+        errors2.push("memory.compression.retention_days must be a number");
+      }
+    }
+    if (!config.skills) {
+      errors2.push("Missing skills configuration");
+    }
+    if (!config.workflows) {
+      errors2.push("Missing workflows configuration");
+    }
+    return {
+      valid: errors2.length === 0,
+      errors: errors2
+    };
+  }
+  async init() {
+    if (existsSync2(this.configPath)) {
+      throw new Error("Configuration already exists");
+    }
+    await this.save(DEFAULT_CONFIG);
+  }
+  exists() {
+    return existsSync2(this.configPath);
+  }
+  getConfigPath() {
+    return this.configPath;
+  }
+}
+function createConfigManager(projectRoot) {
+  return new ConfigManager(projectRoot);
+}
+var import_yaml2, DEFAULT_CONFIG, CONFIG_DIR = ".open-design", CONFIG_FILE = "config.yaml";
+var init_config_manager = __esm(() => {
+  import_yaml2 = __toESM(require_dist(), 1);
+  DEFAULT_CONFIG = {
+    runtime: {
+      environment: "windsurf",
+      model: "swe-1.6"
+    },
+    role: {
+      default: "design-lead",
+      path: ".claude/roles"
+    },
+    memory: {
+      enabled: true,
+      path: ".claude/memory/",
+      compression: {
+        enabled: true,
+        retention_days: 180
+      }
+    },
+    skills: {
+      auto_load: true,
+      cache: true
+    },
+    workflows: {
+      enabled: true,
+      path: ".windsurf/workflows"
+    }
+  };
+});
+
+// src/utils/index.ts
+var exports_utils = {};
+__export(exports_utils, {
+  readFile: () => readFile,
+  formatOutput: () => formatOutput,
+  formatError: () => formatError,
+  fileExists: () => fileExists,
+  createConfigManager: () => createConfigManager,
+  ConfigManager: () => ConfigManager
+});
+var init_utils = __esm(() => {
+  init_file_utils();
+  init_config_manager();
+});
 
 // src/parsers/yaml-parser.ts
+var import_yaml = __toESM(require_dist(), 1);
 function parseFrontMatter(content) {
   const lines = content.split(`
 `);
@@ -7746,7 +7975,7 @@ function parseFrontMatter(content) {
   const yamlContent = lines.slice(startMarker + 1, endMarker).join(`
 `);
   try {
-    return $parse(yamlContent) || {};
+    return import_yaml.parse(yamlContent) || {};
   } catch (error) {
     throw new Error(`Failed to parse YAML front matter: ${error}`);
   }
@@ -11751,18 +11980,18 @@ var DesignSpecSchema = exports_external.object({
   components: exports_external.record(exports_external.record(exports_external.union([exports_external.string(), exports_external.number()]))).optional()
 });
 function validateDesignSpec(content) {
-  const errors3 = [];
+  const errors2 = [];
   const warnings = [];
   try {
     const frontMatter = parseFrontMatter(content);
     const result = DesignSpecSchema.safeParse(frontMatter);
     if (!result.success) {
       result.error.errors.forEach((err) => {
-        errors3.push(`Field validation error: ${err.path.join(".")} - ${err.message}`);
+        errors2.push(`Field validation error: ${err.path.join(".")} - ${err.message}`);
       });
     }
     if (!frontMatter.name) {
-      errors3.push("Missing required field: name");
+      errors2.push("Missing required field: name");
     }
     if (!frontMatter.colors) {
       warnings.push("Missing recommended field: colors");
@@ -11771,11 +12000,11 @@ function validateDesignSpec(content) {
       warnings.push("Missing recommended field: typography");
     }
   } catch (error) {
-    errors3.push(`Failed to parse YAML front matter: ${error}`);
+    errors2.push(`Failed to parse YAML front matter: ${error}`);
   }
   return {
-    valid: errors3.length === 0,
-    errors: errors3,
+    valid: errors2.length === 0,
+    errors: errors2,
     warnings
   };
 }
@@ -11788,28 +12017,28 @@ var ResearchSpecSchema = exports_external.object({
   last_updated: exports_external.string().optional()
 });
 function validateResearchSpec(content) {
-  const errors3 = [];
+  const errors2 = [];
   const warnings = [];
   try {
     const frontMatter = parseFrontMatter(content);
     const result = ResearchSpecSchema.safeParse(frontMatter);
     if (!result.success) {
       result.error.errors.forEach((err) => {
-        errors3.push(`Field validation error: ${err.path.join(".")} - ${err.message}`);
+        errors2.push(`Field validation error: ${err.path.join(".")} - ${err.message}`);
       });
     }
     if (!frontMatter.spec_name) {
-      errors3.push("Missing required field: spec_name");
+      errors2.push("Missing required field: spec_name");
     }
     if (!frontMatter.spec_type) {
-      errors3.push("Missing required field: spec_type");
+      errors2.push("Missing required field: spec_type");
     }
   } catch (error) {
-    errors3.push(`Failed to parse YAML front matter: ${error}`);
+    errors2.push(`Failed to parse YAML front matter: ${error}`);
   }
   return {
-    valid: errors3.length === 0,
-    errors: errors3,
+    valid: errors2.length === 0,
+    errors: errors2,
     warnings
   };
 }
@@ -11822,28 +12051,28 @@ var StrategySpecSchema = exports_external.object({
   last_updated: exports_external.string().optional()
 });
 function validateStrategySpec(content) {
-  const errors3 = [];
+  const errors2 = [];
   const warnings = [];
   try {
     const frontMatter = parseFrontMatter(content);
     const result = StrategySpecSchema.safeParse(frontMatter);
     if (!result.success) {
       result.error.errors.forEach((err) => {
-        errors3.push(`Field validation error: ${err.path.join(".")} - ${err.message}`);
+        errors2.push(`Field validation error: ${err.path.join(".")} - ${err.message}`);
       });
     }
     if (!frontMatter.spec_name) {
-      errors3.push("Missing required field: spec_name");
+      errors2.push("Missing required field: spec_name");
     }
     if (!frontMatter.spec_type) {
-      errors3.push("Missing required field: spec_type");
+      errors2.push("Missing required field: spec_type");
     }
   } catch (error) {
-    errors3.push(`Failed to parse YAML front matter: ${error}`);
+    errors2.push(`Failed to parse YAML front matter: ${error}`);
   }
   return {
-    valid: errors3.length === 0,
-    errors: errors3,
+    valid: errors2.length === 0,
+    errors: errors2,
     warnings
   };
 }
@@ -11856,28 +12085,28 @@ var InteractionSpecSchema = exports_external.object({
   last_updated: exports_external.string().optional()
 });
 function validateInteractionSpec(content) {
-  const errors3 = [];
+  const errors2 = [];
   const warnings = [];
   try {
     const frontMatter = parseFrontMatter(content);
     const result = InteractionSpecSchema.safeParse(frontMatter);
     if (!result.success) {
       result.error.errors.forEach((err) => {
-        errors3.push(`Field validation error: ${err.path.join(".")} - ${err.message}`);
+        errors2.push(`Field validation error: ${err.path.join(".")} - ${err.message}`);
       });
     }
     if (!frontMatter.spec_name) {
-      errors3.push("Missing required field: spec_name");
+      errors2.push("Missing required field: spec_name");
     }
     if (!frontMatter.spec_type) {
-      errors3.push("Missing required field: spec_type");
+      errors2.push("Missing required field: spec_type");
     }
   } catch (error) {
-    errors3.push(`Failed to parse YAML front matter: ${error}`);
+    errors2.push(`Failed to parse YAML front matter: ${error}`);
   }
   return {
-    valid: errors3.length === 0,
-    errors: errors3,
+    valid: errors2.length === 0,
+    errors: errors2,
     warnings
   };
 }
@@ -11890,28 +12119,28 @@ var OpsSpecSchema = exports_external.object({
   last_updated: exports_external.string().optional()
 });
 function validateOpsSpec(content) {
-  const errors3 = [];
+  const errors2 = [];
   const warnings = [];
   try {
     const frontMatter = parseFrontMatter(content);
     const result = OpsSpecSchema.safeParse(frontMatter);
     if (!result.success) {
       result.error.errors.forEach((err) => {
-        errors3.push(`Field validation error: ${err.path.join(".")} - ${err.message}`);
+        errors2.push(`Field validation error: ${err.path.join(".")} - ${err.message}`);
       });
     }
     if (!frontMatter.spec_name) {
-      errors3.push("Missing required field: spec_name");
+      errors2.push("Missing required field: spec_name");
     }
     if (!frontMatter.spec_type) {
-      errors3.push("Missing required field: spec_type");
+      errors2.push("Missing required field: spec_type");
     }
   } catch (error) {
-    errors3.push(`Failed to parse YAML front matter: ${error}`);
+    errors2.push(`Failed to parse YAML front matter: ${error}`);
   }
   return {
-    valid: errors3.length === 0,
-    errors: errors3,
+    valid: errors2.length === 0,
+    errors: errors2,
     warnings
   };
 }
@@ -13364,34 +13593,8 @@ async function runMain(cmd, opts = {}) {
   }
 }
 
-// src/utils/file-utils.ts
-import { readFileSync, existsSync } from "fs";
-import { resolve } from "path";
-async function readFile(path) {
-  if (path === "-") {
-    return new Promise((resolve2, reject) => {
-      let data = "";
-      process.stdin.setEncoding("utf8");
-      process.stdin.on("data", (chunk) => data += chunk);
-      process.stdin.on("end", () => resolve2(data));
-      process.stdin.on("error", reject);
-    });
-  }
-  const resolvedPath = resolve(path);
-  if (!existsSync(resolvedPath)) {
-    throw new Error(`File not found: ${resolvedPath}`);
-  }
-  return readFileSync(resolvedPath, "utf-8");
-}
-// src/utils/format-utils.ts
-function formatOutput(data, args) {
-  const format = args.format || "json";
-  if (format === "json") {
-    return JSON.stringify(data, null, 2);
-  }
-  return JSON.stringify(data, null, 2);
-}
 // src/commands/lint.ts
+init_utils();
 var lint_default = defineCommand({
   meta: {
     name: "lint",
@@ -13432,8 +13635,8 @@ var lint_default = defineCommand({
 });
 
 // src/commands/template.ts
-import { writeFileSync, mkdirSync, existsSync as existsSync2 } from "fs";
-import { resolve as resolve2 } from "path";
+import { writeFileSync as writeFileSync2, mkdirSync as mkdirSync2, existsSync as existsSync3 } from "fs";
+import { resolve as resolve3 } from "path";
 var template_default = defineCommand({
   meta: {
     name: "template",
@@ -13461,8 +13664,8 @@ var template_default = defineCommand({
       const specType = args.spec_type;
       const docType = args.doc_type;
       const outputDir = args.output || "./templates";
-      if (!existsSync2(outputDir)) {
-        mkdirSync(outputDir, { recursive: true });
+      if (!existsSync3(outputDir)) {
+        mkdirSync2(outputDir, { recursive: true });
       }
       let template;
       let filename;
@@ -13490,8 +13693,8 @@ var template_default = defineCommand({
         default:
           throw new Error(`Unknown spec type: ${specType}`);
       }
-      const outputPath = resolve2(outputDir, filename);
-      writeFileSync(outputPath, template, "utf-8");
+      const outputPath = resolve3(outputDir, filename);
+      writeFileSync2(outputPath, template, "utf-8");
       console.log(JSON.stringify({
         success: true,
         message: `Template generated at ${outputPath}`,
@@ -13631,6 +13834,7 @@ Document content follows the specification format
 }
 
 // src/commands/validate.ts
+init_utils();
 var validate_default = defineCommand({
   meta: {
     name: "validate",
@@ -13686,12 +13890,26 @@ var validate_default = defineCommand({
 });
 
 // src/commands/export.ts
-import { writeFileSync as writeFileSync2 } from "fs";
-import { resolve as resolve3 } from "path";
-var export_default = defineCommand({
+init_utils();
+var import_yaml3 = __toESM(require_dist(), 1);
+import { writeFileSync as writeFileSync3 } from "fs";
+import { resolve as resolve4 } from "path";
+var exportFormatsCommand = defineCommand({
   meta: {
-    name: "export",
-    description: "Export specification document to other formats."
+    name: "formats",
+    description: "List available export formats"
+  },
+  async run() {
+    console.log(JSON.stringify({
+      formats: ["json", "yaml", "html", "typescript", "markdown", "csv"],
+      description: "Available export formats"
+    }, null, 2));
+  }
+});
+var exportJsonCommand = defineCommand({
+  meta: {
+    name: "json",
+    description: "Export to JSON format"
   },
   args: {
     file: {
@@ -13699,14 +13917,9 @@ var export_default = defineCommand({
       description: "Path to specification file",
       required: true
     },
-    format: {
-      type: "string",
-      description: "Output format: json, html, typescript",
-      required: true
-    },
     output: {
       type: "string",
-      description: "Output file path (optional, defaults to stdout)",
+      description: "Output file path (optional)",
       required: false
     }
   },
@@ -13715,40 +13928,182 @@ var export_default = defineCommand({
       const content = await readFile(args.file);
       const frontMatter = parseFrontMatter(content);
       const body = content.split("---").slice(2).join("---").trim();
-      let output;
-      switch (args.format) {
-        case "json":
-          output = JSON.stringify({
-            frontMatter,
-            body
-          }, null, 2);
-          break;
-        case "typescript":
-          output = generateTypeScriptTypes(frontMatter);
-          break;
-        case "html":
-          output = generateHTML(frontMatter, body);
-          break;
-        default:
-          throw new Error(`Unknown format: ${args.format}`);
-      }
-      if (args.output) {
-        const outputPath = resolve3(args.output);
-        writeFileSync2(outputPath, output, "utf-8");
-        console.log(JSON.stringify({
-          success: true,
-          message: `Exported to ${args.output}`,
-          path: outputPath
-        }, null, 2));
-      } else {
-        console.log(output);
-      }
+      const output = JSON.stringify({
+        frontMatter,
+        body
+      }, null, 2);
+      await writeOutput(args.output, output, "json");
     } catch (error) {
       console.error(JSON.stringify({ error: error.message }, null, 2));
       process.exitCode = 1;
     }
   }
 });
+var exportYamlCommand = defineCommand({
+  meta: {
+    name: "yaml",
+    description: "Export to YAML format"
+  },
+  args: {
+    file: {
+      type: "positional",
+      description: "Path to specification file",
+      required: true
+    },
+    output: {
+      type: "string",
+      description: "Output file path (optional)",
+      required: false
+    }
+  },
+  async run({ args }) {
+    try {
+      const content = await readFile(args.file);
+      const frontMatter = parseFrontMatter(content);
+      const body = content.split("---").slice(2).join("---").trim();
+      const output = import_yaml3.stringify({
+        frontMatter,
+        body
+      });
+      await writeOutput(args.output, output, "yaml");
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var exportHtmlCommand = defineCommand({
+  meta: {
+    name: "html",
+    description: "Export to HTML format"
+  },
+  args: {
+    file: {
+      type: "positional",
+      description: "Path to specification file",
+      required: true
+    },
+    output: {
+      type: "string",
+      description: "Output file path (optional)",
+      required: false
+    }
+  },
+  async run({ args }) {
+    try {
+      const content = await readFile(args.file);
+      const frontMatter = parseFrontMatter(content);
+      const body = content.split("---").slice(2).join("---").trim();
+      const output = generateHTML(frontMatter, body);
+      await writeOutput(args.output, output, "html");
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var exportTypescriptCommand = defineCommand({
+  meta: {
+    name: "typescript",
+    description: "Export to TypeScript types"
+  },
+  args: {
+    file: {
+      type: "positional",
+      description: "Path to specification file",
+      required: true
+    },
+    output: {
+      type: "string",
+      description: "Output file path (optional)",
+      required: false
+    }
+  },
+  async run({ args }) {
+    try {
+      const content = await readFile(args.file);
+      const frontMatter = parseFrontMatter(content);
+      const output = generateTypeScriptTypes(frontMatter);
+      await writeOutput(args.output, output, "typescript");
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var exportMarkdownCommand = defineCommand({
+  meta: {
+    name: "markdown",
+    description: "Export to Markdown format"
+  },
+  args: {
+    file: {
+      type: "positional",
+      description: "Path to specification file",
+      required: true
+    },
+    output: {
+      type: "string",
+      description: "Output file path (optional)",
+      required: false
+    }
+  },
+  async run({ args }) {
+    try {
+      const content = await readFile(args.file);
+      const frontMatter = parseFrontMatter(content);
+      const body = content.split("---").slice(2).join("---").trim();
+      const output = generateMarkdown(frontMatter, body);
+      await writeOutput(args.output, output, "markdown");
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var exportCsvCommand = defineCommand({
+  meta: {
+    name: "csv",
+    description: "Export design tokens to CSV format"
+  },
+  args: {
+    file: {
+      type: "positional",
+      description: "Path to specification file",
+      required: true
+    },
+    output: {
+      type: "string",
+      description: "Output file path (optional)",
+      required: false
+    }
+  },
+  async run({ args }) {
+    try {
+      const content = await readFile(args.file);
+      const frontMatter = parseFrontMatter(content);
+      const output = generateCSV(frontMatter);
+      await writeOutput(args.output, output, "csv");
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+async function writeOutput(outputPath, content, format) {
+  if (outputPath) {
+    const path = resolve4(outputPath);
+    writeFileSync3(path, content, "utf-8");
+    console.log(JSON.stringify({
+      success: true,
+      message: `Exported to ${outputPath}`,
+      path,
+      format
+    }, null, 2));
+  } else {
+    console.log(content);
+  }
+}
 function generateTypeScriptTypes(frontMatter) {
   let types2 = `// Auto-generated TypeScript types
 
@@ -13845,19 +14200,4073 @@ function generateHTML(frontMatter, body) {
 </html>`;
   return html;
 }
+function generateMarkdown(frontMatter, body) {
+  let md = `# ${frontMatter.name || "Design Specification"}
+
+`;
+  if (frontMatter.description) {
+    md += `${frontMatter.description}
+
+`;
+  }
+  if (frontMatter.colors) {
+    md += `## Colors
+
+`;
+    for (const [key, value] of Object.entries(frontMatter.colors)) {
+      md += `- **${key}**: ${value}
+`;
+    }
+    md += `
+`;
+  }
+  if (frontMatter.typography) {
+    md += `## Typography
+
+`;
+    for (const [key, value] of Object.entries(frontMatter.typography)) {
+      md += `### ${key}
+
+`;
+      if (typeof value === "object" && value !== null) {
+        for (const [k2, v2] of Object.entries(value)) {
+          md += `- ${k2}: ${v2}
+`;
+        }
+      }
+      md += `
+`;
+    }
+  }
+  md += `## Content
+
+`;
+  md += body;
+  return md;
+}
+function generateCSV(frontMatter) {
+  let csv = `type,name,value
+`;
+  if (frontMatter.colors) {
+    for (const [key, value] of Object.entries(frontMatter.colors)) {
+      csv += `color,${key},${value}
+`;
+    }
+  }
+  if (frontMatter.spacing) {
+    for (const [key, value] of Object.entries(frontMatter.spacing)) {
+      csv += `spacing,${key},${value}
+`;
+    }
+  }
+  return csv;
+}
+var export_default = defineCommand({
+  meta: {
+    name: "export",
+    description: "Export specification document to other formats"
+  },
+  subCommands: {
+    formats: exportFormatsCommand,
+    json: exportJsonCommand,
+    yaml: exportYamlCommand,
+    html: exportHtmlCommand,
+    typescript: exportTypescriptCommand,
+    markdown: exportMarkdownCommand,
+    csv: exportCsvCommand
+  }
+});
+
+// src/commands/config.ts
+init_utils();
+var getConfigCommand = defineCommand({
+  meta: {
+    name: "get",
+    description: "Get a configuration value"
+  },
+  args: {
+    path: {
+      type: "positional",
+      description: "Configuration path (e.g., runtime.model)",
+      required: true
+    }
+  },
+  async run({ args }) {
+    try {
+      const configManager = createConfigManager();
+      const value = await configManager.get(args.path);
+      if (value === undefined) {
+        console.log(JSON.stringify({ error: "Configuration path not found" }, null, 2));
+        process.exitCode = 1;
+        return;
+      }
+      console.log(JSON.stringify({ path: args.path, value }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var setConfigCommand = defineCommand({
+  meta: {
+    name: "set",
+    description: "Set a configuration value"
+  },
+  args: {
+    path: {
+      type: "positional",
+      description: "Configuration path (e.g., runtime.model)",
+      required: true
+    },
+    value: {
+      type: "positional",
+      description: "Configuration value",
+      required: true
+    }
+  },
+  async run({ args }) {
+    try {
+      const configManager = createConfigManager();
+      let value = args.value;
+      try {
+        value = JSON.parse(args.value);
+      } catch {}
+      await configManager.set(args.path, value);
+      console.log(JSON.stringify({
+        success: true,
+        message: `Configuration ${args.path} set to ${args.value}`
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var initConfigCommand = defineCommand({
+  meta: {
+    name: "init",
+    description: "Initialize configuration with default values"
+  },
+  async run() {
+    try {
+      const configManager = createConfigManager();
+      if (configManager.exists()) {
+        console.log(JSON.stringify({
+          error: "Configuration already exists",
+          path: configManager.getConfigPath()
+        }, null, 2));
+        process.exitCode = 1;
+        return;
+      }
+      await configManager.init();
+      console.log(JSON.stringify({
+        success: true,
+        message: "Configuration initialized",
+        path: configManager.getConfigPath()
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var validateConfigCommand = defineCommand({
+  meta: {
+    name: "validate",
+    description: "Validate configuration structure"
+  },
+  async run() {
+    try {
+      const configManager = createConfigManager();
+      if (!configManager.exists()) {
+        console.log(JSON.stringify({
+          error: "Configuration does not exist",
+          path: configManager.getConfigPath()
+        }, null, 2));
+        process.exitCode = 1;
+        return;
+      }
+      const config = await configManager.load();
+      const validation = configManager.validate(config);
+      console.log(JSON.stringify({
+        valid: validation.valid,
+        errors: validation.errors,
+        path: configManager.getConfigPath()
+      }, null, 2));
+      process.exitCode = validation.valid ? 0 : 1;
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var config_default = defineCommand({
+  meta: {
+    name: "config",
+    description: "Manage CLI configuration"
+  },
+  subCommands: {
+    get: getConfigCommand,
+    set: setConfigCommand,
+    init: initConfigCommand,
+    validate: validateConfigCommand
+  }
+});
+
+// src/rams/role-instance.ts
+var import_yaml4 = __toESM(require_dist(), 1);
+import { existsSync as existsSync4, readFileSync as readFileSync3, readdirSync } from "fs";
+import { resolve as resolve5 } from "path";
+
+class RoleInstance {
+  rolePath;
+  roleDefinition = null;
+  soulDefinition = null;
+  constructor(roleName, projectRoot = process.cwd()) {
+    this.rolePath = resolve5(projectRoot, ".claude", "roles", roleName);
+  }
+  async loadRole() {
+    if (this.roleDefinition) {
+      return this.roleDefinition;
+    }
+    const roleFile = resolve5(this.rolePath, "role.md");
+    if (!existsSync4(roleFile)) {
+      throw new Error(`Role definition not found: ${roleFile}`);
+    }
+    try {
+      const content = readFileSync3(roleFile, "utf-8");
+      const frontmatter = this.extractFrontmatter(content);
+      const parsed = import_yaml4.parse(frontmatter);
+      const skills = parsed.skills || this.extractSkillsFromContent(content);
+      this.roleDefinition = {
+        name: parsed.name,
+        version: parsed.version,
+        description: parsed.description,
+        tags: parsed.tags || [],
+        capabilities: parsed.capabilities || [],
+        soul_ref: parsed.soul_ref,
+        skills
+      };
+      return this.roleDefinition;
+    } catch (error) {
+      throw new Error(`Failed to load role definition: ${error.message}`);
+    }
+  }
+  extractSkillsFromContent(_content) {
+    const commonSkills = [
+      "design-state",
+      "design-taste",
+      "taste-feedback",
+      "token-architecture",
+      "design-system-alignment",
+      "ui-composition",
+      "responsive-patterns",
+      "interaction-design",
+      "adaptive-interfaces",
+      "using-designpowers"
+    ];
+    return commonSkills;
+  }
+  async loadSoul() {
+    if (this.soulDefinition) {
+      return this.soulDefinition;
+    }
+    const roleDef = await this.loadRole();
+    const soulFile = resolve5(this.rolePath, roleDef.soul_ref);
+    if (!existsSync4(soulFile)) {
+      throw new Error(`Soul definition not found: ${soulFile}`);
+    }
+    try {
+      const content = readFileSync3(soulFile, "utf-8");
+      const frontmatter = this.extractFrontmatter(content);
+      this.soulDefinition = import_yaml4.parse(frontmatter);
+      return this.soulDefinition;
+    } catch (error) {
+      throw new Error(`Failed to load soul definition: ${error.message}`);
+    }
+  }
+  extractFrontmatter(content) {
+    const match = content.match(/^---\n([\s\S]*?)\n---/);
+    if (!match) {
+      throw new Error("No YAML frontmatter found");
+    }
+    return match[1];
+  }
+  async executeSkill(skillName, input) {
+    const roleDef = await this.loadRole();
+    if (!roleDef.skills.includes(skillName)) {
+      throw new Error(`Skill ${skillName} not found in role ${roleDef.name}`);
+    }
+    return {
+      role: roleDef.name,
+      skill: skillName,
+      input,
+      output: `Executed ${skillName} with role ${roleDef.name}`
+    };
+  }
+  async getInfo() {
+    const role = await this.loadRole();
+    const soul = await this.loadSoul();
+    return {
+      role,
+      soul,
+      path: this.rolePath
+    };
+  }
+  exists() {
+    return existsSync4(resolve5(this.rolePath, "role.md"));
+  }
+}
+
+class RoleManager {
+  projectRoot;
+  constructor(projectRoot = process.cwd()) {
+    this.projectRoot = projectRoot;
+  }
+  async listRoles() {
+    const rolesPath = resolve5(this.projectRoot, ".claude", "roles");
+    if (!existsSync4(rolesPath)) {
+      return [];
+    }
+    const entries = readdirSync(rolesPath, { withFileTypes: true });
+    return entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name);
+  }
+  createRoleInstance(roleName) {
+    return new RoleInstance(roleName, this.projectRoot);
+  }
+}
+function createRoleManager(projectRoot) {
+  return new RoleManager(projectRoot);
+}
+
+// src/commands/role.ts
+var executeRoleCommand = defineCommand({
+  meta: {
+    name: "execute",
+    description: "Execute a role with a specific skill"
+  },
+  args: {
+    role: {
+      type: "positional",
+      description: "Role name (e.g., design-lead)",
+      required: true
+    },
+    skill: {
+      type: "string",
+      description: "Skill name to execute",
+      required: false
+    },
+    input: {
+      type: "string",
+      description: "Input data (JSON string)",
+      required: false
+    }
+  },
+  async run({ args }) {
+    try {
+      const roleManager = createRoleManager();
+      const roleInstance = roleManager.createRoleInstance(args.role);
+      if (!roleInstance.exists()) {
+        console.log(JSON.stringify({
+          error: "Role not found",
+          role: args.role
+        }, null, 2));
+        process.exitCode = 1;
+        return;
+      }
+      if (!args.skill) {
+        const info = await roleInstance.getInfo();
+        console.log(JSON.stringify({
+          role: info.role,
+          soul: info.soul,
+          path: info.path
+        }, null, 2));
+        return;
+      }
+      let input = {};
+      if (args.input) {
+        try {
+          input = JSON.parse(args.input);
+        } catch {
+          input = { message: args.input };
+        }
+      }
+      const result = await roleInstance.executeSkill(args.skill, input);
+      console.log(JSON.stringify(result, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var listRolesCommand = defineCommand({
+  meta: {
+    name: "list",
+    description: "List all available roles"
+  },
+  async run() {
+    try {
+      const roleManager = createRoleManager();
+      const roles = await roleManager.listRoles();
+      console.log(JSON.stringify({
+        roles,
+        count: roles.length
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var roleInfoCommand = defineCommand({
+  meta: {
+    name: "info",
+    description: "Get detailed information about a role"
+  },
+  args: {
+    role: {
+      type: "positional",
+      description: "Role name (e.g., design-lead)",
+      required: true
+    }
+  },
+  async run({ args }) {
+    try {
+      const roleManager = createRoleManager();
+      const roleInstance = roleManager.createRoleInstance(args.role);
+      if (!roleInstance.exists()) {
+        console.log(JSON.stringify({
+          error: "Role not found",
+          role: args.role
+        }, null, 2));
+        process.exitCode = 1;
+        return;
+      }
+      const info = await roleInstance.getInfo();
+      console.log(JSON.stringify(info, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var switchRoleCommand = defineCommand({
+  meta: {
+    name: "switch",
+    description: "Switch the default role"
+  },
+  args: {
+    role: {
+      type: "positional",
+      description: "Role name to switch to",
+      required: true
+    }
+  },
+  async run({ args }) {
+    try {
+      const { createConfigManager: createConfigManager2 } = await Promise.resolve().then(() => (init_utils(), exports_utils));
+      const configManager = createConfigManager2();
+      const roleManager = createRoleManager();
+      const roleInstance = roleManager.createRoleInstance(args.role);
+      if (!roleInstance.exists()) {
+        console.log(JSON.stringify({
+          error: "Role not found",
+          role: args.role
+        }, null, 2));
+        process.exitCode = 1;
+        return;
+      }
+      await configManager.set("role.default", args.role);
+      console.log(JSON.stringify({
+        success: true,
+        message: `Default role switched to ${args.role}`
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var role_default = defineCommand({
+  meta: {
+    name: "role",
+    description: "Execute and manage RAMS framework roles"
+  },
+  subCommands: {
+    execute: executeRoleCommand,
+    list: listRolesCommand,
+    info: roleInfoCommand,
+    switch: switchRoleCommand
+  }
+});
+
+// src/rams/skill-executor.ts
+class SkillExecutor {
+  roleInstance;
+  constructor(roleInstance) {
+    this.roleInstance = roleInstance;
+  }
+  async execute(skillName, input) {
+    const roleDef = await this.roleInstance.loadRole();
+    if (!roleDef.skills.includes(skillName)) {
+      throw new Error(`Skill ${skillName} not found in role ${roleDef.name}`);
+    }
+    return {
+      skill: skillName,
+      role: roleDef.name,
+      input,
+      output: `Executed skill ${skillName}`,
+      channel: "ai_model"
+    };
+  }
+  async listSkills() {
+    const roleDef = await this.roleInstance.loadRole();
+    return roleDef.skills;
+  }
+  async getSkillInfo(skillName) {
+    const roleDef = await this.roleInstance.loadRole();
+    if (!roleDef.skills.includes(skillName)) {
+      throw new Error(`Skill ${skillName} not found in role ${roleDef.name}`);
+    }
+    return {
+      name: skillName,
+      description: `Skill ${skillName} for role ${roleDef.name}`,
+      implementation_channel: "ai_model"
+    };
+  }
+  async testSkill(skillName, testCase) {
+    const result = await this.execute(skillName, testCase.input);
+    if (testCase.expected_output) {
+      const passed = JSON.stringify(result.output) === JSON.stringify(testCase.expected_output);
+      return {
+        skill: skillName,
+        passed,
+        result
+      };
+    }
+    return {
+      skill: skillName,
+      result
+    };
+  }
+}
+function createSkillExecutor(roleInstance) {
+  return new SkillExecutor(roleInstance);
+}
+
+// src/commands/skill.ts
+var executeSkillCommand = defineCommand({
+  meta: {
+    name: "execute",
+    description: "Execute a specific skill"
+  },
+  args: {
+    skill: {
+      type: "positional",
+      description: "Skill name to execute",
+      required: true
+    },
+    role: {
+      type: "string",
+      description: "Role name (uses default if not specified)",
+      required: false
+    },
+    input: {
+      type: "string",
+      description: "Input data (JSON string)",
+      required: false
+    }
+  },
+  async run({ args }) {
+    try {
+      const { createConfigManager: createConfigManager2 } = await Promise.resolve().then(() => (init_utils(), exports_utils));
+      const configManager = createConfigManager2();
+      const config = await configManager.load();
+      const roleName = args.role || config.role.default;
+      const roleManager = createRoleManager();
+      const roleInstance = roleManager.createRoleInstance(roleName);
+      if (!roleInstance.exists()) {
+        console.log(JSON.stringify({
+          error: "Role not found",
+          role: roleName
+        }, null, 2));
+        process.exitCode = 1;
+        return;
+      }
+      let input = {};
+      if (args.input) {
+        try {
+          input = JSON.parse(args.input);
+        } catch {
+          input = { message: args.input };
+        }
+      }
+      const skillExecutor = createSkillExecutor(roleInstance);
+      const result = await skillExecutor.execute(args.skill, input);
+      console.log(JSON.stringify(result, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var listSkillsCommand = defineCommand({
+  meta: {
+    name: "list",
+    description: "List all skills for a role"
+  },
+  args: {
+    role: {
+      type: "string",
+      description: "Role name (uses default if not specified)",
+      required: false
+    }
+  },
+  async run({ args }) {
+    try {
+      const { createConfigManager: createConfigManager2 } = await Promise.resolve().then(() => (init_utils(), exports_utils));
+      const configManager = createConfigManager2();
+      const config = await configManager.load();
+      const roleName = args.role || config.role.default;
+      const roleManager = createRoleManager();
+      const roleInstance = roleManager.createRoleInstance(roleName);
+      if (!roleInstance.exists()) {
+        console.log(JSON.stringify({
+          error: "Role not found",
+          role: roleName
+        }, null, 2));
+        process.exitCode = 1;
+        return;
+      }
+      const skillExecutor = createSkillExecutor(roleInstance);
+      const skills = await skillExecutor.listSkills();
+      console.log(JSON.stringify({
+        role: roleName,
+        skills,
+        count: skills.length
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var skillInfoCommand = defineCommand({
+  meta: {
+    name: "info",
+    description: "Get detailed information about a skill"
+  },
+  args: {
+    skill: {
+      type: "positional",
+      description: "Skill name",
+      required: true
+    },
+    role: {
+      type: "string",
+      description: "Role name (uses default if not specified)",
+      required: false
+    }
+  },
+  async run({ args }) {
+    try {
+      const { createConfigManager: createConfigManager2 } = await Promise.resolve().then(() => (init_utils(), exports_utils));
+      const configManager = createConfigManager2();
+      const config = await configManager.load();
+      const roleName = args.role || config.role.default;
+      const roleManager = createRoleManager();
+      const roleInstance = roleManager.createRoleInstance(roleName);
+      if (!roleInstance.exists()) {
+        console.log(JSON.stringify({
+          error: "Role not found",
+          role: roleName
+        }, null, 2));
+        process.exitCode = 1;
+        return;
+      }
+      const skillExecutor = createSkillExecutor(roleInstance);
+      const info = await skillExecutor.getSkillInfo(args.skill);
+      console.log(JSON.stringify(info, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var testSkillCommand = defineCommand({
+  meta: {
+    name: "test",
+    description: "Test a skill with a test case"
+  },
+  args: {
+    skill: {
+      type: "positional",
+      description: "Skill name to test",
+      required: true
+    },
+    role: {
+      type: "string",
+      description: "Role name (uses default if not specified)",
+      required: false
+    },
+    input: {
+      type: "string",
+      description: "Test input data (JSON string)",
+      required: false
+    },
+    expected: {
+      type: "string",
+      description: "Expected output (JSON string)",
+      required: false
+    }
+  },
+  async run({ args }) {
+    try {
+      const { createConfigManager: createConfigManager2 } = await Promise.resolve().then(() => (init_utils(), exports_utils));
+      const configManager = createConfigManager2();
+      const config = await configManager.load();
+      const roleName = args.role || config.role.default;
+      const roleManager = createRoleManager();
+      const roleInstance = roleManager.createRoleInstance(roleName);
+      if (!roleInstance.exists()) {
+        console.log(JSON.stringify({
+          error: "Role not found",
+          role: roleName
+        }, null, 2));
+        process.exitCode = 1;
+        return;
+      }
+      let input = {};
+      if (args.input) {
+        try {
+          input = JSON.parse(args.input);
+        } catch {
+          input = { message: args.input };
+        }
+      }
+      let expectedOutput;
+      if (args.expected) {
+        try {
+          expectedOutput = JSON.parse(args.expected);
+        } catch {
+          expectedOutput = args.expected;
+        }
+      }
+      const skillExecutor = createSkillExecutor(roleInstance);
+      const testCase = {
+        input,
+        expected_output: expectedOutput
+      };
+      const result = await skillExecutor.testSkill(args.skill, testCase);
+      console.log(JSON.stringify(result, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var skill_default = defineCommand({
+  meta: {
+    name: "skill",
+    description: "Execute and manage RAMS framework skills"
+  },
+  subCommands: {
+    execute: executeSkillCommand,
+    list: listSkillsCommand,
+    info: skillInfoCommand,
+    test: testSkillCommand
+  }
+});
+
+// src/rams/workflow-parser.ts
+var import_yaml5 = __toESM(require_dist(), 1);
+import { existsSync as existsSync5, readFileSync as readFileSync4 } from "fs";
+import { resolve as resolve6 } from "path";
+
+class WorkflowParser {
+  projectRoot;
+  constructor(projectRoot = process.cwd()) {
+    this.projectRoot = projectRoot;
+  }
+  async loadWorkflow(workflowName) {
+    const workflowPath = resolve6(this.projectRoot, ".windsurf", "workflows", `${workflowName}.md`);
+    if (!existsSync5(workflowPath)) {
+      throw new Error(`Workflow not found: ${workflowPath}`);
+    }
+    const content = readFileSync4(workflowPath, "utf-8");
+    return this.parseWorkflow(content);
+  }
+  parseWorkflow(content) {
+    const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
+    if (!frontmatterMatch) {
+      throw new Error("No YAML frontmatter found in workflow");
+    }
+    const frontmatter = import_yaml5.parse(frontmatterMatch[1]);
+    const steps = this.parseSteps(content);
+    return {
+      name: frontmatter.name || "Unnamed Workflow",
+      description: frontmatter.description || "",
+      steps
+    };
+  }
+  parseSteps(content) {
+    const steps = [];
+    const lines = content.split(`
+`);
+    let currentStep = null;
+    for (const line of lines) {
+      const stepMatch = line.match(/^###\s+(.+)/);
+      if (stepMatch) {
+        if (currentStep && currentStep.name) {
+          steps.push(currentStep);
+        }
+        currentStep = {
+          name: stepMatch[1].trim(),
+          description: ""
+        };
+        continue;
+      }
+      if (currentStep && line.includes("使用Skill")) {
+        const skillMatch = line.match(/使用Skill[：:]\s*`([^`]+)`/);
+        if (skillMatch) {
+          currentStep.skill = skillMatch[1];
+        }
+      }
+      if (currentStep && line.includes("使用Role")) {
+        const roleMatch = line.match(/使用Role[：:]\s*`([^`]+)`/);
+        if (roleMatch) {
+          currentStep.role = roleMatch[1];
+        }
+      }
+      if (currentStep && line.includes("输出文档")) {
+        const outputMatch = line.match(/输出文档[：:]\s*`([^`]+)`/);
+        if (outputMatch) {
+          currentStep.output = outputMatch[1];
+        }
+      }
+      if (currentStep && line.includes("依赖")) {
+        const depMatch = line.match(/依赖[：:]\s*(.+)/);
+        if (depMatch) {
+          currentStep.dependencies = depMatch[1].split(",").map((d2) => d2.trim());
+        }
+      }
+    }
+    if (currentStep && currentStep.name) {
+      steps.push(currentStep);
+    }
+    return steps;
+  }
+  async listWorkflows() {
+    const workflowDir = resolve6(this.projectRoot, ".windsurf", "workflows");
+    if (!existsSync5(workflowDir)) {
+      return [];
+    }
+    const { readdirSync: readdirSync2 } = await import("fs");
+    const entries = readdirSync2(workflowDir);
+    return entries.filter((entry) => entry.endsWith(".md")).map((entry) => entry.replace(".md", ""));
+  }
+  validateWorkflow(workflow) {
+    const errors2 = [];
+    if (!workflow.name) {
+      errors2.push("Workflow name is required");
+    }
+    if (!workflow.description) {
+      errors2.push("Workflow description is required");
+    }
+    if (!workflow.steps || workflow.steps.length === 0) {
+      errors2.push("Workflow must have at least one step");
+    }
+    for (let i2 = 0;i2 < workflow.steps.length; i2++) {
+      const step = workflow.steps[i2];
+      if (!step.name) {
+        errors2.push(`Step ${i2 + 1} is missing a name`);
+      }
+      if (!step.skill && !step.role) {
+        errors2.push(`Step ${i2 + 1} must have either a skill or role`);
+      }
+    }
+    return {
+      valid: errors2.length === 0,
+      errors: errors2
+    };
+  }
+}
+function createWorkflowParser(projectRoot) {
+  return new WorkflowParser(projectRoot);
+}
+
+// src/commands/workflow.ts
+var listWorkflowsCommand = defineCommand({
+  meta: {
+    name: "list",
+    description: "List all available workflows"
+  },
+  async run() {
+    try {
+      const workflowParser = createWorkflowParser();
+      const workflows = await workflowParser.listWorkflows();
+      console.log(JSON.stringify({
+        workflows,
+        count: workflows.length
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var workflowInfoCommand = defineCommand({
+  meta: {
+    name: "info",
+    description: "Get detailed information about a workflow"
+  },
+  args: {
+    workflow: {
+      type: "positional",
+      description: "Workflow name",
+      required: true
+    }
+  },
+  async run({ args }) {
+    try {
+      const workflowParser = createWorkflowParser();
+      const workflow = await workflowParser.loadWorkflow(args.workflow);
+      console.log(JSON.stringify(workflow, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var validateWorkflowCommand = defineCommand({
+  meta: {
+    name: "validate",
+    description: "Validate a workflow structure"
+  },
+  args: {
+    workflow: {
+      type: "positional",
+      description: "Workflow name",
+      required: true
+    }
+  },
+  async run({ args }) {
+    try {
+      const workflowParser = createWorkflowParser();
+      const workflow = await workflowParser.loadWorkflow(args.workflow);
+      const validation = workflowParser.validateWorkflow(workflow);
+      console.log(JSON.stringify({
+        valid: validation.valid,
+        errors: validation.errors
+      }, null, 2));
+      process.exitCode = validation.valid ? 0 : 1;
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var executeWorkflowCommand = defineCommand({
+  meta: {
+    name: "execute",
+    description: "Execute a workflow"
+  },
+  args: {
+    workflow: {
+      type: "positional",
+      description: "Workflow name",
+      required: true
+    },
+    dry_run: {
+      type: "boolean",
+      description: "Dry run without actual execution",
+      default: false
+    }
+  },
+  async run({ args }) {
+    try {
+      const workflowParser = createWorkflowParser();
+      const workflow = await workflowParser.loadWorkflow(args.workflow);
+      if (args.dry_run) {
+        console.log(JSON.stringify({
+          workflow: workflow.name,
+          description: workflow.description,
+          steps: workflow.steps.map((step) => ({
+            name: step.name,
+            skill: step.skill,
+            role: step.role,
+            output: step.output
+          })),
+          dry_run: true
+        }, null, 2));
+        return;
+      }
+      console.log(JSON.stringify({
+        workflow: workflow.name,
+        message: "Workflow execution not yet fully implemented",
+        steps: workflow.steps.length
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var workflow_default = defineCommand({
+  meta: {
+    name: "workflow",
+    description: "Execute and manage RAMS framework workflows"
+  },
+  subCommands: {
+    list: listWorkflowsCommand,
+    info: workflowInfoCommand,
+    validate: validateWorkflowCommand,
+    execute: executeWorkflowCommand
+  }
+});
+
+// src/rams/runtime-manager.ts
+init_utils();
+
+class RuntimeManager {
+  projectRoot;
+  constructor(projectRoot = process.cwd()) {
+    this.projectRoot = projectRoot;
+  }
+  async getCurrentRuntime() {
+    const configManager = createConfigManager(this.projectRoot);
+    const config = await configManager.load();
+    return {
+      name: config.runtime.environment,
+      type: this.detectEnvironmentType(config.runtime.environment),
+      model: config.runtime.model,
+      capabilities: this.getEnvironmentCapabilities(config.runtime.environment)
+    };
+  }
+  detectEnvironmentType(name) {
+    const desktopIdes = ["windsurf", "cursor", "claude-desktop"];
+    const cloudIdes = ["claude-web", "chatgpt-web"];
+    const professionalTools = ["openclaw", "hermes"];
+    if (desktopIdes.includes(name.toLowerCase())) {
+      return "desktop_ide";
+    }
+    if (cloudIdes.includes(name.toLowerCase())) {
+      return "cloud_ide";
+    }
+    if (professionalTools.includes(name.toLowerCase())) {
+      return "professional_tool";
+    }
+    if (name.toLowerCase() === "cli") {
+      return "cli";
+    }
+    return "custom_platform";
+  }
+  getEnvironmentCapabilities(name) {
+    const capabilities = {
+      windsurf: ["ai_models", "file_system", "git", "terminal", "mcp"],
+      cursor: ["ai_models", "file_system", "git", "terminal", "mcp"],
+      "claude-desktop": ["ai_models", "file_system", "mcp"],
+      "claude-web": ["ai_models", "file_upload"],
+      "chatgpt-web": ["ai_models", "file_upload"],
+      openclaw: ["ai_models", "file_system", "git", "terminal", "advanced_tools"],
+      hermes: ["ai_models", "file_system", "git", "terminal", "advanced_tools"],
+      cli: ["ai_models", "file_system", "terminal"]
+    };
+    return capabilities[name.toLowerCase()] || ["ai_models"];
+  }
+  async setRuntimeEnvironment(environment) {
+    const configManager = createConfigManager(this.projectRoot);
+    await configManager.set("runtime.environment", environment);
+  }
+  async setModel(model) {
+    const configManager = createConfigManager(this.projectRoot);
+    await configManager.set("runtime.model", model);
+  }
+  getSupportedEnvironments() {
+    return [
+      {
+        name: "windsurf",
+        type: "desktop_ide",
+        model: "swe-1.6",
+        capabilities: ["ai_models", "file_system", "git", "terminal", "mcp"]
+      },
+      {
+        name: "cursor",
+        type: "desktop_ide",
+        model: "claude-3.5-sonnet",
+        capabilities: ["ai_models", "file_system", "git", "terminal", "mcp"]
+      },
+      {
+        name: "claude-desktop",
+        type: "desktop_ide",
+        model: "claude-3.5-sonnet",
+        capabilities: ["ai_models", "file_system", "mcp"]
+      },
+      {
+        name: "claude-web",
+        type: "cloud_ide",
+        model: "claude-3.5-sonnet",
+        capabilities: ["ai_models", "file_upload"]
+      },
+      {
+        name: "chatgpt-web",
+        type: "cloud_ide",
+        model: "gpt-4-turbo",
+        capabilities: ["ai_models", "file_upload"]
+      },
+      {
+        name: "openclaw",
+        type: "professional_tool",
+        model: "claude-3.5-sonnet",
+        capabilities: ["ai_models", "file_system", "git", "terminal", "advanced_tools"]
+      },
+      {
+        name: "hermes",
+        type: "professional_tool",
+        model: "claude-3.5-sonnet",
+        capabilities: ["ai_models", "file_system", "git", "terminal", "advanced_tools"]
+      },
+      {
+        name: "cli",
+        type: "cli",
+        model: "swe-1.6",
+        capabilities: ["ai_models", "file_system", "terminal"]
+      }
+    ];
+  }
+  async hasCapability(capability) {
+    const runtime = await this.getCurrentRuntime();
+    return runtime.capabilities.includes(capability);
+  }
+  async getStatus() {
+    const configManager = createConfigManager(this.projectRoot);
+    const config = await configManager.load();
+    const runtime = await this.getCurrentRuntime();
+    return {
+      environment: runtime,
+      config: {
+        environment: config.runtime.environment,
+        model: config.runtime.model,
+        tool_permissions: ["file_system", "terminal"],
+        memory_enabled: config.memory.enabled
+      },
+      supported: true
+    };
+  }
+}
+function createRuntimeManager(projectRoot) {
+  return new RuntimeManager(projectRoot);
+}
+
+// src/commands/runtime.ts
+var runtimeStatusCommand = defineCommand({
+  meta: {
+    name: "status",
+    description: "Get current runtime environment status"
+  },
+  async run() {
+    try {
+      const runtimeManager = createRuntimeManager();
+      const status = await runtimeManager.getStatus();
+      console.log(JSON.stringify(status, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var runtimeListCommand = defineCommand({
+  meta: {
+    name: "list",
+    description: "List all supported runtime environments"
+  },
+  async run() {
+    try {
+      const runtimeManager = createRuntimeManager();
+      const environments = runtimeManager.getSupportedEnvironments();
+      console.log(JSON.stringify({
+        environments,
+        count: environments.length
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var runtimeSetCommand = defineCommand({
+  meta: {
+    name: "set",
+    description: "Set runtime environment"
+  },
+  args: {
+    environment: {
+      type: "positional",
+      description: "Environment name (e.g., windsurf, cursor, claude-desktop)",
+      required: true
+    }
+  },
+  async run({ args }) {
+    try {
+      const runtimeManager = createRuntimeManager();
+      await runtimeManager.setRuntimeEnvironment(args.environment);
+      console.log(JSON.stringify({
+        success: true,
+        message: `Runtime environment set to ${args.environment}`
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var runtimeModelCommand = defineCommand({
+  meta: {
+    name: "model",
+    description: "Set or get the current model"
+  },
+  args: {
+    model: {
+      type: "positional",
+      description: "Model name (e.g., swe-1.6, claude-3.5-sonnet)",
+      required: false
+    }
+  },
+  async run({ args }) {
+    try {
+      const runtimeManager = createRuntimeManager();
+      if (args.model) {
+        await runtimeManager.setModel(args.model);
+        console.log(JSON.stringify({
+          success: true,
+          message: `Model set to ${args.model}`
+        }, null, 2));
+      } else {
+        const runtime = await runtimeManager.getCurrentRuntime();
+        console.log(JSON.stringify({
+          model: runtime.model
+        }, null, 2));
+      }
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var runtimeCheckCommand = defineCommand({
+  meta: {
+    name: "check",
+    description: "Check if a capability is supported"
+  },
+  args: {
+    capability: {
+      type: "positional",
+      description: "Capability to check (e.g., ai_models, file_system, terminal)",
+      required: true
+    }
+  },
+  async run({ args }) {
+    try {
+      const runtimeManager = createRuntimeManager();
+      const hasCapability = await runtimeManager.hasCapability(args.capability);
+      console.log(JSON.stringify({
+        capability: args.capability,
+        supported: hasCapability
+      }, null, 2));
+      process.exitCode = hasCapability ? 0 : 1;
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var runtime_default = defineCommand({
+  meta: {
+    name: "runtime",
+    description: "Manage runtime environment settings"
+  },
+  subCommands: {
+    status: runtimeStatusCommand,
+    list: runtimeListCommand,
+    set: runtimeSetCommand,
+    model: runtimeModelCommand,
+    check: runtimeCheckCommand
+  }
+});
+
+// src/rams/memory-manager.ts
+init_utils();
+import { existsSync as existsSync6, readFileSync as readFileSync5, writeFileSync as writeFileSync4, mkdirSync as mkdirSync3, readdirSync as readdirSync2 } from "fs";
+import { resolve as resolve7 } from "path";
+
+class MemoryManager {
+  projectRoot;
+  config = null;
+  constructor(projectRoot = process.cwd()) {
+    this.projectRoot = projectRoot;
+  }
+  async getConfig() {
+    if (this.config) {
+      return this.config;
+    }
+    const configManager = createConfigManager(this.projectRoot);
+    const config = await configManager.load();
+    this.config = config.memory;
+    return this.config;
+  }
+  async isEnabled() {
+    const config = await this.getConfig();
+    return config.enabled;
+  }
+  async getMemoryPath() {
+    const config = await this.getConfig();
+    return resolve7(this.projectRoot, config.path);
+  }
+  async ensureMemoryDir() {
+    const memoryPath = await this.getMemoryPath();
+    if (!existsSync6(memoryPath)) {
+      mkdirSync3(memoryPath, { recursive: true });
+    }
+  }
+  async save(entry) {
+    if (!await this.isEnabled()) {
+      return;
+    }
+    await this.ensureMemoryDir();
+    const memoryPath = await this.getMemoryPath();
+    const entryPath = resolve7(memoryPath, `${entry.id}.json`);
+    writeFileSync4(entryPath, JSON.stringify(entry, null, 2), "utf-8");
+  }
+  async load(id) {
+    if (!await this.isEnabled()) {
+      return null;
+    }
+    const memoryPath = await this.getMemoryPath();
+    const entryPath = resolve7(memoryPath, `${id}.json`);
+    if (!existsSync6(entryPath)) {
+      return null;
+    }
+    const content = readFileSync5(entryPath, "utf-8");
+    return JSON.parse(content);
+  }
+  async list(type) {
+    if (!await this.isEnabled()) {
+      return [];
+    }
+    const memoryPath = await this.getMemoryPath();
+    if (!existsSync6(memoryPath)) {
+      return [];
+    }
+    const entries = [];
+    const files = readdirSync2(memoryPath);
+    for (const file of files) {
+      if (!file.endsWith(".json")) {
+        continue;
+      }
+      const entryPath = resolve7(memoryPath, file);
+      const content = readFileSync5(entryPath, "utf-8");
+      const entry = JSON.parse(content);
+      if (!type || entry.type === type) {
+        entries.push(entry);
+      }
+    }
+    entries.sort((a2, b2) => b2.timestamp - a2.timestamp);
+    return entries;
+  }
+  async delete(id) {
+    if (!await this.isEnabled()) {
+      return false;
+    }
+    const memoryPath = await this.getMemoryPath();
+    const entryPath = resolve7(memoryPath, `${id}.json`);
+    if (!existsSync6(entryPath)) {
+      return false;
+    }
+    const { unlinkSync } = await import("fs");
+    unlinkSync(entryPath);
+    return true;
+  }
+  async compress() {
+    if (!await this.isEnabled()) {
+      return 0;
+    }
+    const config = await this.getConfig();
+    if (!config.compression.enabled) {
+      return 0;
+    }
+    const retentionMs = config.compression.retention_days * 24 * 60 * 60 * 1000;
+    const now = Date.now();
+    const entries = await this.list();
+    let deletedCount = 0;
+    for (const entry of entries) {
+      if (now - entry.timestamp > retentionMs) {
+        await this.delete(entry.id);
+        deletedCount++;
+      }
+    }
+    return deletedCount;
+  }
+  async getStats() {
+    const config = await this.getConfig();
+    const entries = await this.list();
+    const entriesByType = {};
+    for (const entry of entries) {
+      entriesByType[entry.type] = (entriesByType[entry.type] || 0) + 1;
+    }
+    const timestamps = entries.map((e2) => e2.timestamp);
+    const oldestEntry = timestamps.length > 0 ? Math.min(...timestamps) : null;
+    const newestEntry = timestamps.length > 0 ? Math.max(...timestamps) : null;
+    return {
+      enabled: config.enabled,
+      path: config.path,
+      total_entries: entries.length,
+      entries_by_type: entriesByType,
+      oldest_entry: oldestEntry,
+      newest_entry: newestEntry
+    };
+  }
+  async clear() {
+    if (!await this.isEnabled()) {
+      return 0;
+    }
+    const entries = await this.list();
+    let deletedCount = 0;
+    for (const entry of entries) {
+      await this.delete(entry.id);
+      deletedCount++;
+    }
+    return deletedCount;
+  }
+}
+function createMemoryManager(projectRoot) {
+  return new MemoryManager(projectRoot);
+}
+
+// src/commands/memory.ts
+var memoryStatusCommand = defineCommand({
+  meta: {
+    name: "status",
+    description: "Get memory statistics"
+  },
+  async run() {
+    try {
+      const memoryManager = createMemoryManager();
+      const stats = await memoryManager.getStats();
+      console.log(JSON.stringify(stats, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var memoryListCommand = defineCommand({
+  meta: {
+    name: "list",
+    description: "List memory entries"
+  },
+  args: {
+    type: {
+      type: "string",
+      description: "Filter by type (context, skill, role, workflow, learning)",
+      required: false
+    }
+  },
+  async run({ args }) {
+    try {
+      const memoryManager = createMemoryManager();
+      const entries = await memoryManager.list(args.type);
+      console.log(JSON.stringify({
+        entries,
+        count: entries.length
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var memorySaveCommand = defineCommand({
+  meta: {
+    name: "save",
+    description: "Save a memory entry"
+  },
+  args: {
+    id: {
+      type: "positional",
+      description: "Entry ID",
+      required: true
+    },
+    type: {
+      type: "string",
+      description: "Entry type (context, skill, role, workflow, learning)",
+      required: true
+    },
+    content: {
+      type: "string",
+      description: "Entry content (JSON string)",
+      required: true
+    }
+  },
+  async run({ args }) {
+    try {
+      const memoryManager = createMemoryManager();
+      const content = JSON.parse(args.content);
+      const entry = {
+        id: args.id,
+        type: args.type,
+        timestamp: Date.now(),
+        content
+      };
+      await memoryManager.save(entry);
+      console.log(JSON.stringify({
+        success: true,
+        message: `Memory entry ${args.id} saved`
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var memoryLoadCommand = defineCommand({
+  meta: {
+    name: "load",
+    description: "Load a memory entry"
+  },
+  args: {
+    id: {
+      type: "positional",
+      description: "Entry ID",
+      required: true
+    }
+  },
+  async run({ args }) {
+    try {
+      const memoryManager = createMemoryManager();
+      const entry = await memoryManager.load(args.id);
+      if (!entry) {
+        console.log(JSON.stringify({
+          error: "Memory entry not found",
+          id: args.id
+        }, null, 2));
+        process.exitCode = 1;
+        return;
+      }
+      console.log(JSON.stringify(entry, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var memoryDeleteCommand = defineCommand({
+  meta: {
+    name: "delete",
+    description: "Delete a memory entry"
+  },
+  args: {
+    id: {
+      type: "positional",
+      description: "Entry ID",
+      required: true
+    }
+  },
+  async run({ args }) {
+    try {
+      const memoryManager = createMemoryManager();
+      const deleted = await memoryManager.delete(args.id);
+      if (!deleted) {
+        console.log(JSON.stringify({
+          error: "Memory entry not found",
+          id: args.id
+        }, null, 2));
+        process.exitCode = 1;
+        return;
+      }
+      console.log(JSON.stringify({
+        success: true,
+        message: `Memory entry ${args.id} deleted`
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var memoryCompressCommand = defineCommand({
+  meta: {
+    name: "compress",
+    description: "Compress old memory entries"
+  },
+  async run() {
+    try {
+      const memoryManager = createMemoryManager();
+      const deletedCount = await memoryManager.compress();
+      console.log(JSON.stringify({
+        success: true,
+        deleted_count: deletedCount
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var memoryClearCommand = defineCommand({
+  meta: {
+    name: "clear",
+    description: "Clear all memory entries"
+  },
+  async run() {
+    try {
+      const memoryManager = createMemoryManager();
+      const deletedCount = await memoryManager.clear();
+      console.log(JSON.stringify({
+        success: true,
+        deleted_count: deletedCount
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var memory_default = defineCommand({
+  meta: {
+    name: "memory",
+    description: "Manage RAMS framework memory"
+  },
+  subCommands: {
+    status: memoryStatusCommand,
+    list: memoryListCommand,
+    save: memorySaveCommand,
+    load: memoryLoadCommand,
+    delete: memoryDeleteCommand,
+    compress: memoryCompressCommand,
+    clear: memoryClearCommand
+  }
+});
+
+// src/rams/variant-manager.ts
+var import_yaml6 = __toESM(require_dist(), 1);
+import { existsSync as existsSync7, readFileSync as readFileSync6, writeFileSync as writeFileSync5, mkdirSync as mkdirSync4, readdirSync as readdirSync3 } from "fs";
+import { resolve as resolve8 } from "path";
+
+class VariantManager {
+  projectRoot;
+  constructor(projectRoot = process.cwd()) {
+    this.projectRoot = projectRoot;
+  }
+  getVariantsPath() {
+    return resolve8(this.projectRoot, ".claude", "variants");
+  }
+  ensureVariantsDir() {
+    const variantsPath = this.getVariantsPath();
+    if (!existsSync7(variantsPath)) {
+      mkdirSync4(variantsPath, { recursive: true });
+    }
+  }
+  async createVariant(variant) {
+    this.ensureVariantsDir();
+    const variantsPath = this.getVariantsPath();
+    const variantPath = resolve8(variantsPath, `${variant.name}.yaml`);
+    if (existsSync7(variantPath)) {
+      throw new Error(`Variant ${variant.name} already exists`);
+    }
+    const content = import_yaml6.stringify(variant);
+    writeFileSync5(variantPath, content, "utf-8");
+  }
+  async loadVariant(variantName) {
+    const variantsPath = this.getVariantsPath();
+    const variantPath = resolve8(variantsPath, `${variantName}.yaml`);
+    if (!existsSync7(variantPath)) {
+      throw new Error(`Variant ${variantName} not found`);
+    }
+    const content = readFileSync6(variantPath, "utf-8");
+    return import_yaml6.parse(content);
+  }
+  async listVariants() {
+    const variantsPath = this.getVariantsPath();
+    if (!existsSync7(variantsPath)) {
+      return [];
+    }
+    const entries = readdirSync3(variantsPath);
+    const variants = [];
+    for (const entry of entries) {
+      if (!entry.endsWith(".yaml")) {
+        continue;
+      }
+      const variantPath = resolve8(variantsPath, entry);
+      const content = readFileSync6(variantPath, "utf-8");
+      const variant = import_yaml6.parse(content);
+      variants.push(variant);
+    }
+    return variants;
+  }
+  async deleteVariant(variantName) {
+    const variantsPath = this.getVariantsPath();
+    const variantPath = resolve8(variantsPath, `${variantName}.yaml`);
+    if (!existsSync7(variantPath)) {
+      return false;
+    }
+    const { unlinkSync } = await import("fs");
+    unlinkSync(variantPath);
+    return true;
+  }
+  async applyVariant(roleInstance, variantName) {
+    const variant = await this.loadVariant(variantName);
+    const roleDef = await roleInstance.loadRole();
+    if (variant.base_role !== roleDef.name) {
+      throw new Error(`Variant ${variantName} is not compatible with role ${roleDef.name}`);
+    }
+  }
+  getAvailableScenarios() {
+    return ["b2b", "b2c", "mobile", "custom"];
+  }
+  async createVariantFromTemplate(name, baseRole, scenario, description) {
+    const variant = {
+      name,
+      base_role: baseRole,
+      description,
+      scenario
+    };
+    await this.createVariant(variant);
+    return variant;
+  }
+}
+function createVariantManager(projectRoot) {
+  return new VariantManager(projectRoot);
+}
+
+// src/commands/variant.ts
+var variantListCommand = defineCommand({
+  meta: {
+    name: "list",
+    description: "List all role variants"
+  },
+  async run() {
+    try {
+      const variantManager = createVariantManager();
+      const variants = await variantManager.listVariants();
+      console.log(JSON.stringify({
+        variants,
+        count: variants.length
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var variantCreateCommand = defineCommand({
+  meta: {
+    name: "create",
+    description: "Create a new role variant"
+  },
+  args: {
+    name: {
+      type: "positional",
+      description: "Variant name",
+      required: true
+    },
+    base_role: {
+      type: "string",
+      description: "Base role name",
+      required: true
+    },
+    scenario: {
+      type: "string",
+      description: "Scenario (b2b, b2c, mobile, custom)",
+      required: true
+    },
+    description: {
+      type: "string",
+      description: "Variant description",
+      required: true
+    }
+  },
+  async run({ args }) {
+    try {
+      const variantManager = createVariantManager();
+      const variant = await variantManager.createVariantFromTemplate(args.name, args.base_role, args.scenario, args.description);
+      console.log(JSON.stringify({
+        success: true,
+        message: `Variant ${args.name} created`,
+        variant
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var variantInfoCommand = defineCommand({
+  meta: {
+    name: "info",
+    description: "Get detailed information about a variant"
+  },
+  args: {
+    name: {
+      type: "positional",
+      description: "Variant name",
+      required: true
+    }
+  },
+  async run({ args }) {
+    try {
+      const variantManager = createVariantManager();
+      const variant = await variantManager.loadVariant(args.name);
+      console.log(JSON.stringify(variant, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var variantDeleteCommand = defineCommand({
+  meta: {
+    name: "delete",
+    description: "Delete a variant"
+  },
+  args: {
+    name: {
+      type: "positional",
+      description: "Variant name",
+      required: true
+    }
+  },
+  async run({ args }) {
+    try {
+      const variantManager = createVariantManager();
+      const deleted = await variantManager.deleteVariant(args.name);
+      if (!deleted) {
+        console.log(JSON.stringify({
+          error: "Variant not found",
+          name: args.name
+        }, null, 2));
+        process.exitCode = 1;
+        return;
+      }
+      console.log(JSON.stringify({
+        success: true,
+        message: `Variant ${args.name} deleted`
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var variantScenariosCommand = defineCommand({
+  meta: {
+    name: "scenarios",
+    description: "List available scenarios"
+  },
+  async run() {
+    try {
+      const variantManager = createVariantManager();
+      const scenarios = variantManager.getAvailableScenarios();
+      console.log(JSON.stringify({
+        scenarios,
+        count: scenarios.length
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var variant_default = defineCommand({
+  meta: {
+    name: "variant",
+    description: "Manage RAMS framework role variants"
+  },
+  subCommands: {
+    list: variantListCommand,
+    create: variantCreateCommand,
+    info: variantInfoCommand,
+    delete: variantDeleteCommand,
+    scenarios: variantScenariosCommand
+  }
+});
+
+// src/rams/tool-executor.ts
+import { spawn } from "child_process";
+
+class ToolExecutor {
+  projectRoot;
+  tools;
+  constructor(projectRoot = process.cwd()) {
+    this.projectRoot = projectRoot;
+    this.tools = new Map;
+    this.initializeDefaultTools();
+  }
+  initializeDefaultTools() {
+    this.tools.set("python", {
+      name: "python",
+      type: "python",
+      command: "python",
+      enabled: true
+    });
+    this.tools.set("node", {
+      name: "node",
+      type: "javascript",
+      command: "node",
+      enabled: true
+    });
+    this.tools.set("bun", {
+      name: "bun",
+      type: "javascript",
+      command: "bun",
+      enabled: true
+    });
+  }
+  registerTool(tool) {
+    this.tools.set(tool.name, tool);
+  }
+  getTool(name) {
+    return this.tools.get(name);
+  }
+  listTools() {
+    return Array.from(this.tools.values());
+  }
+  async execute(toolName, script, args = []) {
+    const tool = this.tools.get(toolName);
+    if (!tool) {
+      return {
+        success: false,
+        output: "",
+        error: `Tool ${toolName} not found`,
+        exit_code: 1
+      };
+    }
+    if (!tool.enabled) {
+      return {
+        success: false,
+        output: "",
+        error: `Tool ${toolName} is disabled`,
+        exit_code: 1
+      };
+    }
+    try {
+      const command = tool.command || toolName;
+      const allArgs = [...tool.args || [], ...args];
+      if (tool.type === "python" || tool.type === "javascript") {
+        allArgs.unshift("-c", script);
+      }
+      const result = await this.runCommand(command, allArgs);
+      return result;
+    } catch (error) {
+      return {
+        success: false,
+        output: "",
+        error: error.message,
+        exit_code: 1
+      };
+    }
+  }
+  runCommand(command, args) {
+    return new Promise((resolve9) => {
+      const child = spawn(command, args, {
+        cwd: this.projectRoot,
+        shell: true
+      });
+      let output = "";
+      let error = "";
+      child.stdout.on("data", (data) => {
+        output += data.toString();
+      });
+      child.stderr.on("data", (data) => {
+        error += data.toString();
+      });
+      child.on("close", (code) => {
+        resolve9({
+          success: code === 0,
+          output,
+          error: error || undefined,
+          exit_code: code || 0
+        });
+      });
+      child.on("error", (err) => {
+        resolve9({
+          success: false,
+          output: "",
+          error: err.message,
+          exit_code: 1
+        });
+      });
+    });
+  }
+  async executePython(script, args = []) {
+    return this.execute("python", script, args);
+  }
+  async executeJavaScript(script, args = []) {
+    return this.execute("node", script, args);
+  }
+  async executeBun(script, args = []) {
+    return this.execute("bun", script, args);
+  }
+  async isToolAvailable(toolName) {
+    const tool = this.tools.get(toolName);
+    if (!tool || !tool.enabled) {
+      return false;
+    }
+    const command = tool.command || toolName;
+    const result = await this.runCommand(command, ["--version"]);
+    return result.success;
+  }
+  enableTool(toolName) {
+    const tool = this.tools.get(toolName);
+    if (tool) {
+      tool.enabled = true;
+      return true;
+    }
+    return false;
+  }
+  disableTool(toolName) {
+    const tool = this.tools.get(toolName);
+    if (tool) {
+      tool.enabled = false;
+      return true;
+    }
+    return false;
+  }
+}
+function createToolExecutor(projectRoot) {
+  return new ToolExecutor(projectRoot);
+}
+
+// src/commands/tool.ts
+var toolListCommand = defineCommand({
+  meta: {
+    name: "list",
+    description: "List all available tools"
+  },
+  async run() {
+    try {
+      const toolExecutor = createToolExecutor();
+      const tools = toolExecutor.listTools();
+      console.log(JSON.stringify({
+        tools,
+        count: tools.length
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var toolExecuteCommand = defineCommand({
+  meta: {
+    name: "execute",
+    description: "Execute a tool with a script"
+  },
+  args: {
+    tool: {
+      type: "positional",
+      description: "Tool name (python, node, bun)",
+      required: true
+    },
+    script: {
+      type: "string",
+      description: "Script to execute",
+      required: true
+    }
+  },
+  async run({ args }) {
+    try {
+      const toolExecutor = createToolExecutor();
+      const result = await toolExecutor.execute(args.tool, args.script);
+      console.log(JSON.stringify(result, null, 2));
+      process.exitCode = result.success ? 0 : 1;
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var toolCheckCommand = defineCommand({
+  meta: {
+    name: "check",
+    description: "Check if a tool is available"
+  },
+  args: {
+    tool: {
+      type: "positional",
+      description: "Tool name",
+      required: true
+    }
+  },
+  async run({ args }) {
+    try {
+      const toolExecutor = createToolExecutor();
+      const available = await toolExecutor.isToolAvailable(args.tool);
+      console.log(JSON.stringify({
+        tool: args.tool,
+        available
+      }, null, 2));
+      process.exitCode = available ? 0 : 1;
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var toolEnableCommand = defineCommand({
+  meta: {
+    name: "enable",
+    description: "Enable a tool"
+  },
+  args: {
+    tool: {
+      type: "positional",
+      description: "Tool name",
+      required: true
+    }
+  },
+  async run({ args }) {
+    try {
+      const toolExecutor = createToolExecutor();
+      const enabled = toolExecutor.enableTool(args.tool);
+      if (!enabled) {
+        console.log(JSON.stringify({
+          error: "Tool not found",
+          tool: args.tool
+        }, null, 2));
+        process.exitCode = 1;
+        return;
+      }
+      console.log(JSON.stringify({
+        success: true,
+        message: `Tool ${args.tool} enabled`
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var toolDisableCommand = defineCommand({
+  meta: {
+    name: "disable",
+    description: "Disable a tool"
+  },
+  args: {
+    tool: {
+      type: "positional",
+      description: "Tool name",
+      required: true
+    }
+  },
+  async run({ args }) {
+    try {
+      const toolExecutor = createToolExecutor();
+      const disabled = toolExecutor.disableTool(args.tool);
+      if (!disabled) {
+        console.log(JSON.stringify({
+          error: "Tool not found",
+          tool: args.tool
+        }, null, 2));
+        process.exitCode = 1;
+        return;
+      }
+      console.log(JSON.stringify({
+        success: true,
+        message: `Tool ${args.tool} disabled`
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var tool_default = defineCommand({
+  meta: {
+    name: "tool",
+    description: "Manage software tool execution channels"
+  },
+  subCommands: {
+    list: toolListCommand,
+    execute: toolExecuteCommand,
+    check: toolCheckCommand,
+    enable: toolEnableCommand,
+    disable: toolDisableCommand
+  }
+});
+
+// src/rams/learning-manager.ts
+class LearningManager {
+  memoryManager;
+  constructor(projectRoot = process.cwd()) {
+    this.memoryManager = createMemoryManager(projectRoot);
+  }
+  async recordExecution(entry) {
+    const learningEntry = {
+      id: `learning-${entry.id}`,
+      type: "learning",
+      timestamp: Date.now(),
+      content: entry
+    };
+    await this.memoryManager.save(learningEntry);
+  }
+  async getLearningEntries() {
+    const entries = await this.memoryManager.list("learning");
+    return entries.map((e2) => e2.content);
+  }
+  async getRoleLearning(role) {
+    const allEntries = await this.getLearningEntries();
+    return allEntries.filter((e2) => e2.role === role);
+  }
+  async getSkillLearning(skill) {
+    const allEntries = await this.getLearningEntries();
+    return allEntries.filter((e2) => e2.skill === skill);
+  }
+  async analyzePatterns() {
+    const entries = await this.getLearningEntries();
+    const insights = [];
+    const roleSuccess = new Map;
+    for (const entry of entries) {
+      const stats = roleSuccess.get(entry.role) || { success: 0, total: 0 };
+      stats.total++;
+      if (entry.success)
+        stats.success++;
+      roleSuccess.set(entry.role, stats);
+    }
+    for (const [role, stats] of roleSuccess) {
+      const successRate = stats.success / stats.total;
+      if (successRate < 0.7) {
+        insights.push({
+          pattern: `Low success rate for role ${role}`,
+          frequency: stats.total,
+          confidence: 1 - successRate,
+          recommendation: `Consider reviewing role ${role} configuration or providing additional training`
+        });
+      }
+    }
+    const avgDuration = entries.reduce((sum, e2) => sum + e2.duration_ms, 0) / entries.length;
+    const slowEntries = entries.filter((e2) => e2.duration_ms > avgDuration * 2);
+    if (slowEntries.length > 0) {
+      insights.push({
+        pattern: "Slow execution detected",
+        frequency: slowEntries.length,
+        confidence: 0.8,
+        recommendation: "Consider optimizing skill execution or caching results"
+      });
+    }
+    return insights;
+  }
+  async getStats() {
+    const entries = await this.getLearningEntries();
+    const totalExecutions = entries.length;
+    const successCount = entries.filter((e2) => e2.success).length;
+    const successRate = totalExecutions > 0 ? successCount / totalExecutions : 0;
+    const avgDuration = totalExecutions > 0 ? entries.reduce((sum, e2) => sum + e2.duration_ms, 0) / totalExecutions : 0;
+    const byRole = {};
+    const bySkill = {};
+    for (const entry of entries) {
+      byRole[entry.role] = (byRole[entry.role] || 0) + 1;
+      bySkill[entry.skill] = (bySkill[entry.skill] || 0) + 1;
+    }
+    return {
+      total_executions: totalExecutions,
+      success_rate: successRate,
+      avg_duration_ms: avgDuration,
+      by_role: byRole,
+      by_skill: bySkill
+    };
+  }
+  async clearLearning() {
+    const entries = await this.getLearningEntries();
+    let deletedCount = 0;
+    for (const entry of entries) {
+      await this.memoryManager.delete(`learning-${entry.id}`);
+      deletedCount++;
+    }
+    return deletedCount;
+  }
+  async generateReport() {
+    const stats = await this.getStats();
+    const insights = await this.analyzePatterns();
+    const recommendations = insights.map((i2) => i2.recommendation);
+    return {
+      stats,
+      insights,
+      recommendations
+    };
+  }
+}
+function createLearningManager(projectRoot) {
+  return new LearningManager(projectRoot);
+}
+
+// src/commands/learning.ts
+var learningStatsCommand = defineCommand({
+  meta: {
+    name: "stats",
+    description: "Get learning statistics"
+  },
+  async run() {
+    try {
+      const learningManager = createLearningManager();
+      const stats = await learningManager.getStats();
+      console.log(JSON.stringify(stats, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var learningReportCommand = defineCommand({
+  meta: {
+    name: "report",
+    description: "Generate a learning report"
+  },
+  async run() {
+    try {
+      const learningManager = createLearningManager();
+      const report = await learningManager.generateReport();
+      console.log(JSON.stringify(report, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var learningRecordCommand = defineCommand({
+  meta: {
+    name: "record",
+    description: "Record a task execution for learning"
+  },
+  args: {
+    task_id: {
+      type: "positional",
+      description: "Task ID",
+      required: true
+    },
+    role: {
+      type: "string",
+      description: "Role name",
+      required: true
+    },
+    skill: {
+      type: "string",
+      description: "Skill name",
+      required: true
+    },
+    success: {
+      type: "string",
+      description: "Success (true/false)",
+      required: true
+    },
+    duration: {
+      type: "string",
+      description: "Duration in milliseconds",
+      required: true
+    }
+  },
+  async run({ args }) {
+    try {
+      const learningManager = createLearningManager();
+      const entry = {
+        id: `${args.task_id}-${Date.now()}`,
+        task_id: args.task_id,
+        role: args.role,
+        skill: args.skill,
+        timestamp: Date.now(),
+        success: args.success === "true",
+        duration_ms: parseInt(args.duration, 10),
+        input: {},
+        output: {}
+      };
+      await learningManager.recordExecution(entry);
+      console.log(JSON.stringify({
+        success: true,
+        message: "Execution recorded for learning"
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var learningInsightsCommand = defineCommand({
+  meta: {
+    name: "insights",
+    description: "Analyze patterns and generate insights"
+  },
+  async run() {
+    try {
+      const learningManager = createLearningManager();
+      const insights = await learningManager.analyzePatterns();
+      console.log(JSON.stringify({
+        insights,
+        count: insights.length
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var learningClearCommand = defineCommand({
+  meta: {
+    name: "clear",
+    description: "Clear all learning data"
+  },
+  async run() {
+    try {
+      const learningManager = createLearningManager();
+      const deletedCount = await learningManager.clearLearning();
+      console.log(JSON.stringify({
+        success: true,
+        deleted_count: deletedCount
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var learning_default = defineCommand({
+  meta: {
+    name: "learning",
+    description: "Manage post-task learning and insights"
+  },
+  subCommands: {
+    stats: learningStatsCommand,
+    report: learningReportCommand,
+    record: learningRecordCommand,
+    insights: learningInsightsCommand,
+    clear: learningClearCommand
+  }
+});
+
+// src/rams/plugin-manager.ts
+var import_yaml7 = __toESM(require_dist(), 1);
+import { existsSync as existsSync8, readFileSync as readFileSync7, writeFileSync as writeFileSync6, mkdirSync as mkdirSync5, readdirSync as readdirSync4 } from "fs";
+import { resolve as resolve9 } from "path";
+
+class PluginManager {
+  projectRoot;
+  plugins;
+  constructor(projectRoot = process.cwd()) {
+    this.projectRoot = projectRoot;
+    this.plugins = new Map;
+  }
+  getPluginsPath() {
+    return resolve9(this.projectRoot, ".open-design", "plugins");
+  }
+  ensurePluginsDir() {
+    const pluginsPath = this.getPluginsPath();
+    if (!existsSync8(pluginsPath)) {
+      mkdirSync5(pluginsPath, { recursive: true });
+    }
+  }
+  async loadPlugins() {
+    const pluginsPath = this.getPluginsPath();
+    if (!existsSync8(pluginsPath)) {
+      return;
+    }
+    const entries = readdirSync4(pluginsPath);
+    for (const entry of entries) {
+      if (!entry.endsWith(".yaml")) {
+        continue;
+      }
+      const pluginPath = resolve9(pluginsPath, entry);
+      const content = readFileSync7(pluginPath, "utf-8");
+      const plugin = import_yaml7.parse(content);
+      this.plugins.set(plugin.name, plugin);
+    }
+  }
+  async registerPlugin(plugin) {
+    this.ensurePluginsDir();
+    const pluginsPath = this.getPluginsPath();
+    const pluginPath = resolve9(pluginsPath, `${plugin.name}.yaml`);
+    if (existsSync8(pluginPath)) {
+      throw new Error(`Plugin ${plugin.name} already exists`);
+    }
+    const content = import_yaml7.stringify(plugin);
+    writeFileSync6(pluginPath, content, "utf-8");
+    this.plugins.set(plugin.name, plugin);
+  }
+  async unregisterPlugin(pluginName) {
+    const pluginsPath = this.getPluginsPath();
+    const pluginPath = resolve9(pluginsPath, `${pluginName}.yaml`);
+    if (!existsSync8(pluginPath)) {
+      return false;
+    }
+    const { unlinkSync } = await import("fs");
+    unlinkSync(pluginPath);
+    this.plugins.delete(pluginName);
+    return true;
+  }
+  getPlugin(name) {
+    return this.plugins.get(name);
+  }
+  listPlugins() {
+    return Array.from(this.plugins.values());
+  }
+  listPluginsByType(type) {
+    return this.listPlugins().filter((p) => p.type === type);
+  }
+  enablePlugin(pluginName) {
+    const plugin = this.plugins.get(pluginName);
+    if (plugin) {
+      plugin.enabled = true;
+      this.savePlugin(plugin);
+      return true;
+    }
+    return false;
+  }
+  disablePlugin(pluginName) {
+    const plugin = this.plugins.get(pluginName);
+    if (plugin) {
+      plugin.enabled = false;
+      this.savePlugin(plugin);
+      return true;
+    }
+    return false;
+  }
+  savePlugin(plugin) {
+    const pluginsPath = this.getPluginsPath();
+    const pluginPath = resolve9(pluginsPath, `${plugin.name}.yaml`);
+    const content = import_yaml7.stringify(plugin);
+    writeFileSync6(pluginPath, content, "utf-8");
+  }
+  getStats() {
+    const plugins = this.listPlugins();
+    const enabled = plugins.filter((p) => p.enabled).length;
+    const disabled = plugins.length - enabled;
+    const byType = {};
+    for (const plugin of plugins) {
+      byType[plugin.type] = (byType[plugin.type] || 0) + 1;
+    }
+    return {
+      total: plugins.length,
+      enabled,
+      disabled,
+      by_type: byType
+    };
+  }
+}
+function createPluginManager(projectRoot) {
+  return new PluginManager(projectRoot);
+}
+
+// src/commands/plugin.ts
+var pluginListCommand = defineCommand({
+  meta: {
+    name: "list",
+    description: "List all plugins"
+  },
+  args: {
+    type: {
+      type: "string",
+      description: "Filter by type (command, skill, role, exporter)",
+      required: false
+    }
+  },
+  async run({ args }) {
+    try {
+      const pluginManager = createPluginManager();
+      await pluginManager.loadPlugins();
+      const plugins = args.type ? pluginManager.listPluginsByType(args.type) : pluginManager.listPlugins();
+      console.log(JSON.stringify({
+        plugins,
+        count: plugins.length
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var pluginRegisterCommand = defineCommand({
+  meta: {
+    name: "register",
+    description: "Register a new plugin"
+  },
+  args: {
+    name: {
+      type: "positional",
+      description: "Plugin name",
+      required: true
+    },
+    type: {
+      type: "string",
+      description: "Plugin type (command, skill, role, exporter)",
+      required: true
+    },
+    description: {
+      type: "string",
+      description: "Plugin description",
+      required: true
+    },
+    author: {
+      type: "string",
+      description: "Plugin author",
+      required: true
+    }
+  },
+  async run({ args }) {
+    try {
+      const pluginManager = createPluginManager();
+      const plugin = {
+        name: args.name,
+        version: "1.0.0",
+        description: args.description,
+        author: args.author,
+        type: args.type,
+        enabled: true
+      };
+      await pluginManager.registerPlugin(plugin);
+      console.log(JSON.stringify({
+        success: true,
+        message: `Plugin ${args.name} registered`,
+        plugin
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var pluginUnregisterCommand = defineCommand({
+  meta: {
+    name: "unregister",
+    description: "Unregister a plugin"
+  },
+  args: {
+    name: {
+      type: "positional",
+      description: "Plugin name",
+      required: true
+    }
+  },
+  async run({ args }) {
+    try {
+      const pluginManager = createPluginManager();
+      await pluginManager.loadPlugins();
+      const unregistered = await pluginManager.unregisterPlugin(args.name);
+      if (!unregistered) {
+        console.log(JSON.stringify({
+          error: "Plugin not found",
+          name: args.name
+        }, null, 2));
+        process.exitCode = 1;
+        return;
+      }
+      console.log(JSON.stringify({
+        success: true,
+        message: `Plugin ${args.name} unregistered`
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var pluginEnableCommand = defineCommand({
+  meta: {
+    name: "enable",
+    description: "Enable a plugin"
+  },
+  args: {
+    name: {
+      type: "positional",
+      description: "Plugin name",
+      required: true
+    }
+  },
+  async run({ args }) {
+    try {
+      const pluginManager = createPluginManager();
+      await pluginManager.loadPlugins();
+      const enabled = pluginManager.enablePlugin(args.name);
+      if (!enabled) {
+        console.log(JSON.stringify({
+          error: "Plugin not found",
+          name: args.name
+        }, null, 2));
+        process.exitCode = 1;
+        return;
+      }
+      console.log(JSON.stringify({
+        success: true,
+        message: `Plugin ${args.name} enabled`
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var pluginDisableCommand = defineCommand({
+  meta: {
+    name: "disable",
+    description: "Disable a plugin"
+  },
+  args: {
+    name: {
+      type: "positional",
+      description: "Plugin name",
+      required: true
+    }
+  },
+  async run({ args }) {
+    try {
+      const pluginManager = createPluginManager();
+      await pluginManager.loadPlugins();
+      const disabled = pluginManager.disablePlugin(args.name);
+      if (!disabled) {
+        console.log(JSON.stringify({
+          error: "Plugin not found",
+          name: args.name
+        }, null, 2));
+        process.exitCode = 1;
+        return;
+      }
+      console.log(JSON.stringify({
+        success: true,
+        message: `Plugin ${args.name} disabled`
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var pluginStatsCommand = defineCommand({
+  meta: {
+    name: "stats",
+    description: "Get plugin statistics"
+  },
+  async run() {
+    try {
+      const pluginManager = createPluginManager();
+      await pluginManager.loadPlugins();
+      const stats = pluginManager.getStats();
+      console.log(JSON.stringify(stats, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var plugin_default = defineCommand({
+  meta: {
+    name: "plugin",
+    description: "Manage CLI plugins"
+  },
+  subCommands: {
+    list: pluginListCommand,
+    register: pluginRegisterCommand,
+    unregister: pluginUnregisterCommand,
+    enable: pluginEnableCommand,
+    disable: pluginDisableCommand,
+    stats: pluginStatsCommand
+  }
+});
+
+// src/rams/interactive-mode.ts
+class InteractiveMode {
+  projectRoot;
+  session = null;
+  constructor(projectRoot = process.cwd()) {
+    this.projectRoot = projectRoot;
+  }
+  async startSession(roleName) {
+    const roleManager = createRoleManager(this.projectRoot);
+    const roleInstance = roleManager.createRoleInstance(roleName);
+    if (!roleInstance.exists()) {
+      throw new Error(`Role ${roleName} not found`);
+    }
+    this.session = {
+      id: `session-${Date.now()}`,
+      role: roleName,
+      started_at: Date.now(),
+      history: []
+    };
+    return this.session;
+  }
+  async executeCommand(input) {
+    if (!this.session) {
+      throw new Error("No active session. Call startSession first.");
+    }
+    this.session.history.push({
+      timestamp: Date.now(),
+      type: "input",
+      content: input
+    });
+    const parts = input.trim().split(/\s+/);
+    const command = parts[0];
+    const args = parts.slice(1);
+    let output = "";
+    try {
+      switch (command) {
+        case "skill":
+          if (args.length === 0) {
+            output = "Usage: skill <skill-name> [input]";
+          } else {
+            const skillName = args[0];
+            const skillInput = args.slice(1).join(" ") || "{}";
+            const roleManager = createRoleManager(this.projectRoot);
+            const roleInstance = roleManager.createRoleInstance(this.session.role);
+            const skillExecutor = createSkillExecutor(roleInstance);
+            const result = await skillExecutor.execute(skillName, JSON.parse(skillInput));
+            output = JSON.stringify(result, null, 2);
+            this.session.history.push({
+              timestamp: Date.now(),
+              type: "output",
+              content: output,
+              skill: skillName
+            });
+          }
+          break;
+        case "role":
+          if (args.length === 0) {
+            output = `Current role: ${this.session.role}`;
+          } else {
+            await this.startSession(args[0]);
+            output = `Switched to role: ${args[0]}`;
+          }
+          break;
+        case "help":
+          output = this.getHelpText();
+          break;
+        case "exit":
+        case "quit":
+          output = "Exiting session...";
+          this.session = null;
+          break;
+        case "history":
+          output = JSON.stringify(this.session.history, null, 2);
+          break;
+        default:
+          output = `Unknown command: ${command}. Type 'help' for available commands.`;
+      }
+    } catch (error) {
+      const errorMsg = error.message;
+      if (this.session) {
+        this.session.history.push({
+          timestamp: Date.now(),
+          type: "error",
+          content: errorMsg
+        });
+      }
+      output = `Error: ${errorMsg}`;
+    }
+    return output;
+  }
+  getSession() {
+    return this.session;
+  }
+  endSession() {
+    this.session = null;
+  }
+  getHelpText() {
+    return `
+Available commands:
+  skill <skill-name> [input]  - Execute a skill
+  role [role-name]             - Show or switch current role
+  history                       - Show interaction history
+  help                          - Show this help message
+  exit / quit                   - Exit interactive mode
+`;
+  }
+  getSessionStats() {
+    if (!this.session) {
+      return null;
+    }
+    const duration = Date.now() - this.session.started_at;
+    const byType = {};
+    for (const entry of this.session.history) {
+      byType[entry.type] = (byType[entry.type] || 0) + 1;
+    }
+    return {
+      id: this.session.id,
+      role: this.session.role,
+      duration_ms: duration,
+      interactions: this.session.history.length,
+      by_type: byType
+    };
+  }
+}
+function createInteractiveMode(projectRoot) {
+  return new InteractiveMode(projectRoot);
+}
+
+// src/commands/interactive.ts
+var interactiveStartCommand = defineCommand({
+  meta: {
+    name: "start",
+    description: "Start an interactive session"
+  },
+  args: {
+    role: {
+      type: "string",
+      description: "Role name (uses default if not specified)",
+      required: false
+    }
+  },
+  async run({ args }) {
+    try {
+      const { createConfigManager: createConfigManager2 } = await Promise.resolve().then(() => (init_utils(), exports_utils));
+      const configManager = createConfigManager2();
+      const config = await configManager.load();
+      const roleName = args.role || config.role.default;
+      const interactiveMode = createInteractiveMode();
+      const session = await interactiveMode.startSession(roleName);
+      console.log(JSON.stringify({
+        success: true,
+        message: `Interactive session started with role ${roleName}`,
+        session_id: session.id,
+        help: 'Type commands to interact. Type "help" for available commands.'
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var interactiveStatsCommand = defineCommand({
+  meta: {
+    name: "stats",
+    description: "Get session statistics"
+  },
+  async run() {
+    try {
+      const interactiveMode = createInteractiveMode();
+      const stats = interactiveMode.getSessionStats();
+      if (!stats) {
+        console.log(JSON.stringify({
+          error: "No active session"
+        }, null, 2));
+        process.exitCode = 1;
+        return;
+      }
+      console.log(JSON.stringify(stats, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var interactiveEndCommand = defineCommand({
+  meta: {
+    name: "end",
+    description: "End the current session"
+  },
+  async run() {
+    try {
+      const interactiveMode = createInteractiveMode();
+      interactiveMode.endSession();
+      console.log(JSON.stringify({
+        success: true,
+        message: "Session ended"
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var interactive_default = defineCommand({
+  meta: {
+    name: "interactive",
+    description: "Interactive mode for RAMS framework"
+  },
+  subCommands: {
+    start: interactiveStartCommand,
+    stats: interactiveStatsCommand,
+    end: interactiveEndCommand
+  }
+});
+
+// src/rams/orchestrator.ts
+class Orchestrator {
+  projectRoot;
+  config;
+  constructor(projectRoot = process.cwd(), config = {}) {
+    this.projectRoot = projectRoot;
+    this.config = {
+      dry_run: config.dry_run ?? false,
+      verbose: config.verbose ?? false,
+      continue_on_error: config.continue_on_error ?? false
+    };
+  }
+  async executeWorkflow(workflowName) {
+    const startTime = Date.now();
+    const workflowParser = createWorkflowParser(this.projectRoot);
+    const workflow = await workflowParser.loadWorkflow(workflowName);
+    const learningManager = createLearningManager(this.projectRoot);
+    const memoryManager = createMemoryManager(this.projectRoot);
+    const results = [];
+    let completedSteps = 0;
+    let failedSteps = 0;
+    for (const step of workflow.steps) {
+      const stepStartTime = Date.now();
+      let result;
+      try {
+        if (this.config.dry_run) {
+          result = {
+            step: step.name,
+            success: true,
+            output: { dry_run: true, skill: step.skill, role: step.role },
+            duration_ms: Date.now() - stepStartTime
+          };
+        } else {
+          const output = await this.executeStep(step);
+          result = {
+            step: step.name,
+            success: true,
+            output,
+            duration_ms: Date.now() - stepStartTime
+          };
+          await learningManager.recordExecution({
+            id: `${workflowName}-${step.name}`,
+            task_id: workflowName,
+            role: step.role || "default",
+            skill: step.skill || "default",
+            timestamp: Date.now(),
+            success: true,
+            duration_ms: result.duration_ms,
+            input: step.input,
+            output
+          });
+          await memoryManager.save({
+            id: `workflow-${workflowName}-${step.name}`,
+            type: "workflow",
+            timestamp: Date.now(),
+            content: { step, output }
+          });
+        }
+        completedSteps++;
+      } catch (error) {
+        result = {
+          step: step.name,
+          success: false,
+          output: null,
+          error: error.message,
+          duration_ms: Date.now() - stepStartTime
+        };
+        failedSteps++;
+        await learningManager.recordExecution({
+          id: `${workflowName}-${step.name}`,
+          task_id: workflowName,
+          role: step.role || "default",
+          skill: step.skill || "default",
+          timestamp: Date.now(),
+          success: false,
+          duration_ms: result.duration_ms,
+          input: step.input,
+          output: null
+        });
+        if (!this.config.continue_on_error) {
+          break;
+        }
+      }
+      results.push(result);
+      if (this.config.verbose) {
+        console.log(JSON.stringify(result, null, 2));
+      }
+    }
+    return {
+      workflow: workflowName,
+      total_steps: workflow.steps.length,
+      completed_steps: completedSteps,
+      failed_steps: failedSteps,
+      duration_ms: Date.now() - startTime,
+      results
+    };
+  }
+  async executeStep(step) {
+    if (step.skill) {
+      return this.executeSkill(step);
+    }
+    if (step.role) {
+      return this.executeRole(step);
+    }
+    throw new Error("Step must have either skill or role");
+  }
+  async executeSkill(step) {
+    const roleManager = createRoleManager(this.projectRoot);
+    const roleInstance = roleManager.createRoleInstance(step.role || "default");
+    const skillExecutor = createSkillExecutor(roleInstance);
+    return await skillExecutor.execute(step.skill, step.input || {});
+  }
+  async executeRole(step) {
+    const roleManager = createRoleManager(this.projectRoot);
+    const roleInstance = roleManager.createRoleInstance(step.role);
+    await roleInstance.loadRole();
+    await roleInstance.loadSoul();
+    return {
+      role: step.role,
+      loaded: true,
+      soul_loaded: true
+    };
+  }
+  async getWorkflowStatus(workflowName) {
+    const workflowParser = createWorkflowParser(this.projectRoot);
+    const workflow = await workflowParser.loadWorkflow(workflowName);
+    const learningManager = createLearningManager(this.projectRoot);
+    const stats = await learningManager.getStats();
+    return {
+      workflow: workflowName,
+      steps: workflow.steps.length,
+      total_executions: stats.total_executions,
+      success_rate: stats.success_rate,
+      avg_duration_ms: stats.avg_duration_ms
+    };
+  }
+  async validateWorkflow(workflowName) {
+    const workflowParser = createWorkflowParser(this.projectRoot);
+    const workflow = await workflowParser.loadWorkflow(workflowName);
+    return workflowParser.validateWorkflow(workflow);
+  }
+}
+function createOrchestrator(projectRoot, config) {
+  return new Orchestrator(projectRoot, config);
+}
+
+// src/commands/orchestrator.ts
+var orchestratorExecuteCommand = defineCommand({
+  meta: {
+    name: "execute",
+    description: "Execute a workflow"
+  },
+  args: {
+    workflow: {
+      type: "positional",
+      description: "Workflow name",
+      required: true
+    },
+    dry_run: {
+      type: "boolean",
+      description: "Dry run without actual execution",
+      default: false
+    },
+    verbose: {
+      type: "boolean",
+      description: "Verbose output",
+      default: false
+    },
+    continue_on_error: {
+      type: "boolean",
+      description: "Continue on error",
+      default: false
+    }
+  },
+  async run({ args }) {
+    try {
+      const orchestrator = createOrchestrator(undefined, {
+        dry_run: args.dry_run,
+        verbose: args.verbose,
+        continue_on_error: args.continue_on_error
+      });
+      const summary = await orchestrator.executeWorkflow(args.workflow);
+      console.log(JSON.stringify(summary, null, 2));
+      process.exitCode = summary.failed_steps > 0 ? 1 : 0;
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var orchestratorStatusCommand = defineCommand({
+  meta: {
+    name: "status",
+    description: "Get workflow execution status"
+  },
+  args: {
+    workflow: {
+      type: "positional",
+      description: "Workflow name",
+      required: true
+    }
+  },
+  async run({ args }) {
+    try {
+      const orchestrator = createOrchestrator();
+      const status = await orchestrator.getWorkflowStatus(args.workflow);
+      console.log(JSON.stringify(status, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var orchestratorValidateCommand = defineCommand({
+  meta: {
+    name: "validate",
+    description: "Validate a workflow before execution"
+  },
+  args: {
+    workflow: {
+      type: "positional",
+      description: "Workflow name",
+      required: true
+    }
+  },
+  async run({ args }) {
+    try {
+      const orchestrator = createOrchestrator();
+      const validation = await orchestrator.validateWorkflow(args.workflow);
+      console.log(JSON.stringify(validation, null, 2));
+      process.exitCode = validation.valid ? 0 : 1;
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var orchestrator_default = defineCommand({
+  meta: {
+    name: "orchestrator",
+    description: "Orchestrate complex workflow executions"
+  },
+  subCommands: {
+    execute: orchestratorExecuteCommand,
+    status: orchestratorStatusCommand,
+    validate: orchestratorValidateCommand
+  }
+});
+
+// src/rams/evaluator.ts
+class Evaluator {
+  projectRoot;
+  constructor(projectRoot = process.cwd()) {
+    this.projectRoot = projectRoot;
+  }
+  async evaluate() {
+    const roleEvaluation = await this.evaluateRoles();
+    const skillEvaluation = await this.evaluateSkills();
+    const workflowEvaluation = await this.evaluateWorkflows();
+    const memoryEvaluation = await this.evaluateMemory();
+    const learningEvaluation = await this.evaluateLearning();
+    const criteria = {
+      role_coverage: roleEvaluation.failed === 0,
+      skill_coverage: skillEvaluation.failed === 0,
+      workflow_validity: workflowEvaluation.invalid === 0,
+      memory_health: !memoryEvaluation.compression_needed,
+      learning_insights: learningEvaluation.insights > 0
+    };
+    const score = this.calculateScore(criteria);
+    const recommendations = this.generateRecommendations(criteria, {
+      roles: roleEvaluation,
+      skills: skillEvaluation,
+      workflows: workflowEvaluation,
+      memory: memoryEvaluation,
+      learning: learningEvaluation
+    });
+    return {
+      overall_score: score,
+      criteria,
+      details: {
+        roles: roleEvaluation,
+        skills: skillEvaluation,
+        workflows: workflowEvaluation,
+        memory: memoryEvaluation,
+        learning: learningEvaluation
+      },
+      recommendations
+    };
+  }
+  async evaluateRoles() {
+    const roleManager = createRoleManager(this.projectRoot);
+    const roles = await roleManager.listRoles();
+    let loaded = 0;
+    let failed = 0;
+    for (const roleName of roles) {
+      try {
+        const roleInstance = roleManager.createRoleInstance(roleName);
+        await roleInstance.loadRole();
+        loaded++;
+      } catch {
+        failed++;
+      }
+    }
+    return {
+      total: roles.length,
+      loaded,
+      failed
+    };
+  }
+  async evaluateSkills() {
+    const roleManager = createRoleManager(this.projectRoot);
+    const roles = await roleManager.listRoles();
+    let totalSkills = 0;
+    let executable = 0;
+    let failed = 0;
+    for (const roleName of roles) {
+      try {
+        const roleInstance = roleManager.createRoleInstance(roleName);
+        const roleDef = await roleInstance.loadRole();
+        totalSkills += roleDef.skills.length;
+        executable += roleDef.skills.length;
+      } catch {
+        failed++;
+      }
+    }
+    return {
+      total: totalSkills,
+      executable,
+      failed
+    };
+  }
+  async evaluateWorkflows() {
+    const workflowParser = createWorkflowParser(this.projectRoot);
+    const workflows = await workflowParser.listWorkflows();
+    let valid = 0;
+    let invalid = 0;
+    for (const workflowName of workflows) {
+      try {
+        const workflow = await workflowParser.loadWorkflow(workflowName);
+        const validation = workflowParser.validateWorkflow(workflow);
+        if (validation.valid) {
+          valid++;
+        } else {
+          invalid++;
+        }
+      } catch {
+        invalid++;
+      }
+    }
+    return {
+      total: workflows.length,
+      valid,
+      invalid
+    };
+  }
+  async evaluateMemory() {
+    const memoryManager = createMemoryManager(this.projectRoot);
+    const stats = await memoryManager.getStats();
+    const compressionNeeded = stats.total_entries > 100;
+    return {
+      entries: stats.total_entries,
+      compression_needed: compressionNeeded
+    };
+  }
+  async evaluateLearning() {
+    const learningManager = createLearningManager(this.projectRoot);
+    const insights = await learningManager.analyzePatterns();
+    const report = await learningManager.generateReport();
+    return {
+      insights: insights.length,
+      recommendations: report.recommendations.length
+    };
+  }
+  calculateScore(criteria) {
+    let score = 0;
+    const maxScore = 5;
+    if (criteria.role_coverage)
+      score++;
+    if (criteria.skill_coverage)
+      score++;
+    if (criteria.workflow_validity)
+      score++;
+    if (criteria.memory_health)
+      score++;
+    if (criteria.learning_insights)
+      score++;
+    return score / maxScore * 100;
+  }
+  generateRecommendations(criteria, _details) {
+    const recommendations = [];
+    if (!criteria.role_coverage) {
+      recommendations.push("Some roles failed to load. Check role definitions for errors.");
+    }
+    if (!criteria.skill_coverage) {
+      recommendations.push("Some skills are not executable. Review skill definitions.");
+    }
+    if (!criteria.workflow_validity) {
+      recommendations.push("Some workflows are invalid. Fix workflow definitions.");
+    }
+    if (!criteria.memory_health) {
+      recommendations.push("Memory compression is needed. Run `memory compress` to clean up old entries.");
+    }
+    if (!criteria.learning_insights) {
+      recommendations.push("No learning insights available. Execute more tasks to generate insights.");
+    }
+    if (recommendations.length === 0) {
+      recommendations.push("System is healthy. No recommendations at this time.");
+    }
+    return recommendations;
+  }
+  async healthCheck() {
+    const evaluation = await this.evaluate();
+    const issues = [];
+    if (!evaluation.criteria.role_coverage) {
+      issues.push("Role coverage issues detected");
+    }
+    if (!evaluation.criteria.skill_coverage) {
+      issues.push("Skill coverage issues detected");
+    }
+    if (!evaluation.criteria.workflow_validity) {
+      issues.push("Workflow validity issues detected");
+    }
+    if (!evaluation.criteria.memory_health) {
+      issues.push("Memory health issues detected");
+    }
+    return {
+      healthy: evaluation.overall_score >= 80,
+      score: evaluation.overall_score,
+      issues
+    };
+  }
+}
+function createEvaluator(projectRoot) {
+  return new Evaluator(projectRoot);
+}
+
+// src/commands/audit.ts
+var auditRunCommand = defineCommand({
+  meta: {
+    name: "run",
+    description: "Run a full RAMS framework evaluation"
+  },
+  async run() {
+    try {
+      const evaluator = createEvaluator();
+      const evaluation = await evaluator.evaluate();
+      console.log(JSON.stringify(evaluation, null, 2));
+      process.exitCode = evaluation.overall_score >= 80 ? 0 : 1;
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var auditHealthCommand = defineCommand({
+  meta: {
+    name: "health",
+    description: "Quick health check"
+  },
+  async run() {
+    try {
+      const evaluator = createEvaluator();
+      const health = await evaluator.healthCheck();
+      console.log(JSON.stringify(health, null, 2));
+      process.exitCode = health.healthy ? 0 : 1;
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var auditRolesCommand = defineCommand({
+  meta: {
+    name: "roles",
+    description: "Evaluate role coverage"
+  },
+  async run() {
+    try {
+      const evaluator = createEvaluator();
+      const evaluation = await evaluator.evaluate();
+      console.log(JSON.stringify({
+        roles: evaluation.details.roles,
+        coverage: evaluation.criteria.role_coverage
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var auditSkillsCommand = defineCommand({
+  meta: {
+    name: "skills",
+    description: "Evaluate skill coverage"
+  },
+  async run() {
+    try {
+      const evaluator = createEvaluator();
+      const evaluation = await evaluator.evaluate();
+      console.log(JSON.stringify({
+        skills: evaluation.details.skills,
+        coverage: evaluation.criteria.skill_coverage
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var auditWorkflowsCommand = defineCommand({
+  meta: {
+    name: "workflows",
+    description: "Evaluate workflow validity"
+  },
+  async run() {
+    try {
+      const evaluator = createEvaluator();
+      const evaluation = await evaluator.evaluate();
+      console.log(JSON.stringify({
+        workflows: evaluation.details.workflows,
+        validity: evaluation.criteria.workflow_validity
+      }, null, 2));
+    } catch (error) {
+      console.error(JSON.stringify({ error: error.message }, null, 2));
+      process.exitCode = 1;
+    }
+  }
+});
+var audit_default = defineCommand({
+  meta: {
+    name: "audit",
+    description: "Audit and evaluate RAMS framework health"
+  },
+  subCommands: {
+    run: auditRunCommand,
+    health: auditHealthCommand,
+    roles: auditRolesCommand,
+    skills: auditSkillsCommand,
+    workflows: auditWorkflowsCommand
+  }
+});
+
+// src/rams/version-manager/commit-manager.ts
+var import_yaml8 = __toESM(require_dist(), 1);
+import { promises as fs } from "fs";
+import { join } from "path";
+import { createHash } from "crypto";
+
+class CommitManager {
+  instanceId;
+  basePath;
+  commitsPath;
+  objectsPath;
+  constructor(instanceId, basePath = ".rams/execution_history") {
+    this.instanceId = instanceId;
+    this.basePath = basePath;
+    this.commitsPath = join(basePath, instanceId, ".git", "objects", "commits");
+    this.objectsPath = join(basePath, instanceId, ".git", "objects");
+  }
+  async initialize() {
+    await fs.mkdir(this.commitsPath, { recursive: true });
+    await fs.mkdir(join(this.objectsPath, "trees"), { recursive: true });
+    await fs.mkdir(join(this.objectsPath, "blobs"), { recursive: true });
+  }
+  async createCommit(skillName, inputData, outputData, parentId = null) {
+    const commitId = this.generateCommitId();
+    const inputHash = this.hashInput(inputData);
+    const storedOutput = await this.storeOutput(outputData);
+    const metadata = this.collectMetadata();
+    const commit = {
+      commit_id: commitId,
+      skill_name: skillName,
+      input_hash: inputHash,
+      output_data: storedOutput,
+      timestamp: new Date().toISOString(),
+      parent_commit: parentId,
+      metadata
+    };
+    await this.storeCommit(commit);
+    return commitId;
+  }
+  async getCommit(commitId) {
+    const commitPath = join(this.commitsPath, `${commitId}.yaml`);
+    try {
+      const content = await fs.readFile(commitPath, "utf-8");
+      return import_yaml8.default.parse(content);
+    } catch {
+      return null;
+    }
+  }
+  async getCurrentCommit() {
+    const headPath = join(this.basePath, this.instanceId, ".git", "HEAD");
+    try {
+      const content = await fs.readFile(headPath, "utf-8");
+      return content.trim();
+    } catch {
+      return null;
+    }
+  }
+  async setCurrentCommit(commitId) {
+    const headPath = join(this.basePath, this.instanceId, ".git", "HEAD");
+    await fs.mkdir(join(headPath, ".."), { recursive: true });
+    await fs.writeFile(headPath, commitId, "utf-8");
+  }
+  async getCommits(skillName, limit = 10) {
+    const files = await fs.readdir(this.commitsPath);
+    const commits = [];
+    for (const file of files) {
+      if (!file.endsWith(".yaml"))
+        continue;
+      const commitId = file.replace(".yaml", "");
+      const commit = await this.getCommit(commitId);
+      if (commit) {
+        if (!skillName || commit.skill_name === skillName) {
+          commits.push(commit);
+        }
+      }
+    }
+    commits.sort((a2, b2) => new Date(b2.timestamp).getTime() - new Date(a2.timestamp).getTime());
+    return commits.slice(0, limit);
+  }
+  generateCommitId() {
+    return createHash("sha256").update(`${Date.now()}-${Math.random()}`).digest("hex").substring(0, 12);
+  }
+  hashInput(inputData) {
+    return createHash("sha256").update(JSON.stringify(inputData)).digest("hex");
+  }
+  async storeOutput(outputData) {
+    const contentHash = this.hashInput(outputData);
+    const outputPath = join(this.objectsPath, "blobs", contentHash);
+    await fs.mkdir(join(outputPath, ".."), { recursive: true });
+    await fs.writeFile(outputPath, JSON.stringify(outputData), "utf-8");
+    return {
+      type: "json",
+      path: outputPath,
+      content_hash: contentHash
+    };
+  }
+  async storeCommit(commit) {
+    const commitPath = join(this.commitsPath, `${commit.commit_id}.yaml`);
+    await fs.writeFile(commitPath, import_yaml8.default.stringify(commit), "utf-8");
+  }
+  collectMetadata() {
+    return {
+      implementation: "ai-model",
+      execution_time: 0
+    };
+  }
+}
+// src/rams/version-manager/branch-manager.ts
+import { promises as fs2 } from "fs";
+import { join as join2 } from "path";
+
+class BranchManager {
+  instanceId;
+  basePath;
+  refsPath;
+  worktreesPath;
+  constructor(instanceId, basePath = ".rams/execution_history") {
+    this.instanceId = instanceId;
+    this.basePath = basePath;
+    this.refsPath = join2(basePath, instanceId, ".git", "refs", "heads");
+    this.worktreesPath = join2(basePath, instanceId, "worktrees");
+  }
+  async initialize() {
+    await fs2.mkdir(this.refsPath, { recursive: true });
+    await fs2.mkdir(this.worktreesPath, { recursive: true });
+  }
+  async createBranch(branchName, fromCommit) {
+    const branchPath = join2(this.refsPath, branchName);
+    await fs2.writeFile(branchPath, fromCommit, "utf-8");
+    await this.createWorktree(branchName, fromCommit);
+  }
+  async switchBranch(branchName) {
+    const commitId = await this.getRef(branchName);
+    if (!commitId) {
+      throw new Error(`Branch ${branchName} not found`);
+    }
+    await this.updateHead(commitId);
+    await this.restoreWorktree(branchName, commitId);
+  }
+  async listBranches() {
+    const files = await fs2.readdir(this.refsPath);
+    const branches = [];
+    for (const file of files) {
+      const commitId = await this.getRef(file);
+      if (commitId) {
+        branches.push({
+          name: file,
+          commit_id: commitId,
+          created_at: await this.getBranchCreatedTime(file)
+        });
+      }
+    }
+    return branches;
+  }
+  async deleteBranch(branchName) {
+    const branchPath = join2(this.refsPath, branchName);
+    await fs2.unlink(branchPath);
+    const worktreePath = join2(this.worktreesPath, branchName);
+    await fs2.rm(worktreePath, { recursive: true, force: true });
+  }
+  async getRef(branchName) {
+    const branchPath = join2(this.refsPath, branchName);
+    try {
+      return await fs2.readFile(branchPath, "utf-8");
+    } catch {
+      return null;
+    }
+  }
+  async updateHead(commitId) {
+    const headPath = join2(this.basePath, this.instanceId, ".git", "HEAD");
+    await fs2.mkdir(join2(headPath, ".."), { recursive: true });
+    await fs2.writeFile(headPath, commitId, "utf-8");
+  }
+  async createWorktree(branchName, commitId) {
+    const worktreePath = join2(this.worktreesPath, branchName);
+    await fs2.mkdir(worktreePath, { recursive: true });
+    const currentStatePath = join2(worktreePath, "current_state");
+    await fs2.mkdir(currentStatePath, { recursive: true });
+    const skillOutputsPath = join2(currentStatePath, "skill_outputs");
+    await fs2.mkdir(skillOutputsPath, { recursive: true });
+    const metadataPath = join2(worktreePath, ".metadata");
+    await fs2.writeFile(metadataPath, JSON.stringify({ commit_id: commitId }), "utf-8");
+  }
+  async restoreWorktree(_branchName, _commitId) {}
+  async getBranchCreatedTime(branchName) {
+    const branchPath = join2(this.refsPath, branchName);
+    const stats = await fs2.stat(branchPath);
+    return stats.mtime.toISOString();
+  }
+}
+// src/rams/version-manager/undo-redo-manager.ts
+import { promises as fs3 } from "fs";
+import { join as join3 } from "path";
+
+class UndoRedoManager {
+  commitManager;
+  reflogPath;
+  constructor(_instanceId, commitManager, basePath = ".rams/execution_history") {
+    this.commitManager = commitManager;
+    this.reflogPath = join3(basePath, _instanceId, ".git", "logs", "reflog");
+  }
+  async initialize() {
+    await fs3.mkdir(join3(this.reflogPath, ".."), { recursive: true });
+  }
+  async undo(steps = 1) {
+    const currentCommit = await this.commitManager.getCurrentCommit();
+    if (!currentCommit) {
+      throw new Error("No current commit to undo from");
+    }
+    let targetCommit = currentCommit;
+    for (let i2 = 0;i2 < steps; i2++) {
+      const commit = await this.commitManager.getCommit(targetCommit);
+      if (!commit || !commit.parent_commit) {
+        throw new Error("Cannot undo further: reached initial commit");
+      }
+      targetCommit = commit.parent_commit;
+    }
+    await this.commitManager.setCurrentCommit(targetCommit);
+    await this.logReflog("undo", currentCommit, targetCommit);
+    return targetCommit;
+  }
+  async redo(steps = 1) {
+    const reflog = await this.getReflog();
+    const forwardCommits = this.getForwardCommits(reflog);
+    if (forwardCommits.length < steps) {
+      throw new Error(`Cannot redo ${steps} steps: only ${forwardCommits.length} available`);
+    }
+    const targetCommit = forwardCommits[steps - 1];
+    await this.commitManager.setCurrentCommit(targetCommit);
+    await this.logReflog("redo", await this.commitManager.getCurrentCommit(), targetCommit);
+    return targetCommit;
+  }
+  async checkout(commitId) {
+    const commit = await this.commitManager.getCommit(commitId);
+    if (!commit) {
+      throw new Error(`Commit ${commitId} not found`);
+    }
+    const currentCommit = await this.commitManager.getCurrentCommit();
+    await this.commitManager.setCurrentCommit(commitId);
+    await this.logReflog("checkout", currentCommit, commitId);
+  }
+  async logReflog(action, from, to) {
+    const entry = {
+      action,
+      from,
+      to,
+      timestamp: new Date().toISOString()
+    };
+    const logEntry = JSON.stringify(entry) + `
+`;
+    await fs3.appendFile(this.reflogPath, logEntry, "utf-8");
+  }
+  async getReflog() {
+    try {
+      const content = await fs3.readFile(this.reflogPath, "utf-8");
+      return content.trim().split(`
+`).map((line) => JSON.parse(line));
+    } catch {
+      return [];
+    }
+  }
+  getForwardCommits(reflog) {
+    const forwardCommits = [];
+    const reversedLog = [...reflog].reverse();
+    for (const entry of reversedLog) {
+      if (entry.action === "undo") {
+        forwardCommits.push(entry.from);
+      } else if (entry.action === "redo") {
+        forwardCommits.pop();
+      }
+    }
+    return forwardCommits;
+  }
+}
+// src/commands/execution.ts
+var execution_default = defineCommand({
+  meta: {
+    name: "execution",
+    description: "Manage skill execution history with Git-like version control"
+  },
+  subCommands: {
+    log: defineCommand({
+      meta: {
+        name: "log",
+        description: "View execution history"
+      },
+      args: {
+        instance: {
+          type: "string",
+          description: "Role instance ID",
+          required: true
+        },
+        skill: {
+          type: "string",
+          description: "Filter by skill name",
+          required: false
+        },
+        limit: {
+          type: "string",
+          description: "Number of commits to show",
+          default: "10"
+        }
+      },
+      async run({ args }) {
+        const commitManager = new CommitManager(args.instance);
+        await commitManager.initialize();
+        const commits = await commitManager.getCommits(args.skill, parseInt(args.limit));
+        console.log("Execution History:");
+        console.log("==================");
+        for (const commit of commits) {
+          console.log(`Commit: ${commit.commit_id}`);
+          console.log(`Skill: ${commit.skill_name}`);
+          console.log(`Time: ${commit.timestamp}`);
+          console.log(`Parent: ${commit.parent_commit || "none"}`);
+          console.log("---");
+        }
+      }
+    }),
+    undo: defineCommand({
+      meta: {
+        name: "undo",
+        description: "Undo N steps"
+      },
+      args: {
+        instance: {
+          type: "string",
+          description: "Role instance ID",
+          required: true
+        },
+        steps: {
+          type: "string",
+          description: "Number of steps to undo",
+          default: "1"
+        }
+      },
+      async run({ args }) {
+        const commitManager = new CommitManager(args.instance);
+        const undoRedoManager = new UndoRedoManager(args.instance, commitManager);
+        await commitManager.initialize();
+        await undoRedoManager.initialize();
+        const targetCommit = await undoRedoManager.undo(parseInt(args.steps));
+        console.log(`Undid to commit: ${targetCommit}`);
+      }
+    }),
+    redo: defineCommand({
+      meta: {
+        name: "redo",
+        description: "Redo N steps"
+      },
+      args: {
+        instance: {
+          type: "string",
+          description: "Role instance ID",
+          required: true
+        },
+        steps: {
+          type: "string",
+          description: "Number of steps to redo",
+          default: "1"
+        }
+      },
+      async run({ args }) {
+        const commitManager = new CommitManager(args.instance);
+        const undoRedoManager = new UndoRedoManager(args.instance, commitManager);
+        await commitManager.initialize();
+        await undoRedoManager.initialize();
+        const targetCommit = await undoRedoManager.redo(parseInt(args.steps));
+        if (targetCommit) {
+          console.log(`Redid to commit: ${targetCommit}`);
+        }
+      }
+    }),
+    checkout: defineCommand({
+      meta: {
+        name: "checkout",
+        description: "Checkout to a specific commit"
+      },
+      args: {
+        instance: {
+          type: "string",
+          description: "Role instance ID",
+          required: true
+        },
+        commit: {
+          type: "string",
+          description: "Commit ID",
+          required: true
+        }
+      },
+      async run({ args }) {
+        const commitManager = new CommitManager(args.instance);
+        const undoRedoManager = new UndoRedoManager(args.instance, commitManager);
+        await commitManager.initialize();
+        await undoRedoManager.initialize();
+        await undoRedoManager.checkout(args.commit);
+        console.log(`Checked out to commit: ${args.commit}`);
+      }
+    }),
+    branch: defineCommand({
+      meta: {
+        name: "branch",
+        description: "Branch management"
+      },
+      subCommands: {
+        create: defineCommand({
+          meta: {
+            name: "create",
+            description: "Create a new branch"
+          },
+          args: {
+            instance: {
+              type: "string",
+              description: "Role instance ID",
+              required: true
+            },
+            name: {
+              type: "string",
+              description: "Branch name",
+              required: true
+            },
+            from: {
+              type: "string",
+              description: "Base commit ID",
+              required: false
+            }
+          },
+          async run({ args }) {
+            const commitManager = new CommitManager(args.instance);
+            const branchManager = new BranchManager(args.instance);
+            await commitManager.initialize();
+            await branchManager.initialize();
+            const fromCommit = args.from || await commitManager.getCurrentCommit();
+            if (!fromCommit) {
+              console.error("No current commit found");
+              return;
+            }
+            await branchManager.createBranch(args.name, fromCommit);
+            console.log(`Created branch: ${args.name} from commit: ${fromCommit}`);
+          }
+        }),
+        switch: defineCommand({
+          meta: {
+            name: "switch",
+            description: "Switch to a branch"
+          },
+          args: {
+            instance: {
+              type: "string",
+              description: "Role instance ID",
+              required: true
+            },
+            name: {
+              type: "string",
+              description: "Branch name",
+              required: true
+            }
+          },
+          async run({ args }) {
+            const branchManager = new BranchManager(args.instance);
+            await branchManager.initialize();
+            await branchManager.switchBranch(args.name);
+            console.log(`Switched to branch: ${args.name}`);
+          }
+        }),
+        list: defineCommand({
+          meta: {
+            name: "list",
+            description: "List all branches"
+          },
+          args: {
+            instance: {
+              type: "string",
+              description: "Role instance ID",
+              required: true
+            }
+          },
+          async run({ args }) {
+            const branchManager = new BranchManager(args.instance);
+            await branchManager.initialize();
+            const branches = await branchManager.listBranches();
+            console.log("Branches:");
+            console.log("========");
+            for (const branch of branches) {
+              console.log(`${branch.name} -> ${branch.commit_id} (${branch.created_at})`);
+            }
+          }
+        }),
+        delete: defineCommand({
+          meta: {
+            name: "delete",
+            description: "Delete a branch"
+          },
+          args: {
+            instance: {
+              type: "string",
+              description: "Role instance ID",
+              required: true
+            },
+            name: {
+              type: "string",
+              description: "Branch name",
+              required: true
+            }
+          },
+          async run({ args }) {
+            const branchManager = new BranchManager(args.instance);
+            await branchManager.initialize();
+            await branchManager.deleteBranch(args.name);
+            console.log(`Deleted branch: ${args.name}`);
+          }
+        })
+      }
+    })
+  }
+});
 
 // src/index.ts
 var main = defineCommand({
   meta: {
     name: "open-design",
     version: "1.0.0",
-    description: "CLI tool for Open Design specification documents - lint, validate, template, and export"
+    description: "CLI tool for Open Design specification documents - lint, validate, template, export, config, role, skill, workflow, runtime, memory, variant, tool, learning, plugin, interactive, orchestrator, audit, and execution"
   },
   subCommands: {
     lint: lint_default,
     template: template_default,
     validate: validate_default,
-    export: export_default
+    export: export_default,
+    config: config_default,
+    role: role_default,
+    skill: skill_default,
+    workflow: workflow_default,
+    runtime: runtime_default,
+    memory: memory_default,
+    variant: variant_default,
+    tool: tool_default,
+    learning: learning_default,
+    plugin: plugin_default,
+    interactive: interactive_default,
+    orchestrator: orchestrator_default,
+    audit: audit_default,
+    execution: execution_default
   }
 });
 runMain(main);

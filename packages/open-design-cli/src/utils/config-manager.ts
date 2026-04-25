@@ -1,6 +1,5 @@
-import { readFile, fileExists } from './file-utils.js';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
-import { resolve, join } from 'path';
+import { resolve } from 'path';
 import { parse, stringify } from 'yaml';
 
 export interface Config {

@@ -1,3 +1,3 @@
 declare const _default: import("citty").CommandDef<import("citty").ArgsDef>;
 export default _default;
-//# sourceMappingURL=export.d.ts.map
+//# sourceMappingURL=plugin.d.ts.map

@@ -1,5 +1,20 @@
 import { createRequire } from "node:module";
+var __create = Object.create;
+var __getProtoOf = Object.getPrototypeOf;
 var __defProp = Object.defineProperty;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __toESM = (mod, isNodeMode, target) => {
+  target = mod != null ? __create(__getProtoOf(mod)) : {};
+  const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
+  for (let key of __getOwnPropNames(mod))
+    if (!__hasOwnProp.call(to, key))
+      __defProp(to, key, {
+        get: () => mod[key],
+        enumerable: true
+      });
+  return to;
+};
 var __commonJS = (cb, mod) => () => (mod || cb((mod = { exports: {} }).exports, mod), mod.exports);
 var __export = (target, all) => {
   for (var name in all)
@@ -6929,52 +6944,56 @@ var require_public_api = __commonJS((exports) => {
 });
 
 // node_modules/yaml/dist/index.js
-var composer = require_composer();
-var Document = require_Document();
-var Schema = require_Schema();
-var errors = require_errors();
-var Alias = require_Alias();
-var identity = require_identity();
-var Pair = require_Pair();
-var Scalar = require_Scalar();
-var YAMLMap = require_YAMLMap();
-var YAMLSeq = require_YAMLSeq();
-var cst = require_cst();
-var lexer = require_lexer();
-var lineCounter = require_line_counter();
-var parser = require_parser();
-var publicApi = require_public_api();
-var visit = require_visit();
-var $Composer = composer.Composer;
-var $Document = Document.Document;
-var $Schema = Schema.Schema;
-var $YAMLError = errors.YAMLError;
-var $YAMLParseError = errors.YAMLParseError;
-var $YAMLWarning = errors.YAMLWarning;
-var $Alias = Alias.Alias;
-var $isAlias = identity.isAlias;
-var $isCollection = identity.isCollection;
-var $isDocument = identity.isDocument;
-var $isMap = identity.isMap;
-var $isNode = identity.isNode;
-var $isPair = identity.isPair;
-var $isScalar = identity.isScalar;
-var $isSeq = identity.isSeq;
-var $Pair = Pair.Pair;
-var $Scalar = Scalar.Scalar;
-var $YAMLMap = YAMLMap.YAMLMap;
-var $YAMLSeq = YAMLSeq.YAMLSeq;
-var $Lexer = lexer.Lexer;
-var $LineCounter = lineCounter.LineCounter;
-var $Parser = parser.Parser;
-var $parse = publicApi.parse;
-var $parseAllDocuments = publicApi.parseAllDocuments;
-var $parseDocument = publicApi.parseDocument;
-var $stringify = publicApi.stringify;
-var $visit = visit.visit;
-var $visitAsync = visit.visitAsync;
+var require_dist = __commonJS((exports) => {
+  var composer = require_composer();
+  var Document = require_Document();
+  var Schema = require_Schema();
+  var errors = require_errors();
+  var Alias = require_Alias();
+  var identity = require_identity();
+  var Pair = require_Pair();
+  var Scalar = require_Scalar();
+  var YAMLMap = require_YAMLMap();
+  var YAMLSeq = require_YAMLSeq();
+  var cst = require_cst();
+  var lexer = require_lexer();
+  var lineCounter = require_line_counter();
+  var parser = require_parser();
+  var publicApi = require_public_api();
+  var visit = require_visit();
+  exports.Composer = composer.Composer;
+  exports.Document = Document.Document;
+  exports.Schema = Schema.Schema;
+  exports.YAMLError = errors.YAMLError;
+  exports.YAMLParseError = errors.YAMLParseError;
+  exports.YAMLWarning = errors.YAMLWarning;
+  exports.Alias = Alias.Alias;
+  exports.isAlias = identity.isAlias;
+  exports.isCollection = identity.isCollection;
+  exports.isDocument = identity.isDocument;
+  exports.isMap = identity.isMap;
+  exports.isNode = identity.isNode;
+  exports.isPair = identity.isPair;
+  exports.isScalar = identity.isScalar;
+  exports.isSeq = identity.isSeq;
+  exports.Pair = Pair.Pair;
+  exports.Scalar = Scalar.Scalar;
+  exports.YAMLMap = YAMLMap.YAMLMap;
+  exports.YAMLSeq = YAMLSeq.YAMLSeq;
+  exports.CST = cst;
+  exports.Lexer = lexer.Lexer;
+  exports.LineCounter = lineCounter.LineCounter;
+  exports.Parser = parser.Parser;
+  exports.parse = publicApi.parse;
+  exports.parseAllDocuments = publicApi.parseAllDocuments;
+  exports.parseDocument = publicApi.parseDocument;
+  exports.stringify = publicApi.stringify;
+  exports.visit = visit.visit;
+  exports.visitAsync = visit.visitAsync;
+});
 
 // src/parsers/yaml-parser.ts
+var import_yaml = __toESM(require_dist(), 1);
 function parseFrontMatter(content) {
   const lines = content.split(`
 `);
@@ -6989,7 +7008,7 @@ function parseFrontMatter(content) {
   const yamlContent = lines.slice(startMarker + 1, endMarker).join(`
 `);
   try {
-    return $parse(yamlContent) || {};
+    return import_yaml.parse(yamlContent) || {};
   } catch (error) {
     throw new Error(`Failed to parse YAML front matter: ${error}`);
   }
@@ -10994,18 +11013,18 @@ var DesignSpecSchema = exports_external.object({
   components: exports_external.record(exports_external.record(exports_external.union([exports_external.string(), exports_external.number()]))).optional()
 });
 function validateDesignSpec(content) {
-  const errors3 = [];
+  const errors2 = [];
   const warnings = [];
   try {
     const frontMatter = parseFrontMatter(content);
     const result = DesignSpecSchema.safeParse(frontMatter);
     if (!result.success) {
       result.error.errors.forEach((err) => {
-        errors3.push(`Field validation error: ${err.path.join(".")} - ${err.message}`);
+        errors2.push(`Field validation error: ${err.path.join(".")} - ${err.message}`);
       });
     }
     if (!frontMatter.name) {
-      errors3.push("Missing required field: name");
+      errors2.push("Missing required field: name");
     }
     if (!frontMatter.colors) {
       warnings.push("Missing recommended field: colors");
@@ -11014,11 +11033,11 @@ function validateDesignSpec(content) {
       warnings.push("Missing recommended field: typography");
     }
   } catch (error) {
-    errors3.push(`Failed to parse YAML front matter: ${error}`);
+    errors2.push(`Failed to parse YAML front matter: ${error}`);
   }
   return {
-    valid: errors3.length === 0,
-    errors: errors3,
+    valid: errors2.length === 0,
+    errors: errors2,
     warnings
   };
 }
@@ -11031,28 +11050,28 @@ var ResearchSpecSchema = exports_external.object({
   last_updated: exports_external.string().optional()
 });
 function validateResearchSpec(content) {
-  const errors3 = [];
+  const errors2 = [];
   const warnings = [];
   try {
     const frontMatter = parseFrontMatter(content);
     const result = ResearchSpecSchema.safeParse(frontMatter);
     if (!result.success) {
       result.error.errors.forEach((err) => {
-        errors3.push(`Field validation error: ${err.path.join(".")} - ${err.message}`);
+        errors2.push(`Field validation error: ${err.path.join(".")} - ${err.message}`);
       });
     }
     if (!frontMatter.spec_name) {
-      errors3.push("Missing required field: spec_name");
+      errors2.push("Missing required field: spec_name");
     }
     if (!frontMatter.spec_type) {
-      errors3.push("Missing required field: spec_type");
+      errors2.push("Missing required field: spec_type");
     }
   } catch (error) {
-    errors3.push(`Failed to parse YAML front matter: ${error}`);
+    errors2.push(`Failed to parse YAML front matter: ${error}`);
   }
   return {
-    valid: errors3.length === 0,
-    errors: errors3,
+    valid: errors2.length === 0,
+    errors: errors2,
     warnings
   };
 }
@@ -11065,28 +11084,28 @@ var StrategySpecSchema = exports_external.object({
   last_updated: exports_external.string().optional()
 });
 function validateStrategySpec(content) {
-  const errors3 = [];
+  const errors2 = [];
   const warnings = [];
   try {
     const frontMatter = parseFrontMatter(content);
     const result = StrategySpecSchema.safeParse(frontMatter);
     if (!result.success) {
       result.error.errors.forEach((err) => {
-        errors3.push(`Field validation error: ${err.path.join(".")} - ${err.message}`);
+        errors2.push(`Field validation error: ${err.path.join(".")} - ${err.message}`);
       });
     }
     if (!frontMatter.spec_name) {
-      errors3.push("Missing required field: spec_name");
+      errors2.push("Missing required field: spec_name");
     }
     if (!frontMatter.spec_type) {
-      errors3.push("Missing required field: spec_type");
+      errors2.push("Missing required field: spec_type");
     }
   } catch (error) {
-    errors3.push(`Failed to parse YAML front matter: ${error}`);
+    errors2.push(`Failed to parse YAML front matter: ${error}`);
   }
   return {
-    valid: errors3.length === 0,
-    errors: errors3,
+    valid: errors2.length === 0,
+    errors: errors2,
     warnings
   };
 }
@@ -11099,28 +11118,28 @@ var InteractionSpecSchema = exports_external.object({
   last_updated: exports_external.string().optional()
 });
 function validateInteractionSpec(content) {
-  const errors3 = [];
+  const errors2 = [];
   const warnings = [];
   try {
     const frontMatter = parseFrontMatter(content);
     const result = InteractionSpecSchema.safeParse(frontMatter);
     if (!result.success) {
       result.error.errors.forEach((err) => {
-        errors3.push(`Field validation error: ${err.path.join(".")} - ${err.message}`);
+        errors2.push(`Field validation error: ${err.path.join(".")} - ${err.message}`);
       });
     }
     if (!frontMatter.spec_name) {
-      errors3.push("Missing required field: spec_name");
+      errors2.push("Missing required field: spec_name");
     }
     if (!frontMatter.spec_type) {
-      errors3.push("Missing required field: spec_type");
+      errors2.push("Missing required field: spec_type");
     }
   } catch (error) {
-    errors3.push(`Failed to parse YAML front matter: ${error}`);
+    errors2.push(`Failed to parse YAML front matter: ${error}`);
   }
   return {
-    valid: errors3.length === 0,
-    errors: errors3,
+    valid: errors2.length === 0,
+    errors: errors2,
     warnings
   };
 }
@@ -11133,28 +11152,28 @@ var OpsSpecSchema = exports_external.object({
   last_updated: exports_external.string().optional()
 });
 function validateOpsSpec(content) {
-  const errors3 = [];
+  const errors2 = [];
   const warnings = [];
   try {
     const frontMatter = parseFrontMatter(content);
     const result = OpsSpecSchema.safeParse(frontMatter);
     if (!result.success) {
       result.error.errors.forEach((err) => {
-        errors3.push(`Field validation error: ${err.path.join(".")} - ${err.message}`);
+        errors2.push(`Field validation error: ${err.path.join(".")} - ${err.message}`);
       });
     }
     if (!frontMatter.spec_name) {
-      errors3.push("Missing required field: spec_name");
+      errors2.push("Missing required field: spec_name");
     }
     if (!frontMatter.spec_type) {
-      errors3.push("Missing required field: spec_type");
+      errors2.push("Missing required field: spec_type");
     }
   } catch (error) {
-    errors3.push(`Failed to parse YAML front matter: ${error}`);
+    errors2.push(`Failed to parse YAML front matter: ${error}`);
   }
   return {
-    valid: errors3.length === 0,
-    errors: errors3,
+    valid: errors2.length === 0,
+    errors: errors2,
     warnings
   };
 }
