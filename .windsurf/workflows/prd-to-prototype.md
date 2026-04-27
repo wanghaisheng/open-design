@@ -879,6 +879,51 @@ project/
 
 ---
 
+## 游戏开发应用
+
+### 游戏开发技能映射
+
+对于游戏开发项目，Open Design技能需要映射到游戏开发特定的技能：
+
+| Open Design Skill | 游戏开发Skill | 用途 |
+|-----------------|---------------|------|
+| user-persona | game-user-persona | 游戏用户画像 |
+| journey-map | player-journey-map | 玩家体验旅程 |
+| design-principles | game-design-principles | 游戏设计原则 |
+| problem-framing | game-problem-framing | 游戏问题框架 |
+| design-tokens | game-design-tokens | 游戏设计令牌 |
+| layout-grid | game-ui-layout | 游戏UI布局 |
+| color-system | game-color-system | 游戏色彩系统 |
+| typography-scale | game-typography | 游戏排版系统 |
+| state-machine | game-state-machine | 游戏状态机 |
+| component-spec | game-component-spec | 游戏组件规格 |
+| accessibility | game-accessibility | 游戏无障碍 |
+| theming | game-theming | 游戏主题系统 |
+
+### 游戏开发工作流
+
+游戏开发采用RAMS Game框架的七阶段管道编排：
+
+```
+Visual Target → Decomposition → Architecture → Asset Generation → Task Execution → Visual QA → Orchestration
+```
+
+详见 [game-development-workflow.md](./game-development-workflow.md)
+
+### 游戏开发PRD到Prototype
+
+对于游戏开发项目，推荐使用专门的游戏开发PRD到Prototype流程：
+
+详见 [game-prd-to-mvp.md](./game-prd-to-mvp.md)
+
+### 游戏开发角色召集
+
+游戏开发使用多角色协作架构（40-50个专业角色）：
+
+详见 [game-requirement-to-task.md](./game-requirement-to-task.md)
+
+---
+
 ## 总结
 
 从PRD到Prototype的完整路径：
@@ -892,5 +937,10 @@ project/
 7. **原型阶段**：快速验证（web-html-prototype, app-html-prototype）
 8. **开发阶段**：生产应用（web-monorepo-react, app-monorepo-react-pwa）
 9. **运营阶段**：管理流程（design-critique, handoff-spec）
+
+**游戏开发专用流程**：
+- 使用 [game-development-workflow.md](./game-development-workflow.md) 进行游戏开发
+- 使用 [game-prd-to-mvp.md](./game-prd-to-mvp.md) 从游戏PRD到MVP
+- 使用 [game-requirement-to-task.md](./game-requirement-to-task.md) 进行游戏开发角色召集
 
 核心原则：**迭代验证、渐进增强、文档驱动、技能组合**。
