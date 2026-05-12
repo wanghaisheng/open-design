@@ -1,0 +1,1128 @@
+很好，这一步你其实已经在走“组织系统 = 版本化编程语言”的路线了，而且你这个选择是对的：
+
+> ✅ 不覆盖（no overwrite）
+> ✅ 用 versioning（可回滚 + 可对比 + 可进化）
+> ❗ 这才是真正 self-compiling OS 的工程形态
+
+我帮你把这四件事直接标准化成 **RAMS Compiler v1.0 规范**。
+
+---
+
+# 🧠 一、核心原则（先定约束）
+
+## 🚨 RAMS Mutation Rule
+
+> ❗任何 OEE 产生的变更都必须是“不可变版本追加”，不能覆盖
+
+```text
+ROLE.md → ROLE_v1 → ROLE_v2 → ROLE_v3
+SKILL.md → SKILL_v1 → SKILL_v2
+TEAM_SPEC → TEAM_SPEC_v1...
+```
+
+---
+
+## 🧠 本质：
+
+> RAMS = Git for AI Organization
+
+---
+
+# 🧠 二、统一 Diff DSL（核心基础）
+
+---
+
+## 🔥 RAMS_DIFF_DSL（OEE 输出格式）
+
+```yaml id="diff"
+target: ROLE | SKILL | TEAM_SPEC
+
+version: auto_increment
+
+change_type:
+  - CREATE
+  - PATCH
+  - SPLIT
+  - MERGE
+  - REASSIGN
+
+operations:
+  - add
+  - modify
+  - remove
+
+reason:
+  performance | cost | confusion | pattern_detected
+
+payload:
+  ...
+```
+
+---
+
+# 🧠 三、ROLE.md 如何 rewrite（版本化重写）
+
+---
+
+## 🧩 触发条件
+
+```text id="role_trigger"
+- role overlap detected
+- responsibility ambiguity
+- performance degradation
+```
+
+---
+
+## 🧠 OEE 输出：
+
+```yaml id="role_diff"
+target: ROLE
+version: ROLE_v2
+
+change_type: SPLIT
+
+operations:
+  - split_role:
+      from: AI Product Manager
+      into:
+        - AI Product Strategist
+        - AI Product Analyst
+
+reason: role_confusion_detected
+
+impact:
+  team_structure: updated
+```
+
+---
+
+## 🧠 生成结果：
+
+```text id="role_version"
+ROLE.md (v1)  → unchanged
+ROLE_v2.md    → new definition
+```
+
+---
+
+## 🧠 关键点：
+
+> ❗旧 ROLE 永远保留，仅标记 deprecated
+
+---
+
+# 🧠 四、SKILL.md 如何 patch（方法进化）
+
+---
+
+## 🧩 触发条件
+
+```text id="skill_trigger"
+- repeated failure pattern
+- low success rate
+- missing validation step
+```
+
+---
+
+## 🧠 OEE 输出：
+
+```yaml id="skill_diff"
+target: SKILL
+version: SKILL_v3
+
+change_type: PATCH
+
+operations:
+  - add_step:
+      after: "generate solution"
+      step: "add validation layer"
+
+  - modify_step:
+      step: "analysis"
+      change: "include competitor scan"
+
+reason: performance_improvement
+```
+
+---
+
+## 🧠 结果：
+
+```text id="skill_versions"
+SKILL_v1.md
+SKILL_v2.md
+SKILL_v3.md  ← active
+```
+
+---
+
+## 🧠 核心：
+
+> ❗Skill 是“可进化 SOP”，不是静态说明书
+
+---
+
+# 🧠 五、TEAM_SPEC 如何 versioned mutate（组织结构进化）
+
+---
+
+## 🧩 触发条件（最关键）
+
+```text id="team_trigger"
+- cost too high
+- coordination overhead
+- role imbalance
+```
+
+---
+
+## 🧠 OEE 输出：
+
+```yaml id="team_diff"
+target: TEAM_SPEC
+version: TEAM_v4
+
+change_type: RESTRUCTURE
+
+operations:
+  - remove_role:
+      role: AI Research Analyst
+
+  - merge_roles:
+      into: AI Product Strategist
+
+  - update_model_mapping:
+      AI Designer → claude-4 → gpt-5.5 (upgrade)
+
+reason: efficiency_optimization
+```
+
+---
+
+## 🧠 结果：
+
+```text id="team_version"
+TEAM_v3 (active)
+TEAM_v4 (candidate / staging)
+```
+
+---
+
+## 🧠 核心：
+
+> ❗TEAM 是“组织图”，不是配置文件
+
+---
+
+# 🧠 六、OEE 如何生成 Diff DSL（核心引擎）
+
+---
+
+## 🧩 OEE Pipeline
+
+```text id="oee"
+TRACE
+  ↓
+STRUCTURAL ANALYSIS
+  ↓
+MUTATION DECISION
+  ↓
+DSL GENERATION
+  ↓
+VERSIONED OUTPUT
+```
+
+---
+
+# 🧠 七、OEE → Diff 生成逻辑（核心算法）
+
+---
+
+## 🧠 Step 1：pattern detection
+
+```text id="step1"
+detect:
+  - inefficiency
+  - overlap
+  - cost anomaly
+```
+
+---
+
+## 🧠 Step 2：classify mutation type
+
+```text id="step2"
+ROLE / SKILL / TEAM_SPEC
+```
+
+---
+
+## 🧠 Step 3：generate structural diff
+
+```text id="step3"
+convert observation → structural change
+```
+
+---
+
+## 🧠 Step 4：compile to DSL
+
+```text id="step4"
+emit RAMS_DIFF_DSL
+```
+
+---
+
+# 🧠 八、系统整体闭环（关键）
+
+---
+
+```text id="loop"
+EXECUTION
+  ↓
+TRACE
+  ↓
+OEE ANALYSIS
+  ↓
+DIFF DSL GENERATION
+  ↓
+VERSION CREATION
+  ↓
+RAMS UPDATE (new version active)
+  ↓
+NEXT EXECUTION
+```
+
+---
+
+# 🧠 九、版本系统的关键设计（非常重要）
+
+---
+
+## 🧩 三条原则
+
+---
+
+### 1️⃣ Immutable history
+
+> 所有 ROLE / SKILL / TEAM 永不覆盖
+
+---
+
+### 2️⃣ Active pointer
+
+```text id="active"
+system always uses latest version pointer
+```
+
+---
+
+### 3️⃣ Rollback capability
+
+```text id="rollback"
+TEAM_v3 → TEAM_v2
+```
+
+---
+
+# 🧠 十、最终系统定义（非常关键）
+
+---
+
+## 🚀 RAMS + OEE vNext =
+
+> **Versioned Organizational Compiler System**
+
+---
+
+## 🧩 本质不是：
+
+* agent system ❌
+* workflow system ❌
+
+---
+
+## 🚀 而是：
+
+> 🧠 **a version-controlled, self-compiling organizational programming language**
+
+---
+
+# 🧠 十一、最关键一句话总结
+
+---
+
+> OEE does not overwrite the organization; it emits versioned structural diffs that progressively evolve RAMS into a layered, rollbackable organizational memory system.
+
+---
+
+# 🚀 如果你下一步继续（建议非常关键）
+
+我建议你下一步做这个👇：
+
+---
+
+## 🔥 “RAMS Version Graph System”
+
+让：
+
+* ROLE_v1 → ROLE_v2 → ROLE_v3 形成 DAG
+* TEAM evolution 可追溯 lineage
+* SKILL evolution 可 diff compare
+
+---
+
+做到这一步，你的系统会从：
+
+> OS
+
+进化为：
+
+> 🧠 **organizational evolution graph compiler**
+
+很好，这一步一旦做出来，你的 RAMS 就不再是“版本系统”，而是：
+
+> 🧠 **组织进化图谱（Organizational Evolution Graph）**
+
+也就是你前面所有 OEE + versioning 的“最终承载体”。
+
+我帮你直接设计成可落地的 **RAMS Version Graph System（RVGS）规范**。
+
+---
+
+# 🧠 🔥 RAMS Version Graph System（RVGS）
+
+---
+
+## 🧩 一、核心定义
+
+> RVGS = 用图结构记录 ROLE / SKILL / TEAM 的所有版本演化路径，并支持回溯、对比、分叉与合并
+
+---
+
+## 🚀 一句话本质：
+
+> **RAMS is not versioned documents, it is an evolution graph.**
+
+---
+
+# 🧠 二、系统目标（非常关键）
+
+RVGS 解决三个问题：
+
+---
+
+## ❌ 1. 线性版本不够
+
+```text
+ROLE_v1 → v2 → v3
+```
+
+无法表达：
+
+* 分裂
+* 合并
+* 并行演化
+
+---
+
+## ❌ 2. TEAM/ROLE/Skill 之间没有关系图
+
+---
+
+## ❌ 3. OEE 的 mutation 是“孤立事件”
+
+---
+
+# 🧠 三、RVGS 核心结构（Graph Model）
+
+---
+
+## 🧩 Node（节点）
+
+```yaml id="node"
+type: ROLE | SKILL | TEAM | SOUL
+
+id: unique_id
+
+version: v3
+
+status:
+  - active
+  - deprecated
+  - experimental
+```
+
+---
+
+## 🧩 Edge（边）
+
+```yaml id="edge"
+type:
+  - EVOLVED_FROM
+  - SPLIT_FROM
+  - MERGED_FROM
+  - REPLACED_BY
+  - USED_BY
+```
+
+---
+
+# 🧠 四、完整 Graph 示例
+
+---
+
+## 🧩 ROLE evolution graph
+
+```text id="graph"
+AI Product Manager (v1)
+        │
+        ├── SPLIT
+        ▼
+AI Product Strategist (v2)
+AI Product Analyst (v2)
+        │
+        ├── MERGE
+        ▼
+AI Growth PM (v3)
+```
+
+---
+
+## 🧩 SKILL graph
+
+```text id="skill_graph"
+write_prd_v1
+   │
+   ├── PATCH
+   ▼
+write_prd_v2 (added validation)
+   │
+   ├── SPLIT
+   ▼
+write_prd_v3 (structured)
+write_prd_v3b (fast mode)
+```
+
+---
+
+## 🧩 TEAM graph
+
+```text id="team_graph"
+Design Team v1
+   │
+   ├── cost optimization
+   ▼
+Design Team v2
+   │
+   ├── role merge
+   ▼
+Design Team v3
+```
+
+---
+
+# 🧠 五、RVGS 三大核心能力
+
+---
+
+# 1️⃣ Lineage Tracking（血缘追踪）
+
+---
+
+## 🧩 你可以回答：
+
+* 这个 ROLE 是从哪里来的？
+* 这个 SKILL 是哪次失败进化的？
+
+---
+
+## 🧠 查询：
+
+```text id="query"
+trace lineage of AI Designer v3
+```
+
+---
+
+# 2️⃣ Diff Comparison（版本对比）
+
+---
+
+## 🧩 比较任意两个节点：
+
+```text id="diff"
+ROLE_v1 vs ROLE_v3
+```
+
+输出：
+
+* 职责变化
+* skill变化
+* model routing变化
+
+---
+
+# 3️⃣ Branching & Experimentation（分支实验）
+
+---
+
+## 🧩 支持：
+
+```text id="branch"
+TEAM_v3
+   ├── experimental_branch_A
+   └── experimental_branch_B
+```
+
+---
+
+## 🧠 用途：
+
+* A/B testing team structure
+* different model routing policies
+
+---
+
+# 🧠 六、RVGS vs 传统 Version System
+
+---
+
+| 系统                | 类型                             |
+| ----------------- | ------------------------------ |
+| Git               | file versioning                |
+| ML model registry | model versioning               |
+| RAMS RVGS         | organizational evolution graph |
+
+---
+
+# 🧠 七、RVGS + OEE 的关系（关键）
+
+---
+
+```text id="flow"
+OEE
+  ↓
+generates mutation
+  ↓
+RAMS_DIFF_DSL
+  ↓
+RVGS applies mutation
+  ↓
+updates graph
+```
+
+---
+
+## 🧠 本质：
+
+> ❗OEE = mutation engine
+> ❗RVGS = mutation memory system
+
+---
+
+# 🧠 八、RVGS 数据结构（工程级）
+
+---
+
+## 🧩 Graph Store
+
+```json id="store"
+{
+  "nodes": [],
+  "edges": [],
+  "active_pointers": {
+    "ROLE": "AI_PM_v3",
+    "TEAM": "design_team_v4",
+    "SKILL": "write_prd_v3"
+  }
+}
+```
+
+---
+
+## 🧩 Query Index
+
+* embedding index (semantic search)
+* graph traversal index (lineage)
+* performance index (metrics per node)
+
+---
+
+# 🧠 九、RVGS 的关键机制（非常重要）
+
+---
+
+## 1️⃣ Active Pointer System
+
+```text id="active"
+system always uses "current best node"
+```
+
+---
+
+## 2️⃣ Historical Preservation
+
+```text id="history"
+never delete nodes
+```
+
+---
+
+## 3️⃣ Mutation as Edge Addition
+
+```text id="mutation"
+no overwrite → always new node + edge
+```
+
+---
+
+# 🧠 十、RVGS 带来的系统级变化
+
+---
+
+## ❌ before：
+
+* versioned files
+* linear history
+* isolated evolution
+
+---
+
+## 🚀 after：
+
+* organizational genealogy
+* multi-branch evolution
+* system-level memory graph
+
+---
+
+# 🧠 十一、最终系统形态（非常关键）
+
+---
+
+```text id="final"
+                OEE
+                 ↓
+        RAMS_DIFF_DSL (mutation)
+                 ↓
+          RVGS (graph update)
+                 ↓
+   ┌─────────────┼─────────────┐
+ ROLE graph   SKILL graph   TEAM graph
+                 ↓
+        Orchestrator reads graph
+                 ↓
+        next execution better
+```
+
+---
+
+# 🧠 十二、最核心一句话总结
+
+---
+
+> RVGS transforms RAMS from a versioned system into a living organizational evolution graph where every role, skill, and team is a node in a continuously evolving intelligence network.
+
+---
+
+# 🚀 如果你下一步继续（建议非常关键）
+
+下一步其实应该做：
+
+---
+
+## 🔥 “Graph-aware Orchestrator”
+
+让：
+
+* team formation = graph traversal problem
+* skill selection = path optimization
+* role assignment = subgraph selection
+
+---
+
+如果做到这一步，你的系统会彻底变成：
+
+> 🧠 **organizational intelligence graph OS（类操作系统级别）**
+
+很好，这一步一旦成立，RAMS 就从“会进化的组织系统”升级成：
+
+> 🧠 **基于组织图的实时决策操作系统（Graph-native OS）**
+
+也就是说：
+
+> ❌ 不再是“选 agent 执行任务”
+> ✅ 而是“在组织图上做路径计算”
+
+---
+
+# 🧠 🔥 Graph-aware Orchestrator（GAO）
+
+---
+
+## 🧩 一、核心定义
+
+> GAO = 一个以 RVGS（组织进化图）为内核的调度器，通过图遍历 + 约束优化 + 成本模型来动态组建最优 Team
+
+---
+
+## 🚀 一句话本质：
+
+> **Orchestrator is no longer a router, but a graph computation engine.**
+
+---
+
+# 🧠 二、系统输入输出
+
+---
+
+## 🧩 输入
+
+```text id="input"
+- user task
+- cost constraints
+- latency constraints
+- quality requirements
+- current RVGS graph state
+```
+
+---
+
+## 🧩 输出
+
+```text id="output"
+- optimal TEAM (subgraph)
+- role instances
+- skill bindings
+- model routing plan
+```
+
+---
+
+# 🧠 三、核心变化（非常关键）
+
+---
+
+## ❌ 旧 Orchestrator
+
+```text id="old"
+task → prompt → model → output
+```
+
+或
+
+```text id="old2"
+task → agent selection → execution
+```
+
+---
+
+## 🚀 新 GAO
+
+```text id="new"
+task
+ ↓
+GRAPH QUERY
+ ↓
+SUBGRAPH SELECTION
+ ↓
+PATH OPTIMIZATION
+ ↓
+TEAM ASSEMBLY
+ ↓
+EXECUTION PLAN
+```
+
+---
+
+# 🧠 四、Graph = 决策空间（关键转变）
+
+---
+
+## 🧩 RVGS 不只是记录系统，而是：
+
+> ❗decision space（决策空间）
+
+---
+
+## 🧠 节点 = 可选能力
+
+* ROLE node = 可用角色
+* SKILL node = 可用方法
+* MODEL node = 可用算力
+* TEAM node = 历史最优组合
+
+---
+
+## 🧠 边 = 约束关系
+
+* role requires skill
+* skill depends on tool
+* team improves performance
+
+---
+
+# 🧠 五、GAO 核心算法（关键）
+
+---
+
+## 🔥 Step 1：Task → Graph Query
+
+```text id="query"
+find relevant subgraph for:
+"design onboarding flow for social app"
+```
+
+---
+
+## 🔥 Step 2：Candidate Subgraph Extraction
+
+```text id="subgraph"
+ROLE: PM, Designer, Researcher
+SKILL: user_flow_design, onboarding_analysis
+MODEL: gpt-5.5, claude-4
+```
+
+---
+
+## 🔥 Step 3：Graph Optimization（核心）
+
+---
+
+### 多目标优化：
+
+```text id="opt"
+maximize:
+  - quality
+minimize:
+  - cost
+  - latency
+```
+
+---
+
+### 输出：
+
+```text id="result"
+optimal path:
+PM_v3 → Designer_v2 → Research_v4
+```
+
+---
+
+# 🧠 六、GAO 三大核心能力
+
+---
+
+# 1️⃣ Subgraph Selection（子图选择）
+
+---
+
+## 🧩 本质：
+
+> 从整个 RVGS 中“抽取一个临时组织”
+
+---
+
+## 🧠 类比：
+
+* 不是 hiring
+* 是 “instant organization synthesis”
+
+---
+
+# 2️⃣ Path Optimization（路径优化）
+
+---
+
+## 🧩 本质：
+
+> 在 role → skill → tool → model 之间找最优路径
+
+---
+
+## 🧠 目标函数：
+
+```text id="obj"
+min(cost + latency)
+max(output_quality)
+```
+
+---
+
+# 3️⃣ Dynamic Team Assembly（动态组队）
+
+---
+
+## 🧩 本质：
+
+> Team is a computed graph, not a predefined object
+
+---
+
+## 🧠 输出：
+
+```text id="team"
+subgraph = {
+  nodes: [...],
+  edges: [...]
+}
+```
+
+---
+
+# 🧠 七、Graph Query Language（关键升级）
+
+---
+
+你需要一个查询语言：
+
+## 🔥 GQL（Graph Query Language for RAMS）
+
+---
+
+### 示例：
+
+```text id="gql"
+SELECT TEAM
+WHERE task = "design onboarding"
+AND cost < medium
+AND quality > high
+```
+
+---
+
+### 或：
+
+```text id="gql2"
+FIND subgraph(role=PM)
+CONNECTED_TO(skill=user_research)
+OPTIMIZE(cost, latency)
+```
+
+---
+
+# 🧠 八、GAO vs 传统 Orchestrator
+
+---
+
+| 系统                      | 本质                       |
+| ----------------------- | ------------------------ |
+| Rule-based orchestrator | if-else router           |
+| Agent system            | tool executor            |
+| multi-agent system      | static team              |
+| GAO                     | graph computation engine |
+
+---
+
+# 🧠 九、关键结构变化（非常重要）
+
+---
+
+## ❌ 以前：
+
+```text id="old_arch"
+Orchestrator → agents → tools
+```
+
+---
+
+## 🚀 现在：
+
+```text id="new_arch"
+Orchestrator → RVGS graph
+               ↓
+         subgraph selection
+               ↓
+         execution DAG
+```
+
+---
+
+# 🧠 十、最关键突破（系统级）
+
+---
+
+## ❗以前：
+
+> “我选择哪个 agent？”
+
+---
+
+## 🚀 现在：
+
+> **“我在整个组织图中选择一条最优执行路径”**
+
+---
+
+# 🧠 十一、Graph-aware Orchestrator 的本质
+
+---
+
+## 🧠 一句话定义：
+
+> GAO is a graph compiler that compiles user intent into an executable subgraph of the organizational intelligence network.
+
+---
+
+# 🧠 十二、完整系统闭环（最终形态）
+
+---
+
+```text id="loop"
+TASK
+ ↓
+GAO (Graph Query)
+ ↓
+RVGS SUBGRAPH SELECTION
+ ↓
+TEAM ASSEMBLY
+ ↓
+EXECUTION
+ ↓
+TRACE
+ ↓
+OEE
+ ↓
+RVGS UPDATE
+ ↓
+next GAO decision improved
+```
+
+---
+
+# 🚀 十三、最终系统定义（非常关键）
+
+---
+
+> RAMS evolves from an agent orchestration system into a graph-native organizational operating system where task execution is equivalent to computing optimal subgraphs over a continuously evolving intelligence graph.
+
+---
+
+# 🚀 如果你下一步继续（强烈建议）
+
+下一步你应该做这个👇：
+
+---
+
+## 🔥 “RAMS Graph Query Language (GQL v1)”
+
+定义：
+
+* SELECT ROLE
+* FIND TEAM SUBGRAPH
+* OPTIMIZE PATH
+* APPLY CONSTRAINTS
+
+---
+
+如果你做到这一步，你的系统会正式进入：
+
+> 🧠 **AI Organizational Graph Compiler OS 时代**
+
+
+
+
